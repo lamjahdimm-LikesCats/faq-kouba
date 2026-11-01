@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="driverGuide.pageTitle">دليل السائق – كوبا</title>
+    <!--
+    ──────────────────────────────────────────────────────────────
+    THEME — ROSS palette (driver). Dusty rose, no orange, no blue.
+    Client pages use grey (--accent: #4b5563). Driver pages use Ross:
+        #b76e79  primary rose       (was blue in the old template)
+        #5c3438  deep rose-brown    (headings)
+        #a6747c  muted rose         (secondary text)
+        #c9a5ab  pale rose          (footer / subtle)
+        #f9f4f5  rose-tinted page   (background)
+    No orange anywhere. No amber hints.
+
+    IMAGES — this page has no embedded screenshots.
+    Screenshot numbering so far:
+        p1–p34  → client pages (complete)
+    Next driver screenshot: p35 (client-1-signup equivalent).
+
+    LOCALIZATION
+    data-i18n       → textContent
+    data-i18n-html  → innerHTML
+    data-i18n-alt   → img alt text (unused here)
+    Arabic is the fallback. Translation files:
+        i18n/en.json  → { "driverGuide.heading": "Driver Guide", … }
+        i18n/fr.json  → { "driverGuide.heading": "Guide Chauffeur", … }
+        i18n/es.json  → { "driverGuide.heading": "Guía del Conductor", … }
+    ──────────────────────────────────────────────────────────────
+    -->
+    <style>
+        :root {
+            /* Driver theme — Ross / dusty rose */
+            --accent:        #b76e79;
+            --accent-dark:   #5c3438;
+            --accent-light:  #a6747c;
+            --accent-muted:  #c9a5ab;
+            --bg-page:       #f9f4f5;
+            --bg-subtle:     #fdf8f9;
+            --bg-highlight:  #faeeee;
+            --border:        #ecdde0;
+            --border-hover:  #b76e79;
+            --shadow-hover:  rgba(183, 110, 121, 0.15);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Cairo', 'Inter', -apple-system, 'Segoe UI', sans-serif;
+            background: var(--bg-page);
+            color: #1e293b;
+            line-height: 1.75;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px 45px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--accent);
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        .back-link:hover { text-decoration: underline; }
+        h1 {
+            color: var(--accent-dark);
+            border-bottom: 3px solid var(--accent);
+            padding-bottom: 12px;
+            margin-bottom: 8px;
+            font-size: 1.9rem;
+        }
+        .subtitle {
+            font-size: 1rem;
+            color: var(--accent-light);
+            margin-bottom: 30px;
+        }
+
+        .intro-box {
+            background: var(--bg-highlight);
+            border-right: 4px solid var(--accent);
+            padding: 15px 18px;
+            border-radius: 12px;
+            margin: 0 0 30px 0;
+            font-size: 0.95rem;
+        }
+        .intro-box ul { padding-right: 22px; margin-top: 8px; }
+        .intro-box li { margin-bottom: 4px; }
+
+        /* ─── Section index ─────────────────────────────────── */
+        .section-index {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        .section-card {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 18px 22px;
+            background: var(--bg-subtle);
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+        }
+        .section-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--border-hover);
+            box-shadow: 0 10px 24px var(--shadow-hover);
+        }
+        .section-number {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.05rem;
+        }
+        .section-body {
+            flex: 1;
+        }
+        .section-title {
+            font-weight: bold;
+            color: var(--accent-dark);
+            font-size: 1.02rem;
+            margin-bottom: 2px;
+        }
+        .section-desc {
+            font-size: 0.88rem;
+            color: var(--accent-light);
+        }
+        .section-arrow {
+            flex-shrink: 0;
+            color: var(--accent);
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--accent-muted);
+        }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        @media (max-width: 700px) {
+            .container { padding: 25px 20px; }
+            h1 { font-size: 1.5rem; }
+            .section-card { padding: 14px 16px; gap: 12px; }
+            .section-number { width: 34px; height: 34px; font-size: 0.95rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a class="back-link" href="../index.html" data-i18n="driverGuide.back">→ العودة إلى جميع الأدلة</a>
+
+    <h1 data-i18n="driverGuide.heading">🚚 دليل السائق</h1>
+    <p class="subtitle" data-i18n="driverGuide.subtitle">كل ما تحتاج إلى معرفته لاستخدام تطبيق كوبا كسائق — اختر القسم الذي تريد قراءته.</p>
+
+    <div class="intro-box" data-i18n-html="driverGuide.intro">
+        <strong>قبل البدء:</strong> تأكد من أن حسابك قد تمت الموافقة عليه من قِبَل الإدارة،
+        وأن بيانات المركبة والوثائق مكتملة. ستحتاج أيضاً إلى تفعيل:
+        <ul>
+            <li><strong>الموقع الجغرافي</strong> (GPS) — لتلقي الطلبات القريبة.</li>
+            <li><strong>الإشعارات</strong> — للتنبيه عند وصول طلب جديد.</li>
+            <li><strong>Bluetooth و NFC</strong> — للتحقق الآمن من التسليم مع العميل.</li>
+        </ul>
+    </div>
+
+    <div class="section-index">
+
+        <a class="section-card" href="driver-1-signup.html">
+            <div class="section-number">1</div>
+            <div class="section-body">
+                <div class="section-title" data-i18n="driverGuide.s1.title">إنشاء حساب والتسجيل كسائق</div>
+                <div class="section-desc" data-i18n="driverGuide.s1.desc">التسجيل، تأكيد البريد، وإدخال بيانات المركبة والوثائق المطلوبة.</div>
+            </div>
+            <div class="section-arrow">←</div>
+        </a>
+
+        <a class="section-card" href="driver-2-login.html">
+            <div class="section-number">2</div>
+            <div class="section-body">
+                <div class="section-title" data-i18n="driverGuide.s2.title">تسجيل الدخول</div>
+                <div class="section-desc" data-i18n="driverGuide.s2.desc">الدخول بالبريد وكلمة المرور، البقاء مسجّلاً، واستعادة كلمة المرور.</div>
+            </div>
+            <div class="section-arrow">←</div>
+        </a>
+
+        <a class="section-card" href="driver-3-edit-profile.html">
+            <div class="section-number">3</div>
+            <div class="section-body">
+                <div class="section-title" data-i18n="driverGuide.s3.title">تعديل الملف الشخصي والمركبة</div>
+                <div class="section-desc" data-i18n="driverGuide.s3.desc">تحديث الاسم، البريد، الصورة، بيانات المركبة، والوثائق عند الحاجة.</div>
+            </div>
+            <div class="section-arrow">←</div>
+        </a>
+
+        <a class="section-card" href="driver-4-wallet.html">
+            <div class="section-number">4</div>
+            <div class="section-body">
+                <div class="section-title" data-i18n="driverGuide.s4.title">محفظة السائق والأرباح</div>
+                <div class="section-desc" data-i18n="driverGuide.s4.desc">الرصيد، شحن المحفظة بقسيمة، سجل المعاملات، والأرباح الصافية لكل توصيل.</div>
+            </div>
+            <div class="section-arrow">←</div>
+        </a>
+
+        <a class="section-card" href="driver-5-support.html">
+            <div class="section-number">5</div>
+            <div class="section-body">
+                <div class="section-title" data-i18n="driverGuide.s5.title">التواصل مع الدعم</div>
+                <div class="section-desc" data-i18n="driverGuide.s5.desc">فتح تذكرة دعم ومتابعة الردود حتى إغلاقها.</div>
+            </div>
+            <div class="section-arrow">←</div>
+        </a>
+
+        <a class="section-card" href="driver-6-accept-deliver.html">
+            <div class="section-number">6</div>
+            <div class="section-body">
+                <div class="section-title" data-i18n="driverGuide.s6.title">استقبال الطلبات والتوصيل</div>
+                <div class="section-desc" data-i18n="driverGuide.s6.desc">
+                    تنبيه الطلب، القبول أو الرفض، الملاحة إلى العميل، التحقق عبر Bluetooth / NFC،
+                    تأكيد التسليم — مع دعم عدة توصيلات في وقت واحد.
+                </div>
+            </div>
+            <div class="section-arrow">←</div>
+        </a>
+
+        <a class="section-card" href="driver-7-history.html">
+            <div class="section-number">7</div>
+            <div class="section-body">
+                <div class="section-title" data-i18n="driverGuide.s7.title">سجل التوصيلات والأداء</div>
+                <div class="section-desc" data-i18n="driverGuide.s7.desc">
+                    مراجعة التوصيلات السابقة، التقييمات المستقبَلة، الأداء العام، والمكافآت — بالإضافة
+                    إلى الشاشة الرئيسية وحالاتها.
+                </div>
+            </div>
+            <div class="section-arrow">←</div>
+        </a>
+
+    </div>
+
+    <div class="footer">
+        <span data-i18n="driverGuide.footer.copyright">© 2026 كوبا العيون – جميع الحقوق محفوظة</span><br>
+        <a href="https://legal.kouba.site/privacy-ar" data-i18n="driverGuide.footer.privacy">سياسة الخصوصية</a>
+        &nbsp;•&nbsp;
+        <a href="https://legal.kouba.site/terms-ar" data-i18n="driverGuide.footer.terms">شروط الخدمة</a>
+    </div>
+</div>
+
+<!--
+    OPTIONAL I18N LOADER
+    Reads ?lang=fr|en|es from the URL, fetches i18n/<lang>.json,
+    and swaps [data-i18n], [data-i18n-html], [data-i18n-alt].
+    Failures are swallowed — Arabic fallback stays visible.
+-->
+<script>
+(function () {
+    try {
+        var lang = new URLSearchParams(location.search).get('lang');
+        if (!lang || lang === 'ar') return;
+        fetch('i18n/' + lang + '.json')
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (t) {
+                if (!t) return;
+                document.querySelectorAll('[data-i18n]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n')];
+                    if (v != null) el.textContent = v;
+                });
+                document.querySelectorAll('[data-i18n-html]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n-html')];
+                    if (v != null) el.innerHTML = v;
+                });
+                document.querySelectorAll('[data-i18n-alt]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n-alt')];
+                    if (v != null) el.alt = v;
+                });
+            })
+            .catch(function () {});
+    } catch (e) {}
+})();
+</script>
+</body>
+</html>

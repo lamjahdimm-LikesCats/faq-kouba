@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="clientHistory.pageTitle">سجل الطلبات والشاشة الرئيسية – كوبا</title>
+    <!--
+    ──────────────────────────────────────────────────────────────
+    THEME — grey palette (client). No orange.
+    .callout-warn     → stone grey
+    .chip-matching    → slate-700 (was orange)
+    .chip-active      → slate-500 (was blue)
+    .mock-banner-warn → stone
+    .mock-banner-info → var(--bg-highlight) (was light blue)
+    .mock-rating      → neutral stone card with GOLD stars (#ca8a04)
+    .mock-rate-prompt → neutral stone card
+    Semantic green / red kept (status colors, not theme).
+
+    IMAGES — extension-less src, folder: screenshots/
+        p28  full home screen
+        p29  location card + mini map
+        p30  disabled-request card with reasons
+        p31  archived account screen
+        p32  notification cards
+        p33  history list
+        p34  empty state
+    Previous pages: p1–p27.
+
+    LOCALIZATION
+    data-i18n / data-i18n-html / data-i18n-alt
+    Arabic is fallback. i18n/en.json, fr.json, es.json.
+    ──────────────────────────────────────────────────────────────
+    -->
+    <style>
+        :root {
+            --accent:        #4b5563;
+            --accent-dark:   #1f2937;
+            --accent-light:  #6b7280;
+            --accent-muted:  #9ca3af;
+            --bg-page:       #f3f4f6;
+            --bg-subtle:     #f9fafb;
+            --bg-highlight:  #f3f4f6;
+            --border:        #e5e7eb;
+            --border-hover:  #4b5563;
+            --shadow-hover:  rgba(75, 85, 99, 0.12);
+            --warn-bg:       #f5f5f4;
+            --warn-border:   #57534e;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Cairo', 'Inter', -apple-system, 'Segoe UI', sans-serif;
+            background: var(--bg-page);
+            color: #1e293b;
+            line-height: 1.75;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px 45px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--accent);
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        .back-link:hover { text-decoration: underline; }
+        h1 {
+            color: var(--accent-dark);
+            border-bottom: 3px solid var(--accent);
+            padding-bottom: 12px;
+            margin-bottom: 8px;
+            font-size: 1.9rem;
+        }
+        .subtitle {
+            font-size: 1rem;
+            color: var(--accent-light);
+            margin-bottom: 30px;
+        }
+
+        .intro-box {
+            background: var(--bg-highlight);
+            border-right: 4px solid var(--accent);
+            padding: 15px 18px;
+            border-radius: 12px;
+            margin: 0 0 30px 0;
+            font-size: 0.95rem;
+        }
+        .intro-box ul { padding-right: 22px; margin-top: 8px; }
+        .intro-box li { margin-bottom: 4px; }
+
+        /* ─── Steps ─────────────────────────────────────────── */
+        .step {
+            display: flex;
+            gap: 18px;
+            margin-bottom: 28px;
+            align-items: flex-start;
+        }
+        .step-number {
+            flex-shrink: 0;
+            width: 38px;
+            height: 38px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 2px;
+        }
+        .step-body { flex: 1; }
+        .step-title {
+            font-weight: bold;
+            color: var(--accent-dark);
+            font-size: 1.08rem;
+            margin-bottom: 6px;
+        }
+        .step-desc {
+            font-size: 0.95rem;
+            color: #334155;
+        }
+        .step-desc ul {
+            padding-right: 22px;
+            margin-top: 8px;
+        }
+        .step-desc li { margin-bottom: 6px; }
+
+        /* ─── Screenshot slot ───────────────────────────────── */
+        .screenshot-slot {
+            margin: 14px 0 4px;
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            background: var(--bg-subtle);
+            padding: 8px;
+            text-align: center;
+        }
+        .screenshot-slot img {
+            width: 100%;
+            display: block;
+            border-radius: 8px;
+            color: var(--accent-muted);
+            font-size: 0.8rem;
+            min-height: 120px;
+        }
+
+        /* ─── Field table ───────────────────────────────────── */
+        .field-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0 6px;
+            font-size: 0.9rem;
+        }
+        .field-table th,
+        .field-table td {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            text-align: right;
+        }
+        .field-table th {
+            background: #f1f5f9;
+            color: var(--accent-dark);
+            font-weight: bold;
+        }
+        .field-table tr:nth-child(even) td { background: #fafafa; }
+
+        /* ─── Callouts ──────────────────────────────────────── */
+        .callout {
+            display: flex;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            margin: 16px 0;
+            font-size: 0.92rem;
+            align-items: flex-start;
+        }
+        .callout-icon { flex-shrink: 0; font-size: 1.15rem; margin-top: 1px; }
+        .callout-body { flex: 1; }
+        .callout-warn   { background: var(--warn-bg); border-right: 4px solid var(--warn-border); }
+        .callout-danger { background: #fef2f2; border-right: 4px solid #ef4444; }
+        .callout-info   { background: var(--bg-highlight); border-right: 4px solid var(--accent); }
+        .callout-success{ background: #f0fdf4; border-right: 4px solid #22c55e; }
+        .callout strong { color: var(--accent-dark); }
+
+        /* ─── Stats grid mock ──────────────────────────────── */
+        .mock-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin: 12px 0;
+        }
+        .mock-stat {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            text-align: center;
+        }
+        .mock-stat .icon {
+            font-size: 1.3rem;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .mock-stat .value {
+            font-size: 1.15rem;
+            font-weight: bold;
+            color: var(--accent-dark);
+        }
+        .mock-stat .label {
+            font-size: 0.75rem;
+            color: var(--accent-light);
+            margin-top: 2px;
+        }
+
+        /* ─── Status chips ────────────────────────────────── */
+        .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+        .chip-active    { background: #64748b; color: white; }   /* slate-500 */
+        .chip-arrived   { background: #22c55e; color: white; }
+        .chip-completed { background: #22c55e; color: white; }
+        .chip-cancelled { background: #ef4444; color: white; }
+        .chip-expired   { background: #94a3b8; color: white; }
+        .chip-matching  { background: #334155; color: white; }   /* slate-700 */
+
+        /* ─── History tile mock ───────────────────────────── */
+        .mock-tile {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            margin: 10px 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            font-size: 0.88rem;
+        }
+        .mock-tile-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .mock-tile-body {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .mock-tile-left { flex: 2; }
+        .mock-tile-right { flex: 1; text-align: left; }
+        .mock-tile-title {
+            font-weight: bold;
+            color: var(--accent-dark);
+            font-size: 0.95rem;
+        }
+        .mock-tile-meta {
+            color: var(--accent-light);
+            font-size: 0.8rem;
+        }
+        .mock-tile-price {
+            color: #16a34a;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+        .mock-tile-net {
+            color: var(--accent-muted);
+            font-size: 0.75rem;
+        }
+        .mock-tile-date {
+            color: #cbd5e1;
+            font-size: 0.72rem;
+            margin-top: 8px;
+        }
+
+        /* ─── Rating mock ──────────────────────────────────── */
+        .mock-rating {
+            background: var(--bg-subtle);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-top: 10px;
+            font-size: 0.82rem;
+        }
+        .mock-rating .stars { color: #ca8a04; letter-spacing: 2px; }
+        .mock-rate-prompt {
+            background: var(--bg-subtle);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--accent-dark);
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        /* ─── Banner mock ─────────────────────────────────── */
+        .mock-banner {
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.88rem;
+            font-weight: 500;
+        }
+        .mock-banner-warn   { background: var(--warn-bg); border: 1px solid var(--warn-border); color: var(--accent-dark); }
+        .mock-banner-danger { background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; }
+        .mock-banner-info   { background: var(--bg-highlight); border: 1px solid var(--border); color: var(--accent-dark); }
+        .mock-banner-icon { font-size: 1.15rem; flex-shrink: 0; }
+
+        .section-title {
+            color: var(--accent-dark);
+            font-size: 1.25rem;
+            margin: 34px 0 14px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--accent-muted);
+        }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        .next-prev {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: var(--bg-subtle);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--accent-dark);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .nav-btn:hover {
+            border-color: var(--accent);
+            box-shadow: 0 6px 16px var(--shadow-hover);
+            text-decoration: none;
+        }
+
+        @media (max-width: 700px) {
+            .container { padding: 25px 20px; }
+            h1 { font-size: 1.5rem; }
+            .step { gap: 12px; }
+            .step-number { width: 32px; height: 32px; font-size: 0.9rem; }
+            .field-table { font-size: 0.82rem; }
+            .screenshot-slot { padding: 6px; }
+            .mock-tile-body { flex-direction: column; }
+        }
+        /* ─── Localized screenshot-style UI illustrations ───────── */
+        .mock-shot {
+            width: min(100%, 360px);
+            margin: 0 auto;
+            padding: 10px;
+            border: 7px solid #111827;
+            border-radius: 28px;
+            background: #fff;
+            box-shadow: 0 12px 28px rgba(15,23,42,.16);
+            color: #1e293b;
+            direction: rtl;
+            text-align: right;
+            font-family: 'Cairo', 'Inter', sans-serif;
+            overflow: hidden;
+        }
+        .mock-shot * { box-sizing: border-box; }
+        .mock-status {
+            display:flex; justify-content:space-between; align-items:center;
+            padding: 1px 5px 8px; font-size:10px; color:#475569;
+        }
+        .mock-appbar {
+            display:flex; align-items:center; justify-content:space-between;
+            gap:8px; padding:9px 10px; background:#f8fafc;
+            border:1px solid #e2e8f0; border-radius:10px; margin-bottom:10px;
+            font-weight:800; font-size:13px;
+        }
+        .mock-brand { display:flex; gap:6px; align-items:center; }
+        .mock-drop, .mock-field, .mock-card, .mock-alert, .mock-map-panel {
+            border:1px solid #e2e8f0; background:#fff; border-radius:10px;
+            padding:10px; margin:8px 0; font-size:11px;
+        }
+        .mock-muted { color:#64748b; font-size:10px; }
+        .mock-row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+        .mock-stack { display:flex; flex-direction:column; gap:7px; }
+        .mock-dot { width:9px; height:9px; border-radius:50%; display:inline-block; flex:0 0 auto; }
+        .mock-green { background:#16a34a; } .mock-gray { background:#94a3b8; }
+        .mock-red { background:#dc2626; } .mock-blue { background:#475569; }
+        .mock-btn {
+            display:block; width:100%; border:0; border-radius:9px; padding:10px 8px;
+            text-align:center; color:#fff; background:#475569; font-weight:800; font-size:11px;
+            margin-top:8px;
+        }
+        .mock-btn.success { background:#15803d; } .mock-btn.danger { background:#dc2626; }
+        .mock-btn.disabled { background:#cbd5e1; color:#64748b; }
+        .mock-qty-line { display:flex; align-items:center; justify-content:center; gap:18px; padding:9px; }
+        .mock-qty-button { width:27px;height:27px;border-radius:7px;background:#e2e8f0;display:grid;place-items:center;font-size:18px;font-weight:bold; }
+        .mock-price-line { padding:5px 0; display:flex;justify-content:space-between;font-size:11px; }
+        .mock-total { border-top:1px solid #e2e8f0; padding-top:7px; font-weight:900; }
+        .mock-map {
+            height:170px; border-radius:10px; border:1px solid #cbd5e1; overflow:hidden;
+            position:relative; background:
+              linear-gradient(35deg, transparent 42%, #fff 43%, #fff 48%, transparent 49%),
+              linear-gradient(115deg, transparent 35%, #fff 36%, #fff 41%, transparent 42%),
+              repeating-linear-gradient(0deg,#e2e8f0 0 2px,transparent 2px 37px),
+              repeating-linear-gradient(90deg,#e2e8f0 0 2px,#f1f5f9 2px 42px);
+        }
+        .mock-pin { position:absolute; width:28px;height:28px;border:3px solid #fff;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:11px;box-shadow:0 2px 5px #64748b; }
+        .mock-pin.user { right:24%;bottom:22%;background:#475569; }
+        .mock-pin.driver { left:22%;top:24%;background:#16a34a; }
+        .mock-map-label { position:absolute; bottom:8px; right:8px; background:#fff;border-radius:6px;padding:4px 6px;font-size:9px; }
+        .mock-pills { display:flex; gap:5px; flex-wrap:wrap; margin:7px 0; }
+        .mock-pill { border-radius:99px; padding:5px 8px; color:#fff; font-size:9px; font-weight:800; background:#475569; }
+        .mock-pill.green { background:#15803d; } .mock-pill.gray { background:#94a3b8; color:#0f172a; }
+        .mock-stars { color:#ca8a04; font-size:24px; letter-spacing:2px; text-align:center; margin:7px 0; }
+        .mock-progress { height:6px; border-radius:99px; background:#e2e8f0; overflow:hidden; margin-top:7px; }
+        .mock-progress span { display:block;height:100%;width:72%;background:#64748b; }
+        .mock-dialog-backdrop { background:#f1f5f9; padding:14px; border-radius:12px; }
+        .mock-dialog { background:white; border:1px solid #e2e8f0; border-radius:12px; padding:12px; box-shadow:0 5px 15px #cbd5e1; }
+        .mock-history-card { border:1px solid #e2e8f0; border-radius:10px; padding:9px; margin:7px 0; font-size:10px; }
+        .mock-chip { border-radius:99px; padding:3px 7px; font-size:9px; font-weight:800; background:#334155;color:white; }
+        .mock-chip.green { background:#16a34a; } .mock-chip.red { background:#dc2626; } .mock-chip.gray { background:#94a3b8;color:#0f172a; }
+        .mock-shot .mock-field-label { font-size:10px; color:#64748b; margin-bottom:3px; }
+        .mock-shot .mock-input { border:1px solid #cbd5e1; border-radius:7px; padding:7px; font-size:10px; color:#334155; background:#f8fafc; }
+        @media (max-width: 480px) { .mock-shot { width:100%; border-width:5px; } }
+
+
+        .history-screen-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:9px 0}
+        .history-stat{padding:10px 5px;border:1px solid #e5e7eb;border-radius:10px;text-align:center;background:#fff;font-size:10px}
+        .history-stat b{display:block;font-size:15px;color:#1f2937;margin:2px 0}
+        .history-map{height:115px;border-radius:9px;position:relative;overflow:hidden;background:repeating-linear-gradient(30deg,#eef2f0 0 13px,#dce5e0 14px 16px,#eef2f0 17px 31px)}
+        .history-road{position:absolute;height:9px;background:#fff;border:1px solid #d1d5db;transform:rotate(-25deg);width:130%;left:-10%;top:43px}
+        .history-road.r2{transform:rotate(35deg);top:72px}
+        .history-pin{position:absolute;left:49%;top:38%;font-size:20px}
+        .history-range{position:absolute;left:29%;top:16%;width:43%;height:64%;border:2px solid rgba(71,85,105,.65);background:rgba(100,116,139,.14);border-radius:50%}
+        .history-alert{border:1px solid #d1d5db;background:#f9fafb;padding:9px;border-radius:10px;margin:7px 0;font-size:10px}
+        .history-alert.warn{border-color:#a8a29e;background:#f5f5f4}
+        .history-pill{display:inline-block;padding:3px 7px;border-radius:20px;font-size:8px;font-weight:800;background:#e5e7eb;color:#374151}
+        .history-pill.green{background:#dcfce7;color:#166534}.history-pill.red{background:#fee2e2;color:#991b1b}.history-pill.blue{background:#dbeafe;color:#1d4ed8}.history-pill.gold{background:#fef3c7;color:#92400e}
+        .history-mini-btn{font-size:9px;border:1px solid #d1d5db;border-radius:7px;padding:5px 7px;color:#374151;background:#f9fafb;font-weight:700}
+        .history-rating{background:#fffbeb;border:1px solid #fde68a;border-radius:9px;padding:8px;margin-top:8px;font-size:10px}
+        .history-stars{color:#ca8a04;letter-spacing:1px}
+        .history-empty{text-align:center;padding:34px 12px 38px}
+        .history-empty-icon{font-size:42px;color:#cbd5e1;margin-bottom:12px}
+        @media(max-width:700px){.history-screen-grid{gap:5px}}
+    </style>
+</head>
+<body>
+<div class="container">
+    <a class="back-link" href="client.html" data-i18n="clientHistory.back">→ العودة إلى دليل العميل</a>
+
+    <h1 data-i18n="clientHistory.heading">📋 سجل الطلبات والشاشة الرئيسية</h1>
+    <p class="subtitle" data-i18n="clientHistory.subtitle">كل ما تراه على الشاشة الرئيسية، وكيف تراجع تاريخك الكامل من سجل الطلبات.</p>
+
+    <div class="intro-box" data-i18n-html="clientHistory.intro">
+        <strong>قبل البدء:</strong> الشاشة الرئيسية وسجل الطلبات مرتبطان مباشرة:
+        <ul>
+            <li>الشاشة الرئيسية تعرض <strong>ملخصاً</strong> لحالتك (الرصيد، عدد الطلبات، السائقون القريبون، الوقت المتوقع).</li>
+            <li>سجل الطلبات يعرض <strong>قائمة تفصيلية</strong> بكل توصيل، حالته، سعره، وتقييمك.</li>
+            <li>كلاهما يعمل في وضع <strong>عدم الاتصال</strong> بفضل الذاكرة المؤقتة المحلية.</li>
+        </ul>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         PART 1 — HOME SCREEN STATES
+    ═══════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="clientHistory.part1.title">الجزء الأول — الشاشة الرئيسية وحالاتها</h2>
+
+    <!-- 1 -->
+    <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientHistory.step1.title">نظرة عامة على الشاشة الرئيسية</div>
+            <div class="step-desc" data-i18n-html="clientHistory.step1.body">
+                الشاشة الرئيسية هي نقطة الانطلاق لكل شيء. تحتوي على:
+                <ul>
+                    <li><strong>شريط العنوان</strong>: اسم التطبيق + 3 أزرار (الدعم، إضافة رصيد، الملف الشخصي).</li>
+                    <li><strong>بطاقات التنبيه</strong> (إن وجدت): إشعارات إدارية، تذكير بتأكيد البريد، إلخ.</li>
+                    <li><strong>شبكة الإحصاءات</strong>: 4 بطاقات (سائقون، وقت الوصول، الرصيد، الطلبات).</li>
+                    <li><strong>بطاقة الموقع</strong>: عنوانك الحالي + خريطة مصغّرة + نطاق البحث.</li>
+                    <li><strong>زر «طلب توصيل»</strong>: يفتح شاشة إنشاء الطلب.</li>
+                </ul>
+            </div>
+            <div class="screenshot-slot">
+<div class="mock-shot history-shot" role="img" aria-label="Kooba home screen illustration">
+ <div class="mock-status"><span>9:41</span><span>● ● ● ▰</span></div>
+ <div class="mock-appbar"><span>☰</span><span>Kooba</span><span>💧</span></div>
+ <div class="history-screen-grid">
+  <div class="history-stat">💧<b>3</b><span data-history-i18n="nearby">Nearby drivers</span></div>
+  <div class="history-stat">◷<b data-history-i18n="eightMin">8 min</b><span data-history-i18n="eta">Estimated arrival</span></div>
+  <div class="history-stat">◉<b>45 MAD</b><span data-history-i18n="balance">Balance</span></div>
+  <div class="history-stat">▤<b>12</b><span data-history-i18n="requests">Requests</span></div>
+ </div>
+ <div class="mock-card"><div class="mock-row"><b data-history-i18n="yourLocation">Your location</b><span class="history-pill" data-history-i18n="radius10">10 km</span></div><div class="mock-muted" data-history-i18n="locationExample">Al Salam district, Dakhla</div>
+  <div class="history-map" style="margin-top:8px"><div class="history-road"></div><div class="history-road r2"></div><div class="history-range"></div><span class="history-pin">📍</span></div>
+ </div>
+ <button class="mock-btn" data-history-i18n="requestDelivery">Request delivery</button>
+</div></div>
+        </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientHistory.step2.title">شبكة الإحصاءات — 4 بطاقات</div>
+            <div class="step-desc">
+                <div data-i18n="clientHistory.step2.intro">
+                    كل بطاقة تعرض رقماً أو قيمة مع أيقونة ووصف، واثنتان منها قابلتان للنقر:
+                </div>
+
+                <div class="mock-stats">
+                    <div class="mock-stat">
+                        <span class="icon">💧</span>
+                        <div class="value">3</div>
+                        <div class="label" data-i18n="clientHistory.step2.card1">سائقون قريبون</div>
+                    </div>
+                    <div class="mock-stat">
+                        <span class="icon">⏱️</span>
+                        <div class="value" data-i18n="clientHistory.step2.card2Value">8 دقائق</div>
+                        <div class="label" data-i18n="clientHistory.step2.card2">الوقت المتوقع للوصول</div>
+                    </div>
+                    <div class="mock-stat">
+                        <span class="icon">💰</span>
+                        <div class="value" data-i18n="clientHistory.step2.card3Value">45 د.م.</div>
+                        <div class="label" data-i18n="clientHistory.step2.card3">الرصيد</div>
+                    </div>
+                    <div class="mock-stat">
+                        <span class="icon">📋</span>
+                        <div class="value">12</div>
+                        <div class="label" data-i18n="clientHistory.step2.card4">الطلبات</div>
+                    </div>
+                </div>
+
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="clientHistory.step2.table.colCard">البطاقة</th>
+                            <th data-i18n="clientHistory.step2.table.colSource">المصدر</th>
+                            <th data-i18n="clientHistory.step2.table.colOnTap">عند النقر</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n="clientHistory.step2.table.r1c1">سائقون قريبون</td>
+                            <td data-i18n="clientHistory.step2.table.r1c2">خدمة السائقين القريبين (مباشر)</td>
+                            <td data-i18n="clientHistory.step2.table.noAction">لا شيء</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientHistory.step2.table.r2c1">الوقت المتوقع</td>
+                            <td data-i18n="clientHistory.step2.table.r2c2">أقرب سائق</td>
+                            <td data-i18n="clientHistory.step2.table.noAction">لا شيء</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientHistory.step2.table.r3c1">الرصيد</td>
+                            <td data-i18n="clientHistory.step2.table.r3c2">محفظتك</td>
+                            <td data-i18n-html="clientHistory.step2.table.r3c3">فتح <strong>تحليل الرصيد</strong></td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientHistory.step2.table.r4c1">الطلبات</td>
+                            <td data-i18n="clientHistory.step2.table.r4c2">سجل الطلبات</td>
+                            <td data-i18n-html="clientHistory.step2.table.r4c3">فتح <strong>سجل الطلبات</strong> (إذا كان > 0)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientHistory.step3.title">بطاقة الموقع والخريطة المصغّرة</div>
+            <div class="step-desc" data-i18n-html="clientHistory.step3.body">
+                تعرض عنوانك الحالي (أو رسالة إذا لم يُحدد). بالضغط عليها تُعاد محاولة جلب الموقع.
+                أسفلها خريطة مصغّرة تعرض:
+                <ul>
+                    <li><strong>دبوس أحمر</strong> في موقعك الحالي.</li>
+                    <li><strong>دائرة زرقاء شفافة</strong> تمثل نطاق البحث.</li>
+                    <li><strong>قائمة اختيار النطاق</strong> (5 / 10 / 15 كم) في أعلى البطاقة.</li>
+                </ul>
+                تغيير النطاق يُحدّث فوراً:
+                <ul>
+                    <li>دائرة الخريطة.</li>
+                    <li>عدد السائقين القريبين.</li>
+                    <li>الوقت المتوقع للوصول.</li>
+                </ul>
+            </div>
+            <div class="screenshot-slot">
+<div class="mock-shot history-shot" role="img" aria-label="Location card and map illustration">
+ <div class="mock-status"><span>9:41</span><span>● ● ● ▰</span></div><div class="mock-appbar"><span>‹</span><span data-history-i18n="yourLocation">Your location</span><span>📍</span></div>
+ <div class="mock-card"><div class="mock-row"><b data-history-i18n="currentAddress">Current address</b><span class="history-pill" data-history-i18n="radius">Search radius</span></div><div class="mock-muted" data-history-i18n="locationExample">Al Salam district, Dakhla</div>
+  <div class="history-map" style="margin-top:10px"><div class="history-road"></div><div class="history-road r2"></div><div class="history-range"></div><span class="history-pin">📍</span></div>
+  <div class="mock-row" style="margin-top:9px"><span class="mock-muted" data-history-i18n="searchRadius">Search radius</span><b>5 km　10 km　15 km</b></div>
+ </div>
+ <div class="history-alert"><span data-history-i18n="nearby">Nearby drivers</span><b>　3</b><br><span class="mock-muted" data-history-i18n="eta">Estimated arrival</span><b>　8 min</b></div>
+</div></div>
+        </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientHistory.step4.title">حالة زر «طلب توصيل» — متى يكون مفعّلاً؟</div>
+            <div class="step-desc">
+                <div data-i18n-html="clientHistory.step4.intro">
+                    الزر يتحول إلى <strong>بطاقة برتقالية</strong> تعرض سبب عدم التفعيل، بدلاً من
+                    زر أزرق. الشروط الثلاثة للتفعيل:
+                </div>
+
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="clientHistory.step4.table.colCondition">الشرط</th>
+                            <th data-i18n="clientHistory.step4.table.colIfNotMet">عند عدم تحققه</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n="clientHistory.step4.table.r1c1">الحساب موثَّق (بريد مؤكَّد)</td>
+                            <td data-i18n="clientHistory.step4.table.r1c2">تنبيه برتقالي + زر «الملف الشخصي»</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientHistory.step4.table.r2c1">الرصيد ≥ 5 د.م.</td>
+                            <td data-i18n="clientHistory.step4.table.r2c2">تنبيه برتقالي + زر «إضافة رصيد»</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientHistory.step4.table.r3c1">لم تستنفد حدودك اليومية لكل المصادر</td>
+                            <td data-i18n="clientHistory.step4.table.r3c2">تنبيه برتقالي «تم الوصول إلى الحد اليومي»</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div data-i18n-html="clientHistory.step4.footnote">
+                    <strong>مهم:</strong> قد تظهر أكثر من رسالة في نفس الوقت — مثلاً «وثّق حسابك»
+                    و«رصيدك غير كافٍ» معاً.
+                </div>
+            </div>
+            <div class="screenshot-slot">
+<div class="mock-shot history-shot" role="img" aria-label="Disabled request reasons illustration">
+ <div class="mock-status"><span>9:41</span><span>● ● ● ▰</span></div><div class="mock-appbar"><span>☰</span><span>Kooba</span><span>💧</span></div>
+ <div class="history-alert warn"><div class="mock-row"><b data-history-i18n="verifyAccount">Verify your account</b><span>ⓘ</span></div><div class="mock-muted" data-history-i18n="verifyEmail">Confirm your email to request a delivery.</div><button class="history-mini-btn" data-history-i18n="profile">Open profile</button></div>
+ <div class="history-alert warn"><div class="mock-row"><b data-history-i18n="lowBalance">Insufficient balance</b><span>ⓘ</span></div><div class="mock-muted" data-history-i18n="minimumBalance">At least 5 MAD is required.</div><button class="history-mini-btn" data-history-i18n="addBalance">Add balance</button></div>
+ <div class="history-alert warn"><div class="mock-row"><b data-history-i18n="dailyLimit">Daily limit reached</b><span>ⓘ</span></div><div class="mock-muted" data-history-i18n="tryTomorrow">Try again later.</div></div>
+ <button class="mock-btn" style="background:#a8a29e;color:#fff" data-history-i18n="requestUnavailable">Delivery request unavailable</button>
+</div></div>
+        </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="step">
+        <div class="step-number">5</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientHistory.step5.title">حالة عدم الاتصال (Offline)</div>
+            <div class="step-desc">
+                <div data-i18n-html="clientHistory.step5.intro">
+                    عند انقطاع الإنترنت، يظهر <strong>شريط برتقالي</strong> أعلى الشاشة:
+                </div>
+                <div class="mock-banner mock-banner-warn">
+                    <span class="mock-banner-icon">📶</span>
+                    <span data-i18n="clientHistory.step5.banner">وضع عدم الاتصال — تعرض البيانات المخزّنة مؤقتاً</span>
+                </div>
+                <div data-i18n="clientHistory.step5.intro2">في هذا الوضع:</div>
+                <ul>
+                    <li data-i18n="clientHistory.step5.b1">تظل بطاقات الإحصاءات ظاهرة بالقيم المخزّنة.</li>
+                    <li data-i18n="clientHistory.step5.b2">سجل الطلبات يعرض نسخة مؤقتة.</li>
+                    <li data-i18n-html="clientHistory.step5.b3">الضغط على «طلب توصيل» يعرض رسالة <em>«لا يمكن الطلب في وضع عدم الاتصال»</em>.</li>
+                </ul>
+                <div data-i18n="clientHistory.step5.footnote">
+                    بمجرد عودة الاتصال، يختفي الشريط ويُحدَّث كل شيء تلقائياً.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6 -->
+    <div class="step">
+        <div class="step-number">6</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientHistory.step6.title">حالة الحساب المؤرشف</div>
+            <div class="step-desc" data-i18n-html="clientHistory.step6.body">
+                إذا تم أرشفة حسابك (تكرار الرفض أو مخالفة الشروط)، تُستبدل الشاشة الرئيسية
+                بالكامل بشاشة أرشفة:
+                <ul>
+                    <li>أيقونة حظر حمراء كبيرة.</li>
+                    <li>عنوان <em>«تم أرشفة حسابك»</em>.</li>
+                    <li>نص يطلب التواصل مع الدعم.</li>
+                    <li>زر <strong>«التواصل مع الدعم»</strong> يفتح شاشة التذاكر.</li>
+                </ul>
+                لا يمكنك طلب توصيل أو تعديل ملفك في هذه الحالة.
+            </div>
+            <div class="screenshot-slot">
+<div class="mock-shot history-shot" role="img" aria-label="Archived account illustration">
+ <div class="mock-status"><span>9:41</span><span>● ● ● ▰</span></div><div class="mock-appbar"><span>‹</span><span>Kooba</span><span>💧</span></div>
+ <div class="history-empty"><div class="history-empty-icon">🚫</div><h3 style="font-size:15px;margin-bottom:8px" data-history-i18n="accountArchived">Your account has been archived</h3><p style="font-size:11px;color:#64748b" data-history-i18n="archivedDesc">Contact support for more information.</p><button class="mock-btn" data-history-i18n="contactSupport">Contact support</button></div>
+</div></div>
+        </div>
+    </div>
+
+    <!-- 7 -->
+    <div class="step">
+        <div class="step-number">7</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientHistory.step7.title">بطاقات التنبيه الإدارية</div>
+            <div class="step-desc">
+                <div data-i18n-html="clientHistory.step7.intro">
+                    فوق شبكة الإحصاءات قد تظهر <strong>بطاقات تنبيه</strong> متعددة (قابلة للإخفاء):
+                </div>
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="clientHistory.step7.table.colType">النوع</th>
+                            <th data-i18n="clientHistory.step7.table.colShows">ما تعرضه</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n="clientHistory.step7.table.r1c1">تأكيد البريد</td>
+                            <td data-i18n="clientHistory.step7.table.r1c2">تنبيه + زر «إعادة إرسال البريد»</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientHistory.step7.table.r2c1">رسالة إدارية</td>
+                            <td data-i18n="clientHistory.step7.table.r2c2">نص الرسالة + زر إجراء حسب النوع</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientHistory.step7.table.r3c1">مطابقة جديدة</td>
+                            <td data-i18n="clientHistory.step7.table.r3c2">تنبيه + فتح التتبع المباشر</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientHistory.step7.table.r4c1">حساب مؤرشف</td>
+                            <td data-i18n="clientHistory.step7.table.r4c2">تنبيه دائم + تواصل مع الدعم</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div data-i18n-html="clientHistory.step7.footnote">
+                    كل بطاقة لها زر <strong>✕</strong> لإخفائها من هذه الجلسة فقط — ستعود عند
+                    إعادة فتح التطبيق إذا كانت ما زالت نشطة.
+                </div>
+            </div>
+            <div class="screenshot-slot">
+<div class="mock-shot history-shot" role="img" aria-label="Administrative notification cards illustration">
+ <div class="mock-status"><span>9:41</span><span>● ● ● ▰</span></div><div class="mock-appbar"><span>☰</span><span>Kooba</span><span>🔔</span></div>
+ <div class="history-alert"><div class="mock-row"><b data-history-i18n="notice">Notice</b><span>✕</span></div><p data-history-i18n="noticeText">Your account details may need attention.</p><button class="history-mini-btn" data-history-i18n="viewDetails">View details</button></div>
+ <div class="history-alert warn"><div class="mock-row"><b data-history-i18n="emailReminder">Email reminder</b><span>✕</span></div><p data-history-i18n="emailReminderText">Please confirm your email address.</p><button class="history-mini-btn" data-history-i18n="openProfile">Open profile</button></div>
+ <div class="history-alert"><div class="mock-row"><b data-history-i18n="serviceUpdate">Service update</b><span>✕</span></div><p data-history-i18n="serviceUpdateText">There is an update about your account.</p></div>
+ <div class="mock-muted" style="text-align:center;margin-top:12px" data-history-i18n="dismissible">Notifications can be dismissed</div>
+</div></div>
+        </div>
+    </div>
+
+    <!-- 8 -->
+    <div class="step">
+        <div class="step-number">8</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientHistory.step8.title">تحذيرات إضافية</div>
+            <div class="step-desc">
+                <div data-i18n="clientHistory.step8.intro">قد تظهر أشرطة إضافية حسب حالتك:</div>
+                <div class="mock-banner mock-banner-warn">
+                    <span class="mock-banner-icon">⚠️</span>
+                    <span data-i18n="clientHistory.step8.warn1">مرّ 60 يوماً بدون نشاط — أكّد بريدك قبل الأرشفة</span>
+                </div>
+                <div class="mock-banner mock-banner-warn">
+                    <span class="mock-banner-icon">📧</span>
+                    <span data-i18n="clientHistory.step8.warn2">يتبقى 3 أيام لتأكيد بريدك قبل تعطيل الحساب</span>
+                </div>
+                <div class="mock-banner mock-banner-info">
+                    <span class="mock-banner-icon">ℹ️</span>
+                    <span data-i18n="clientHistory.step8.info">بلغت الحد اليومي لكل مصادر المياه — العودة غداً</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9 -->
+    <div class="step">
+        <div class="step-number">9</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientHistory.step9.title">التنقل التلقائي إلى التتبع المباشر</div>
+            <div class="step-desc" data-i18n-html="clientHistory.step9.body">
+                عندما يقبل سائق طلبك، يحدث التالي تلقائياً:
+                <ul>
+                    <li>يهتز الهاتف ويُشغّل صوت تنبيه.</li>
+                    <li>تنتقل الشاشة مباشرة إلى <strong>التتبع المباشر</strong>.</li>
+                </ul>
+                إذا عدت إلى الشاشة الرئيسية (بالضغط على الرجوع من التتبع)،
+                <strong>لن تُعاد توجيهك</strong> إلى نفس الشاشة مرة أخرى. هذا السلوك محفوظ
+                لمدة الجلسة، فلا داعي للقلق من "الدخول في حلقة".
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         PART 2 — HISTORY SCREEN
+    ═══════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="clientHistory.part2.title">الجزء الثاني — سجل الطلبات</h2>
+
+    <!-- 10 -->
+    <div class="step">
+        <div class="step-number">10</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientHistory.step10.title">فتح سجل الطلبات</div>
+            <div class="step-desc" data-i18n-html="clientHistory.step10.body">
+                هناك طريقتان:
+                <ul>
+                    <li>اضغط على بطاقة <strong>«الطلبات»</strong> في شبكة الإحصاءات.</li>
+                    <li>أو ارجع إلى السجل تلقائياً بعد تقييم التوصيل (عند عدم وجود توصيلات أخرى نشطة).</li>
+                </ul>
+                يعرض السجل <strong>كل توصيلاتك</strong> — النشطة والمكتملة والملغاة والمنتهية —
+                في قائمة واحدة مرتّبة من الأحدث إلى الأقدم.
+            </div>
+            <div class="screenshot-slot">
+<div class="mock-shot history-shot" role="img" aria-label="Client request history list illustration">
+ <div class="mock-status"><span>9:41</span><span>● ● ● ▰</span></div><div class="mock-appbar"><span>‹</span><b data-history-i18n="history">My requests</b><span>⟳</span></div>
+ <div class="mock-card"><div class="mock-row"><span class="history-pill blue" data-history-i18n="active">ACTIVE</span><button class="history-mini-btn" data-history-i18n="trackLive">Track live</button></div>
+  <div class="mock-row" style="margin-top:8px"><div><b data-history-i18n="drinkingWater">Drinking water</b><div class="mock-muted">0.5 <span data-history-i18n="tons">tons</span></div><div class="mock-muted" data-history-i18n="destination">To Dakhla</div></div><div style="text-align:right"><b style="color:#16a34a">7.00 MAD</b><div class="mock-muted" data-history-i18n="serviceFee">Kooba service fee</div></div></div><div class="mock-muted" style="margin-top:8px" data-history-i18n="justNow">Just now</div>
+ </div>
+ <div class="mock-card"><div class="mock-row"><span class="history-pill green" data-history-i18n="completed">COMPLETED</span><div style="text-align:right"><b style="color:#16a34a">6.50 MAD</b><div class="mock-muted" data-history-i18n="serviceFee">Kooba service fee</div></div></div>
+  <div class="mock-row" style="margin-top:8px"><div><b data-history-i18n="drinkingWater">Drinking water</b><div class="mock-muted">1.0 <span data-history-i18n="tons">tons</span></div><div class="mock-muted" data-history-i18n="destination">To Dakhla</div></div><span class="mock-muted" data-history-i18n="twoHours">2 hours ago</span></div>
+  <div class="history-rating"><div class="mock-row"><b data-history-i18n="yourRating">Your rating</b><span class="history-stars">★★★★★</span></div><div data-history-i18n="ratingComment">Great service, thank you!</div></div>
+ </div>
+ <div class="mock-card"><div class="mock-row"><span class="history-pill red" data-history-i18n="cancelled">CANCELLED</span><div style="text-align:right"><b>5.00 MAD</b><div class="mock-muted" data-history-i18n="serviceFee">Kooba service fee</div></div></div><div class="mock-row" style="margin-top:7px"><div><b data-history-i18n="wellWater">Well water</b><div class="mock-muted">0.5 <span data-history-i18n="tons">tons</span></div></div><span class="mock-muted" data-history-i18n="yesterday">Yesterday</span></div><div class="mock-muted" style="margin-top:6px" data-history-i18n="reason">Reason: Client cancelled</div></div>
+</div></div>
+        </div>
+    </div>
+
+    <!-- 11 -->
+    <div class="step">
+        <div class="step-number">11</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientHistory.step11.title">بنية بطاقة التوصيل</div>
+            <div class="step-desc">
+                <div data-i18n="clientHistory.step11.intro">كل توصيل يظهر كبطاقة تحتوي:</div>
+
+                <div class="mock-tile">
+                    <div class="mock-tile-head">
+                        <span class="chip chip-completed" data-i18n="clientHistory.step11.chipCompleted">✓ مكتمل</span>
+                    </div>
+                    <div class="mock-tile-body">
+                        <div class="mock-tile-left">
+                            <div class="mock-tile-title" data-i18n="clientHistory.step11.tileTitle">ماء شروب</div>
+                            <div class="mock-tile-meta" data-i18n="clientHistory.step11.tileQty">0.5 طن</div>
+                            <div class="mock-tile-meta" data-i18n="clientHistory.step11.tileDest">إلى: حي السلام</div>
+                        </div>
+                        <div class="mock-tile-right">
+                            <div class="mock-tile-price" data-i18n="clientHistory.step11.tilePrice">6.50 د.م.</div>
+                            <div class="mock-tile-net" data-i18n="clientHistory.step11.tileNet">+1.50 د.م.</div>
+                        </div>
+                    </div>
+                    <div class="mock-tile-date" data-i18n="clientHistory.step11.tileDate">قبل 3 ساعات</div>
+                </div>
+
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="clientHistory.step11.table.colElement">العنصر</th>
+                            <th data-i18n="clientHistory.step11.table.colShows">ماذا يعرض</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n="clientHistory.step11.table.r1c1">شارة الحالة</td>
+                            <td data-i18n="clientHistory.step11.table.r1c2">لون وأيقونة لكل حالة (مطابقة / نشط / وصل / مكتمل / ملغى / منتهي)</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientHistory.step11.table.r2c1">مصدر المياه + الكمية</td>
+                            <td data-i18n="clientHistory.step11.table.r2c2">نص المصدر + الكمية بالطن</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientHistory.step11.table.r3c1">مدينة الوجهة</td>
+                            <td data-i18n="clientHistory.step11.table.r3c2">إن وُجدت (اختياري)</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientHistory.step11.table.r4c1">السعر</td>
+                            <td data-i18n="clientHistory.step11.table.r4c2">المبلغ الذي دفعته</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientHistory.step11.table.r5c1">الربح الصافي</td>
+                            <td data-i18n="clientHistory.step11.table.r5c2">للمكتمل فقط: السعر ناقص الرسم</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientHistory.step11.table.r6c1">وقت التوصيل الفعلي</td>
+                            <td data-i18n="clientHistory.step11.table.r6c2">للمكتمل: المدة بين الإنشاء والإنهاء</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientHistory.step11.table.r7c1">اسم السائق</td>
+                            <td data-i18n="clientHistory.step11.table.r7c2">للمكتمل: اسم السائق</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientHistory.step11.table.r8c1">سبب الإلغاء</td>
+                            <td data-i18n="clientHistory.step11.table.r8c2">للملغى: السبب (إن وُجد)</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientHistory.step11.table.r9c1">التاريخ</td>
+                            <td data-i18n="clientHistory.step11.table.r9c2">متى تم إنشاء الطلب أو إنهاؤه</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 12 -->
+    <div class="step">
+        <div class="step-number">12</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientHistory.step12.title">حالات التوصيل — الألوان والمعاني</div>
+            <div class="step-desc">
+                <div class="chip-row">
+                    <span class="chip chip-matching" data-i18n="clientHistory.step12.chipMatching">⏳ قيد المطابقة</span>
+                    <span class="chip chip-active" data-i18n="clientHistory.step12.chipActive">🚗 نشط</span>
+                    <span class="chip chip-arrived" data-i18n="clientHistory.step12.chipArrived">📍 وصل</span>
+                    <span class="chip chip-completed" data-i18n="clientHistory.step12.chipCompleted">✓ مكتمل</span>
+                    <span class="chip chip-cancelled" data-i18n="clientHistory.step12.chipCancelled">✕ ملغى</span>
+                    <span class="chip chip-expired" data-i18n="clientHistory.step12.chipExpired">⏱ منتهي</span>
+                </div>
+                <ul>
+                    <li data-i18n-html="clientHistory.step12.b1"><strong>قيد المطابقة (برتقالي):</strong> النظام يبحث عن سائق. زر «إلغاء» متاح.</li>
+                    <li data-i18n-html="clientHistory.step12.b2"><strong>نشط (أزرق):</strong> السائق في الطريق إليك. زر «تتبع مباشر» متاح.</li>
+                    <li data-i18n-html="clientHistory.step12.b3"><strong>وصل (أخضر):</strong> السائق عندك. زر «تتبع مباشر» متاح.</li>
+                    <li data-i18n-html="clientHistory.step12.b4"><strong>مكتمل (أخضر):</strong> استلمت المياه. يظهر تقييمك أو زر «تقييم».</li>
+                    <li data-i18n-html="clientHistory.step12.b5"><strong>ملغى (أحمر):</strong> ألغيته أنت أو السائق. يظهر السبب إن وُجد.</li>
+                    <li data-i18n-html="clientHistory.step12.b6"><strong>منتهي (رمادي):</strong> لم يقبل أحد الطلب خلال نافذة المطابقة.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 13 -->
+    <div class="step">
+        <div class="step-number">13</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientHistory.step13.title">أزرار الإجراء على البطاقة</div>
+            <div class="step-desc">
+                <div data-i18n="clientHistory.step13.intro">الأزرار تظهر فقط في الحالة المناسبة:</div>
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="clientHistory.step13.table.colStatus">الحالة</th>
+                            <th data-i18n="clientHistory.step13.table.colButton">الزر المعروض</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n="clientHistory.step13.table.r1c1">نشط / وصل</td>
+                            <td data-i18n-html="clientHistory.step13.table.r1c2"><strong>تتبع مباشر</strong> ← يفتح شاشة الخريطة</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientHistory.step13.table.r2c1">قيد المطابقة</td>
+                            <td data-i18n-html="clientHistory.step13.table.r2c2"><strong>إلغاء</strong> ← يفتح حوار تأكيد</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientHistory.step13.table.r3c1">مكتمل — لم تقيّم</td>
+                            <td data-i18n-html="clientHistory.step13.table.r3c2"><strong>قيّم الآن</strong> ← يفتح شاشة التقييم</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientHistory.step13.table.r4c1">مكتمل — قيّمت</td>
+                            <td data-i18n="clientHistory.step13.table.r4c2">لا زر، بل كتلة تقييمك (نجوم + تعليق)</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientHistory.step13.table.r5c1">ملغى / منتهي</td>
+                            <td data-i18n="clientHistory.step13.table.r5c2">لا زر</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 14 -->
+    <div class="step">
+        <div class="step-number">14</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientHistory.step14.title">تقييمك على البطاقة</div>
+            <div class="step-desc">
+                <div data-i18n="clientHistory.step14.intro">
+                    بمجرد تقييم توصيل مكتمل، يظهر على بطاقته كتلة صفراء:
+                </div>
+                <div class="mock-rating">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span data-i18n="clientHistory.step14.ratingLabel">⭐ تقييمك</span>
+                        <span class="stars">★★★★☆</span>
+                        <span style="font-weight:bold; color: var(--accent-dark);">4/5</span>
+                    </div>
+                    <div style="margin-top:8px; font-style:italic; color: var(--accent-dark);"
+                         data-i18n="clientHistory.step14.ratingComment">
+                        «سائق محترم ووصل في الوقت»
+                    </div>
+                    <div style="margin-top:6px; font-size:11px; color: var(--accent-muted);"
+                         data-i18n="clientHistory.step14.ratingWhen">
+                        قبل يومين
+                    </div>
+                </div>
+                <div data-i18n="clientHistory.step14.footnote">
+                    تعرض الكتلة: عدد النجوم، التعليق (إن وُجد)، وتاريخ التقييم.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 15 -->
+    <div class="step">
+        <div class="step-number">15</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientHistory.step15.title">زر «قيّم الآن»</div>
+            <div class="step-desc">
+                <div data-i18n="clientHistory.step15.intro">
+                    إذا أكملت توصيلاً ولم تقيّمه، تظهر بطاقة صفراء قابلة للنقر:
+                </div>
+                <div class="mock-rate-prompt">
+                    <span style="font-size:1.2rem;">✍️</span>
+                    <span style="flex:1;" data-i18n="clientHistory.step15.prompt">قيّم هذا التوصيل</span>
+                    <span>‹</span>
+                </div>
+                <div data-i18n="clientHistory.step15.footnote">
+                    بالضغط عليها تفتح شاشة التقييم مباشرة لهذا التوصيل.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 16 -->
+    <div class="step">
+        <div class="step-number">16</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientHistory.step16.title">التحديث والسحب للأسفل</div>
+            <div class="step-desc" data-i18n-html="clientHistory.step16.body">
+                هناك ثلاث طرق لتحديث القائمة:
+                <ul>
+                    <li><strong>السحب للأسفل</strong> على القائمة — يحدّث كل شيء.</li>
+                    <li><strong>أيقونة التحديث ↻</strong> في شريط العنوان — نفس السلوك.</li>
+                    <li>التطبيق يحدّث القائمة <strong>تلقائياً</strong> عند وصول تغييرات عبر WebSocket.</li>
+                </ul>
+                أثناء التحديث يظهر شريط تحميل رقيق أعلى القائمة.
+            </div>
+        </div>
+    </div>
+
+    <!-- 17 -->
+    <div class="step">
+        <div class="step-number">17</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientHistory.step17.title">حالة فارغة — لا توجد طلبات</div>
+            <div class="step-desc" data-i18n-html="clientHistory.step17.body">
+                إذا لم تكن لديك أي طلبات بعد:
+                <ul>
+                    <li>أيقونة ساعة رمادية كبيرة.</li>
+                    <li>رسالة <em>«لا توجد طلبات بعد»</em>.</li>
+                    <li>نص فرعي <em>«ستظهر طلباتك هنا»</em>.</li>
+                </ul>
+                بعد أول توصيل، ستظهر القائمة تلقائياً.
+            </div>
+            <div class="screenshot-slot">
+<div class="mock-shot history-shot" role="img" aria-label="Empty request history illustration">
+ <div class="mock-status"><span>9:41</span><span>● ● ● ▰</span></div><div class="mock-appbar"><span>‹</span><b data-history-i18n="history">My requests</b><span>⟳</span></div>
+ <div class="history-empty"><div class="history-empty-icon">◷</div><h3 style="font-size:15px;margin-bottom:8px" data-history-i18n="noRequests">No requests yet</h3><p style="font-size:11px;color:#94a3b8" data-history-i18n="requestsAppear">Your requests will appear here.</p></div>
+</div></div>
+        </div>
+    </div>
+
+    <!-- 18 -->
+    <div class="step">
+        <div class="step-number">18</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientHistory.step18.title">وضع عدم الاتصال — البيانات المؤقتة</div>
+            <div class="step-desc">
+                <div data-i18n-html="clientHistory.step18.intro">
+                    عند فتح السجل بدون اتصال، يعرض التطبيق <strong>آخر نسخة مخزّنة</strong>
+                    (صالح لمدة 5 دقائق كحد أقصى). يظهر شريط أحمر أعلى القائمة:
+                </div>
+                <div class="mock-banner mock-banner-danger" style="margin-top:8px;">
+                    <span class="mock-banner-icon">⚠️</span>
+                    <span data-i18n="clientHistory.step18.banner">تعرض بيانات مؤقتة — لا يوجد اتصال</span>
+                </div>
+                <div data-i18n="clientHistory.step18.footnote">
+                    بمجرد عودة الاتصال، يمكنك السحب للأسفل لتحميل النسخة الحية.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 19 -->
+    <div class="step">
+        <div class="step-number">19</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientHistory.step19.title">حالة الخطأ</div>
+            <div class="step-desc" data-i18n-html="clientHistory.step19.body">
+                إذا فشل تحميل البيانات بدون وجود نسخة مؤقتة، تظهر شاشة خطأ:
+                <ul>
+                    <li>أيقونة خطأ حمراء.</li>
+                    <li>رسالة <em>«خطأ في تحميل الطلبات»</em>.</li>
+                    <li>زر <strong>«إعادة المحاولة»</strong>.</li>
+                </ul>
+                اضغط الزر لإعادة المحاولة فوراً.
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         RULES
+    ═══════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="clientHistory.rulesHeading">قواعد يجب معرفتها</h2>
+
+    <div class="callout callout-info">
+        <div class="callout-icon">📊</div>
+        <div class="callout-body" data-i18n-html="clientHistory.rules.requestsCard">
+            <strong>بطاقة «الطلبات»:</strong>
+            تعرض <strong>إجمالي عدد الطلبات</strong> (كل الطلبات، ليس فقط النشطة). إذا
+            كان العدد صفراً، لا يمكن النقر عليها.
+        </div>
+    </div>
+
+    <div class="callout callout-warn">
+        <div class="callout-icon">⏱️</div>
+        <div class="callout-body" data-i18n-html="clientHistory.rules.dateShown">
+            <strong>توقيت العرض:</strong>
+            للمكتمل، يعرض السجل <strong>وقت الإنهاء</strong> (وليس وقت الإنشاء)، حتى ترى
+            كم مضى على التوصيل. للملغى/المنتهي، يعرض وقت الإنشاء.
+        </div>
+    </div>
+
+    <div class="callout callout-success">
+        <div class="callout-icon">💾</div>
+        <div class="callout-body" data-i18n-html="clientHistory.rules.cache">
+            <strong>التخزين المؤقت:</strong>
+            الشاشة الرئيسية وسجل الطلبات يحفظان آخر نسخة محلياً. فتح السجل بدون اتصال
+            يعرض هذه النسخة (خلال 5 دقائق). بعد ذلك، تحتاج لاتصال لتحديثها.
+        </div>
+    </div>
+
+    <div class="callout callout-danger">
+        <div class="callout-icon">🚫</div>
+        <div class="callout-body" data-i18n-html="clientHistory.rules.noDoubleRate">
+            <strong>لا يمكن تقييم مرتين:</strong>
+            إذا حاولت فتح شاشة التقييم لتوصيل سبق تقييمه، تظهر رسالة <em>«لقد قيّمت هذا
+            التوصيل مسبقاً»</em> ولن يتم قبول تقييم ثانٍ.
+        </div>
+    </div>
+
+    <!-- ─── Next / prev ──────────────────────────────────── -->
+    <div class="next-prev">
+        <a class="nav-btn" href="client-6-make-request.html" data-i18n="clientHistory.nav.prev">→ السابق: تقديم طلب توصيل</a>
+        <a class="nav-btn" href="client.html" data-i18n="clientHistory.nav.back">العودة إلى الدليل ←</a>
+    </div>
+
+    <div class="footer">
+        <span data-i18n="clientHistory.footer.copyright">© 2026 كوبا العيون – جميع الحقوق محفوظة</span><br>
+        <a href="https://legal.kouba.site/privacy-ar" data-i18n="clientHistory.footer.privacy">سياسة الخصوصية</a>
+        &nbsp;•&nbsp;
+        <a href="https://legal.kouba.site/terms-ar" data-i18n="clientHistory.footer.terms">شروط الخدمة</a>
+    </div>
+</div>
+
+<!--
+    OPTIONAL I18N LOADER
+    Reads ?lang=fr|en|es from the URL, fetches i18n/<lang>.json,
+    and swaps [data-i18n], [data-i18n-html], [data-i18n-alt].
+-->
+<script>
+(function () {
+    try {
+        var lang = new URLSearchParams(location.search).get('lang');
+        if (!lang || lang === 'ar') return;
+        fetch('i18n/' + lang + '.json')
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (t) {
+                if (!t) return;
+                document.querySelectorAll('[data-i18n]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n')];
+                    if (v != null) el.textContent = v;
+                });
+                document.querySelectorAll('[data-i18n-html]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n-html')];
+                    if (v != null) el.innerHTML = v;
+                });
+                document.querySelectorAll('[data-i18n-alt]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n-alt')];
+                    if (v != null) el.alt = v;
+                });
+            })
+            .catch(function () {});
+    } catch (e) {}
+})();
+</script>
+
+<script>
+(function () {
+  var dicts = {
+    ar: {
+      nearby:"السائقون القريبون", eightMin:"8 دقائق", eta:"الوقت المتوقع للوصول", balance:"الرصيد", requests:"الطلبات",
+      yourLocation:"موقعك", radius10:"10 كم", locationExample:"حي السلام، الداخلة", requestDelivery:"طلب توصيل",
+      currentAddress:"العنوان الحالي", radius:"نطاق البحث", searchRadius:"نطاق البحث", verifyAccount:"وثّق حسابك",
+      verifyEmail:"أكد بريدك الإلكتروني لطلب التوصيل.", profile:"فتح الملف الشخصي", lowBalance:"الرصيد غير كافٍ",
+      minimumBalance:"يلزم توفر 5 د.م. على الأقل.", addBalance:"إضافة رصيد", dailyLimit:"تم بلوغ الحد اليومي",
+      tryTomorrow:"حاول مرة أخرى لاحقاً.", requestUnavailable:"طلب التوصيل غير متاح", accountArchived:"تمت أرشفة حسابك",
+      archivedDesc:"تواصل مع الدعم لمزيد من المعلومات.", contactSupport:"التواصل مع الدعم", notice:"تنبيه",
+      noticeText:"قد تحتاج بيانات حسابك إلى المراجعة.", viewDetails:"عرض التفاصيل", emailReminder:"تذكير بالبريد الإلكتروني",
+      emailReminderText:"يرجى تأكيد عنوان بريدك الإلكتروني.", serviceUpdate:"تحديث الخدمة",
+      serviceUpdateText:"هناك تحديث يتعلق بحسابك.", dismissible:"يمكن إخفاء التنبيهات", history:"سجل طلباتي",
+      active:"نشط", trackLive:"تتبع مباشر", drinkingWater:"ماء شروب", tons:"طن", destination:"إلى الداخلة", serviceFee:"رسوم خدمة كوبا",
+      justNow:"الآن", completed:"مكتمل", yourRating:"تقييمك", ratingComment:"خدمة رائعة، شكراً!", twoHours:"قبل ساعتين",
+      cancelled:"ملغى", wellWater:"ماء بئر", yesterday:"أمس", reason:"السبب: ألغى العميل",
+      noRequests:"لا توجد طلبات بعد", requestsAppear:"ستظهر طلباتك هنا.", openProfile:"فتح الملف الشخصي"
+    },
+    en: {
+      nearby:"Nearby drivers", eightMin:"8 min", eta:"Estimated arrival", balance:"Balance", requests:"Requests",
+      yourLocation:"Your location", radius10:"10 km", locationExample:"Al Salam district, Dakhla", requestDelivery:"Request delivery",
+      currentAddress:"Current address", radius:"Search radius", searchRadius:"Search radius", verifyAccount:"Verify your account",
+      verifyEmail:"Confirm your email to request a delivery.", profile:"Open profile", lowBalance:"Insufficient balance",
+      minimumBalance:"At least 5 MAD is required.", addBalance:"Add balance", dailyLimit:"Daily limit reached",
+      tryTomorrow:"Try again later.", requestUnavailable:"Delivery request unavailable", accountArchived:"Your account has been archived",
+      archivedDesc:"Contact support for more information.", contactSupport:"Contact support", notice:"Notice",
+      noticeText:"Your account details may need attention.", viewDetails:"View details", emailReminder:"Email reminder",
+      emailReminderText:"Please confirm your email address.", serviceUpdate:"Service update",
+      serviceUpdateText:"There is an update about your account.", dismissible:"Notifications can be dismissed", history:"My requests",
+      active:"ACTIVE", trackLive:"Track live", drinkingWater:"Drinking water", tons:"tons", destination:"To Dakhla", serviceFee:"Kooba service fee",
+      justNow:"Just now", completed:"COMPLETED", yourRating:"Your rating", ratingComment:"Great service, thank you!", twoHours:"2 hours ago",
+      cancelled:"CANCELLED", wellWater:"Well water", yesterday:"Yesterday", reason:"Reason: Client cancelled",
+      noRequests:"No requests yet", requestsAppear:"Your requests will appear here.", openProfile:"Open profile"
+    },
+    fr: {
+      nearby:"Chauffeurs à proximité", eightMin:"8 min", eta:"Arrivée estimée", balance:"Solde", requests:"Demandes",
+      yourLocation:"Votre position", radius10:"10 km", locationExample:"Quartier Al Salam, Dakhla", requestDelivery:"Demander une livraison",
+      currentAddress:"Adresse actuelle", radius:"Rayon de recherche", searchRadius:"Rayon de recherche", verifyAccount:"Vérifiez votre compte",
+      verifyEmail:"Confirmez votre e-mail pour demander une livraison.", profile:"Ouvrir le profil", lowBalance:"Solde insuffisant",
+      minimumBalance:"Un minimum de 5 MAD est requis.", addBalance:"Ajouter du solde", dailyLimit:"Limite quotidienne atteinte",
+      tryTomorrow:"Réessayez plus tard.", requestUnavailable:"Demande de livraison indisponible", accountArchived:"Votre compte a été archivé",
+      archivedDesc:"Contactez l’assistance pour plus d’informations.", contactSupport:"Contacter l’assistance", notice:"Avis",
+      noticeText:"Les informations de votre compte nécessitent peut-être une vérification.", viewDetails:"Voir les détails", emailReminder:"Rappel par e-mail",
+      emailReminderText:"Veuillez confirmer votre adresse e-mail.", serviceUpdate:"Mise à jour du service",
+      serviceUpdateText:"Une mise à jour concerne votre compte.", dismissible:"Les notifications peuvent être masquées", history:"Mes demandes",
+      active:"EN COURS", trackLive:"Suivi en direct", drinkingWater:"Eau potable", tons:"tonnes", destination:"Vers Dakhla", serviceFee:"Frais de service Kooba",
+      justNow:"À l’instant", completed:"TERMINÉE", yourRating:"Votre avis", ratingComment:"Excellent service, merci !", twoHours:"Il y a 2 heures",
+      cancelled:"ANNULÉE", wellWater:"Eau de puits", yesterday:"Hier", reason:"Motif : annulation du client",
+      noRequests:"Aucune demande pour le moment", requestsAppear:"Vos demandes apparaîtront ici.", openProfile:"Ouvrir le profil"
+    },
+    es: {
+      nearby:"Conductores cercanos", eightMin:"8 min", eta:"Llegada estimada", balance:"Saldo", requests:"Solicitudes",
+      yourLocation:"Tu ubicación", radius10:"10 km", locationExample:"Barrio Al Salam, Dakhla", requestDelivery:"Solicitar entrega",
+      currentAddress:"Dirección actual", radius:"Radio de búsqueda", searchRadius:"Radio de búsqueda", verifyAccount:"Verifica tu cuenta",
+      verifyEmail:"Confirma tu correo electrónico para solicitar una entrega.", profile:"Abrir perfil", lowBalance:"Saldo insuficiente",
+      minimumBalance:"Se requiere un mínimo de 5 MAD.", addBalance:"Añadir saldo", dailyLimit:"Límite diario alcanzado",
+      tryTomorrow:"Inténtalo de nuevo más tarde.", requestUnavailable:"Solicitud de entrega no disponible", accountArchived:"Tu cuenta ha sido archivada",
+      archivedDesc:"Contacta con soporte para obtener más información.", contactSupport:"Contactar con soporte", notice:"Aviso",
+      noticeText:"Es posible que debas revisar los datos de tu cuenta.", viewDetails:"Ver detalles", emailReminder:"Recordatorio por correo",
+      emailReminderText:"Confirma tu dirección de correo electrónico.", serviceUpdate:"Actualización del servicio",
+      serviceUpdateText:"Hay una actualización relacionada con tu cuenta.", dismissible:"Puedes descartar las notificaciones", history:"Mis solicitudes",
+      active:"ACTIVA", trackLive:"Seguimiento en directo", drinkingWater:"Agua potable", tons:"toneladas", destination:"Hacia Dakhla", serviceFee:"Tarifa de servicio de Kooba",
+      justNow:"Ahora mismo", completed:"COMPLETADA", yourRating:"Tu valoración", ratingComment:"¡Excelente servicio, gracias!", twoHours:"Hace 2 horas",
+      cancelled:"CANCELADA", wellWater:"Agua de pozo", yesterday:"Ayer", reason:"Motivo: cancelada por el cliente",
+      noRequests:"Aún no hay solicitudes", requestsAppear:"Tus solicitudes aparecerán aquí.", openProfile:"Abrir perfil"
+    }
+  };
+  var lang = new URLSearchParams(window.location.search).get('lang') || 'ar';
+  if (!dicts[lang]) lang = 'ar';
+  document.querySelectorAll('[data-history-i18n]').forEach(function (el) {
+    var key = el.getAttribute('data-history-i18n');
+    if (dicts[lang][key] != null) el.textContent = dicts[lang][key];
+  });
+  document.querySelectorAll('.history-shot').forEach(function (el) {
+    el.style.direction = lang === 'ar' ? 'rtl' : 'ltr';
+    el.style.textAlign = lang === 'ar' ? 'right' : 'left';
+    el.setAttribute('aria-label', ({ar:'واجهة تطبيق كوبا توضيحية',en:'Illustrative Kooba app screen',fr:'Illustration de l’écran Kooba',es:'Ilustración de la pantalla Kooba'})[lang]);
+  });
+})();
+</script>
+
+</body>
+</html>

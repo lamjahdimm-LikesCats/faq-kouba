@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="clientLogin.pageTitle">تسجيل الدخول – دليل العميل – كوبا</title>
+    <!--
+    ──────────────────────────────────────────────────────────────
+    THEME — grey palette (client). No orange, no blue chrome.
+    Driver pages flip the same variables to Ross (dusty rose).
+
+    SCREENS — p4/p5 are inline HTML+CSS mockups in the guide's
+    own visual language (grey frame, white screen, subtle borders).
+    Only semantic colors named in body text appear: the eye icon
+    and primary button use a muted slate-blue (--action) so the
+    same login screen stays visually consistent across the guide
+    (see also clientSignup p1, which shows the same screen).
+
+    LOCALIZATION — every text node inside both mockups is
+    data-i18n'd, including placeholders and the loading label.
+    When ?lang=fr is set, the mockup shows "Bon retour",
+    "Se souvenir de moi", "Se connecter", etc.
+
+        data-i18n       → textContent
+        data-i18n-html  → innerHTML
+        data-i18n-alt   → .alt on <img>, aria-label on others
+    Arabic is the fallback. Translation files:
+        i18n/en.json, fr.json, es.json
+    ──────────────────────────────────────────────────────────────
+    -->
+    <style>
+        :root {
+            --accent:        #4b5563;
+            --accent-dark:   #1f2937;
+            --accent-light:  #6b7280;
+            --accent-muted:  #9ca3af;
+            --bg-page:       #f3f4f6;
+            --bg-subtle:     #f9fafb;
+            --bg-highlight:  #f3f4f6;
+            --border:        #e5e7eb;
+            --border-hover:  #4b5563;
+            --shadow-hover:  rgba(75, 85, 99, 0.12);
+            --action:        #5b7f9e;   /* primary button — matches signup page */
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Cairo', 'Inter', -apple-system, 'Segoe UI', sans-serif;
+            background: var(--bg-page);
+            color: #1e293b;
+            line-height: 1.75;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px 45px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--accent);
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        .back-link:hover { text-decoration: underline; }
+        h1 {
+            color: var(--accent-dark);
+            border-bottom: 3px solid var(--accent);
+            padding-bottom: 12px;
+            margin-bottom: 8px;
+            font-size: 1.8rem;
+        }
+        .subtitle {
+            font-size: 1rem;
+            color: var(--accent-light);
+            margin-bottom: 25px;
+        }
+        h2 {
+            color: var(--accent-dark);
+            margin: 30px 0 14px;
+            font-size: 1.25rem;
+            border-right: 4px solid var(--accent);
+            padding-right: 15px;
+        }
+        h3 { color: #1e293b; margin: 18px 0 8px; font-size: 1.05rem; }
+        p { margin-bottom: 14px; font-size: 0.95rem; text-align: justify; }
+
+        .intro-box {
+            background: var(--bg-highlight);
+            border-right: 4px solid var(--accent);
+            padding: 15px 18px;
+            border-radius: 12px;
+            margin: 0 0 25px 0;
+        }
+
+        /* ─── Step list ─────────────────────────────────────── */
+        .steps {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            counter-reset: step;
+        }
+        .step {
+            position: relative;
+            padding: 18px 70px 18px 20px;
+            margin-bottom: 14px;
+            background: var(--bg-subtle);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            counter-increment: step;
+        }
+        .step::before {
+            content: counter(step);
+            position: absolute;
+            right: 20px;
+            top: 16px;
+            width: 34px;
+            height: 34px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+        .step-title {
+            font-weight: bold;
+            color: var(--accent-dark);
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+        .step-body {
+            font-size: 0.93rem;
+            color: #334155;
+        }
+        .step-body ul {
+            margin: 8px 18px 4px 0;
+        }
+        .step-body li {
+            margin-bottom: 4px;
+        }
+        .hint {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 6px 12px;
+            background: var(--bg-highlight);
+            border-right: 3px solid var(--accent);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: var(--accent-dark);
+        }
+        .callout {
+            background: #fef2f2;
+            border-right: 4px solid #dc2626;
+            padding: 14px 18px;
+            border-radius: 10px;
+            margin: 14px 0;
+            font-size: 0.92rem;
+            color: #7f1d1d;
+        }
+        .callout-info {
+            background: #e8f5e9;
+            border-right: 4px solid #2e7d32;
+            padding: 14px 18px;
+            border-radius: 10px;
+            margin: 14px 0;
+            font-size: 0.92rem;
+            color: #1b5e20;
+        }
+
+        /* ─── Screen mockup (in the guide's own design) ─────── */
+        .screen-mock {
+            display: flex;
+            justify-content: center;
+            margin: 18px 0 6px;
+        }
+        .phone {
+            width: 280px;
+            max-width: 100%;
+            border: 1.5px solid var(--border);
+            border-radius: 22px;
+            padding: 5px;
+            background: #fff;
+            box-shadow: 0 3px 14px rgba(0,0,0,0.05);
+        }
+        .phone-screen {
+            border-radius: 17px;
+            overflow: hidden;
+            background: #fff;
+            border: 1px solid var(--border);
+            min-height: 460px;
+            display: flex;
+            flex-direction: column;
+        }
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px 6px;
+            font-size: 0.65rem;
+            color: var(--accent-light);
+            background: var(--bg-subtle);
+            border-bottom: 1px solid var(--border);
+            direction: ltr;
+            font-weight: 600;
+        }
+        .status-bar .icons {
+            display: flex;
+            gap: 4px;
+            font-size: 0.6rem;
+        }
+        .app-body {
+            flex: 1;
+            padding: 14px 16px 18px;
+            display: flex;
+            flex-direction: column;
+        }
+        .app-brand {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 700;
+            color: var(--accent-dark);
+            font-size: 0.8rem;
+            margin-bottom: 12px;
+        }
+        .app-brand .logo {
+            width: 20px;
+            height: 20px;
+            background: var(--accent-dark);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            color: white;
+        }
+        .app-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--accent-dark);
+            margin-bottom: 2px;
+        }
+        .app-sub {
+            font-size: 0.68rem;
+            color: var(--accent-light);
+            margin-bottom: 12px;
+        }
+        .field {
+            margin-bottom: 9px;
+        }
+        .field-label {
+            display: block;
+            font-size: 0.65rem;
+            color: var(--accent-light);
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+        .input {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1.2px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 0.7rem;
+            background: #fff;
+            color: #1e293b;
+            min-height: 34px;
+        }
+        .input .eye {
+            color: var(--accent-light);
+            font-size: 0.72rem;
+        }
+        .forgot {
+            font-size: 0.65rem;
+            color: var(--accent);
+            font-weight: 600;
+            margin: 3px 0 10px;
+            text-align: end;
+        }
+        .remember-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.66rem;
+            color: #374151;
+            margin: 0 0 12px;
+        }
+        .checkbox {
+            width: 12px;
+            height: 12px;
+            border: 1.2px solid var(--accent-muted);
+            border-radius: 3px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.5rem;
+            color: white;
+            font-weight: 900;
+        }
+        .checkbox.checked {
+            background: var(--accent-dark);
+            border-color: var(--accent-dark);
+        }
+        .btn {
+            padding: 9px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 700;
+            font-size: 0.72rem;
+            text-align: center;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-family: inherit;
+            cursor: default;
+        }
+        .btn-primary {
+            background: var(--action);
+            color: white;
+        }
+        .btn.loading {
+            opacity: 0.92;
+            cursor: wait;
+        }
+        .spinner {
+            width: 11px;
+            height: 11px;
+            border: 1.5px solid rgba(255,255,255,0.4);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: mock-spin 0.8s linear infinite;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+        @keyframes mock-spin {
+            to { transform: rotate(360deg); }
+        }
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent-muted);
+            font-size: 0.62rem;
+            margin: 12px 0;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+        .hint-line {
+            text-align: center;
+            font-size: 0.65rem;
+            color: var(--accent-light);
+            margin: 2px 0 4px;
+        }
+        .link-inline {
+            display: block;
+            text-align: center;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        /* ─── Troubleshooting box ───────────────────────────── */
+        .troubleshoot {
+            background: #fef2f2;
+            border-right: 4px solid #dc2626;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin: 30px 0 20px 0;
+        }
+        .troubleshoot h3 {
+            color: #991b1b;
+            margin: 0 0 12px 0;
+        }
+        .troubleshoot dt {
+            font-weight: bold;
+            color: #7f1d1d;
+            margin-top: 12px;
+            font-size: 0.93rem;
+        }
+        .troubleshoot dt:first-of-type { margin-top: 0; }
+        .troubleshoot dd {
+            margin-right: 0;
+            font-size: 0.9rem;
+            color: #1f2937;
+        }
+
+        .next-box {
+            background: #e8f5e9;
+            border-right: 4px solid #2e7d32;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin: 30px 0 20px 0;
+        }
+        .next-box a { font-weight: bold; }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--accent-muted);
+        }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        @media (max-width: 700px) {
+            .container { padding: 25px 20px; }
+            h1 { font-size: 1.5rem; }
+            h2 { font-size: 1.15rem; }
+            .step { padding-right: 60px; }
+            .step::before { right: 14px; }
+            .phone { width: 250px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a class="back-link" href="client.html" data-i18n="clientLogin.back">→ العودة إلى دليل العميل</a>
+
+    <h1 data-i18n="clientLogin.heading">🔑 تسجيل الدخول</h1>
+    <p class="subtitle" data-i18n="clientLogin.subtitle">القسم الثاني من دليل العميل — الدخول إلى حسابك واستعادة كلمة المرور عند الحاجة.</p>
+
+    <div class="intro-box" data-i18n-html="clientLogin.intro">
+        <strong>قبل البدء:</strong> يجب أن يكون لديك حساب بالفعل. إن لم يكن، راجع
+        <a href="client-1-signup.html">القسم الأول: إنشاء حساب</a>.
+        بعد التسجيل، سجّل الدخول بالبريد وكلمة المرور نفسيهما.
+    </div>
+
+    <h2 data-i18n="clientLogin.stepsHeading">خطوات تسجيل الدخول</h2>
+
+    <ol class="steps">
+        <li class="step">
+            <div class="step-title" data-i18n="clientLogin.step1.title">افتح التطبيق</div>
+            <div class="step-body" data-i18n="clientLogin.step1.body">
+                عند فتح التطبيق تظهر شاشة الدخول، إلا إذا كانت جلستك السابقة لا تزال صالحة واخترت البقاء مسجّلاً — في هذه الحالة تنتقل مباشرة إلى الشاشة الرئيسية.
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="شاشة الدخول مع شعار كوبا"
+                    data-i18n-alt="clientLogin.shot1.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <div class="status-bar">
+                            <span>9:41</span>
+                            <span class="icons">📶 🔋</span>
+                        </div>
+                        <div class="app-body">
+                            <div class="app-brand">
+                                <span class="logo">💧</span>
+                                <span data-i18n="clientLogin.mock1.brand">كوبا</span>
+                            </div>
+                            <div class="app-title" data-i18n="clientLogin.mock1.title">مرحباً بعودتك</div>
+                            <div class="app-sub" data-i18n="clientLogin.mock1.subtitle">سجّل الدخول للمتابعة</div>
+
+                            <div class="field">
+                                <label class="field-label" data-i18n="clientLogin.mock1.emailLabel">البريد الإلكتروني</label>
+                                <div class="input" data-i18n="clientLogin.mock1.emailPlaceholder">example@mail.com</div>
+                            </div>
+                            <div class="field">
+                                <label class="field-label" data-i18n="clientLogin.mock1.passwordLabel">كلمة المرور</label>
+                                <div class="input">
+                                    <span>••••••••</span>
+                                    <span class="eye">👁</span>
+                                </div>
+                            </div>
+                            <div class="forgot" data-i18n="clientLogin.mock1.forgot">نسيت كلمة المرور؟</div>
+
+                            <div class="remember-row">
+                                <span class="checkbox checked">✓</span>
+                                <span data-i18n="clientLogin.mock1.remember">البقاء مسجّلاً</span>
+                            </div>
+
+                            <button class="btn btn-primary" type="button" data-i18n="clientLogin.mock1.loginBtn">تسجيل الدخول</button>
+
+                            <div class="divider" data-i18n="clientLogin.mock1.divider">أو</div>
+                            <div class="hint-line" data-i18n="clientLogin.mock1.noAccount">ليس لديك حساب؟</div>
+                            <div class="link-inline" data-i18n="clientLogin.mock1.createLink">إنشاء حساب</div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </li>
+
+        <li class="step">
+            <div class="step-title" data-i18n="clientLogin.step2.title">أدخل البريد الإلكتروني وكلمة المرور</div>
+            <div class="step-body" data-i18n-html="clientLogin.step2.body">
+                اكتب البريد المستخدم عند التسجيل، وكلمة المرور نفسها.
+                <ul>
+                    <li>البريد غير حساس لحالة الأحرف (كبيرة أو صغيرة).</li>
+                    <li>كلمة المرور حساسة لحالة الأحرف. أيقونة العين على يمين الحقل تتيح كشف كلمة المرور للتحقق قبل الإرسال.</li>
+                    <li>إذا كان أحد الحقلين فارغاً عند الضغط على «تسجيل الدخول»، يطلب التطبيق تعبئته دون الاتصال بالخادم.</li>
+                </ul>
+            </div>
+        </li>
+
+        <li class="step">
+            <div class="step-title" data-i18n="clientLogin.step3.title">اختر «البقاء مسجّلاً»</div>
+            <div class="step-body" data-i18n-html="clientLogin.step3.body">
+                المربع محدد افتراضياً:
+                <ul>
+                    <li><strong>محدد (افتراضي)</strong> — في المرة القادمة تفتح فيها التطبيق وأنت لا تزال داخل الجلسة، تنتقل مباشرة إلى الشاشة الرئيسية.</li>
+                    <li><strong>غير محدد</strong> — الجلسة تنتهي بإغلاق التطبيق. مفيد عند استخدام هاتف مشترك.</li>
+                </ul>
+                <span class="hint" data-i18n="clientLogin.step3.hint">هذا الخيار يُحفظ على الجهاز، ويُطبَّق تلقائياً في المرات القادمة حتى تغيّره.</span>
+            </div>
+        </li>
+
+        <li class="step">
+            <div class="step-title" data-i18n="clientLogin.step4.title">اضغط على «تسجيل الدخول»</div>
+            <div class="step-body" data-i18n-html="clientLogin.step4.body">
+                يعرض الزر مؤشر تحميل أثناء الطلب. عند النجاح، يقوم التطبيق بما يلي:
+                <ul>
+                    <li>يحدّد دورك (عميل أو سائق) من البيانات المحفوظة أو من الخادم، ويحفظه للاستخدامات القادمة.</li>
+                    <li>يفتح الاتصال الفوري بالخادم في الخلفية، لتكون التتبع المباشر والإشعارات جاهزة فور تقديم طلب.</li>
+                    <li>ينقلك إلى الشاشة الرئيسية لدورك.</li>
+                </ul>
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="الزر مع مؤشر التحميل"
+                    data-i18n-alt="clientLogin.shot2.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <div class="status-bar">
+                            <span>9:41</span>
+                            <span class="icons">📶 🔋</span>
+                        </div>
+                        <div class="app-body">
+                            <div class="app-brand">
+                                <span class="logo">💧</span>
+                                <span data-i18n="clientLogin.mock1.brand">كوبا</span>
+                            </div>
+                            <div class="app-title" data-i18n="clientLogin.mock1.title">مرحباً بعودتك</div>
+                            <div class="app-sub" data-i18n="clientLogin.mock1.subtitle">سجّل الدخول للمتابعة</div>
+
+                            <div class="field">
+                                <label class="field-label" data-i18n="clientLogin.mock1.emailLabel">البريد الإلكتروني</label>
+                                <div class="input" data-i18n="clientLogin.mock2.emailValue">mohamed@mail.com</div>
+                            </div>
+                            <div class="field">
+                                <label class="field-label" data-i18n="clientLogin.mock1.passwordLabel">كلمة المرور</label>
+                                <div class="input">
+                                    <span>••••••••</span>
+                                    <span class="eye">👁</span>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-primary loading" type="button">
+                                <span class="spinner"></span>
+                                <span data-i18n="clientLogin.mock2.loading">جارٍ تسجيل الدخول...</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </li>
+
+        <li class="step">
+            <div class="step-title" data-i18n="clientLogin.step5.title">أصبحت في الشاشة الرئيسية</div>
+            <div class="step-body" data-i18n="clientLogin.step5.body">
+                تظهر الشاشة الرئيسية للعميل مع بطاقات الحالة والمحفظة والطلبات النشطة. من هنا يمكنك إرسال أول طلب توصيل، أو تصفّح بقية الأقسام في هذا الدليل.
+            </div>
+        </li>
+    </ol>
+
+    <h2 data-i18n="clientLogin.recoveryHeading">استعادة كلمة المرور</h2>
+    <p data-i18n="clientLogin.recoveryIntro">
+        إذا نسيت كلمة المرور، يمكنك إعادة تعيينها دون مغادرة التطبيق.
+    </p>
+
+    <ol class="steps" style="counter-reset: step 5;">
+        <li class="step">
+            <div class="step-title" data-i18n="clientLogin.step6.title">اضغط على «نسيت كلمة المرور؟»</div>
+            <div class="step-body" data-i18n="clientLogin.step6.body">
+                الرابط يقع أسفل حقل كلمة المرور مباشرة.
+                سيظهر مربع حوار يطلب بريدك الإلكتروني.
+            </div>
+        </li>
+
+        <li class="step">
+            <div class="step-title" data-i18n="clientLogin.step7.title">أدخل بريدك</div>
+            <div class="step-body" data-i18n-html="clientLogin.step7.body">
+                اكتب البريد نفسه الذي سجّلت به. إذا كانت الصيغة غير صحيحة (بدون علامة <code>@</code>)، يظهر تلميح أحمر أسفل الحقل.
+            </div>
+        </li>
+
+        <li class="step">
+            <div class="step-title" data-i18n="clientLogin.step8.title">اضغط على «إرسال رابط إعادة التعيين»</div>
+            <div class="step-body" data-i18n-html="clientLogin.step8.body">
+                يُغلق المربع ويظهر شريط أخضر يؤكد قبول الطلب.
+                يُرسل الخادم رسالة إلى بريدك تحتوي على رابط لإعادة تعيين كلمة المرور.
+                <span class="hint" data-i18n="clientLogin.step8.hint">الرابط صالح لمرة واحدة ولمدة قصيرة. إذا انتهت صلاحيته، كرّر العملية.</span>
+            </div>
+        </li>
+
+        <li class="step">
+            <div class="step-title" data-i18n="clientLogin.step9.title">افتح الرابط من بريدك</div>
+            <div class="step-body" data-i18n="clientLogin.step9.body">
+                افتح الرسالة من هاتفك أو الكمبيوتر، اضغط على الرابط، وأدخل كلمة مرور جديدة.
+                إذا فتحت الرابط على الكمبيوتر، سجّل الدخول بالهاتف بعد ذلك باستخدام كلمة المرور الجديدة.
+            </div>
+        </li>
+
+        <li class="step">
+            <div class="step-title" data-i18n="clientLogin.step10.title">سجّل الدخول بكلمة المرور الجديدة</div>
+            <div class="step-body" data-i18n="clientLogin.step10.body">
+                ارجع إلى شاشة الدخول، أدخل البريد وكلمة المرور الجديدة، واضغط على «تسجيل الدخول».
+            </div>
+        </li>
+    </ol>
+
+    <div class="callout-info" data-i18n-html="clientLogin.calloutReset">
+        <strong>رسالة إعادة التعيين لا تصل؟</strong>
+        <ul>
+            <li>تحقق من مجلد الرسائل غير المرغوب فيها أو البريد العشوائي.</li>
+            <li>تأكد من كتابة البريد بشكل صحيح — البريد غير الموجود لن يستلم شيئاً.</li>
+            <li>انتظر دقيقتين بين كل محاولة والأخرى لتجنب التقييد من الخادم.</li>
+            <li>إذا استمرت المشكلة، افتح تذكرة دعم من داخل التطبيق (القسم الخامس من هذا الدليل).</li>
+        </ul>
+    </div>
+
+    <h2 data-i18n="clientLogin.rateLimitHeading">حد المحاولات</h2>
+    <p data-i18n-html="clientLogin.rateLimitIntro">
+        الخادم يحدّ عدد محاولات تسجيل الدخول إلى <strong>10 محاولات في كل 15 دقيقة لكل عنوان IP</strong>.
+        عند تجاوز الحد، يرفض الخادم المحاولة التالية قبل التحقق من بيانات الدخول، ويعرض التطبيق رسالة الخطأ المطابقة.
+    </p>
+    <div class="callout" data-i18n-html="clientLogin.calloutRateLimit">
+        <strong>«عدد كبير جداً من المحاولات. حاول مرة أخرى لاحقاً»</strong>
+        <ul>
+            <li>توقف عن الضغط على «تسجيل الدخول» — كل محاولة إضافية تعيد تشغيل نافذة الـ 15 دقيقة.</li>
+            <li>انتظر 15 دقيقة ثم أعد المحاولة بكلمة المرور الصحيحة.</li>
+            <li>إذا كنت لا تتذكر كلمة المرور، استخدم «نسيت كلمة المرور؟» بدلاً من إعادة المحاولة.</li>
+            <li>على نفس شبكة الإنترنت، قد يصل مستخدمون آخرون إلى نفس الحد إذا حاولوا الدخول من نفس عنوان IP.</li>
+        </ul>
+    </div>
+
+    <div class="troubleshoot">
+        <h3 data-i18n="clientLogin.troubleshoot.heading">إذا واجهت خطأً</h3>
+        <dl>
+            <dt data-i18n="clientLogin.troubleshoot.dt1">«البريد الإلكتروني أو كلمة المرور غير صحيحة»</dt>
+            <dd data-i18n="clientLogin.troubleshoot.dd1">البريد غير مسجّل، أو كلمة المرور لا تطابق. تحقق من كتابة كلمة المرور — فهي حساسة لحالة الأحرف. إذا نسيتها، استخدم «نسيت كلمة المرور؟».</dd>
+
+            <dt data-i18n="clientLogin.troubleshoot.dt2">«عدد كبير جداً من المحاولات. حاول مرة أخرى لاحقاً»</dt>
+            <dd data-i18n="clientLogin.troubleshoot.dd2">وصلت إلى حد 10 محاولات في 15 دقيقة. توقف عن المحاولة وانتظر 15 دقيقة، أو استخدم «نسيت كلمة المرور؟».</dd>
+
+            <dt data-i18n="clientLogin.troubleshoot.dt3">ظهر شريط تحذير برتقالي بعد الدخول ولم تنتقل الشاشة</dt>
+            <dd data-i18n="clientLogin.troubleshoot.dd3">تم الدخول بنجاح لكن تعذّر تحديد الدور (عميل أو سائق) بسبب مشكلة اتصال مؤقتة. أغلق التطبيق وأعد فتحه — الجلسة صالحة الآن، والدور يُجلب من الخادم.</dd>
+
+            <dt data-i18n="clientLogin.troubleshoot.dt4">«حدث خطأ ما» دون تفاصيل إضافية</dt>
+            <dd data-i18n="clientLogin.troubleshoot.dd4">عادةً مشكلة شبكة. تحقق من اتصال الهاتف بالإنترنت. إذا كانت التطبيقات الأخرى تعمل على نفس الشبكة بشكل طبيعي، أغلق التطبيق وأعد المحاولة.</dd>
+
+            <dt data-i18n="clientLogin.troubleshoot.dt5">الزر يدور لأكثر من 30 ثانية</dt>
+            <dd data-i18n="clientLogin.troubleshoot.dd5">الخادم لا يستجيب. أغلق التطبيق، تحقق من اتصال الإنترنت، ثم أعد المحاولة. إذا تكررت المشكلة، انتظر قليلاً — قد يكون الخادم يقوم بنشر تحديث.</dd>
+
+            <dt data-i18n="clientLogin.troubleshoot.dt6">لا يمكنني تسجيل الخروج من حساب سابق</dt>
+            <dd data-i18n-html="clientLogin.troubleshoot.dd6">افتح <em>الحساب ← الإعدادات</em>، ثم اضغط على <strong>«تسجيل الخروج»</strong>. إذا كنت لا ترى الشاشة الرئيسية أصلاً، فاستخدم إعادة تثبيت التطبيق كخيار أخير.</dd>
+        </dl>
+    </div>
+
+    <div class="next-box">
+        <span data-i18n-html="clientLogin.next.body">
+            <strong>الخطوة التالية:</strong>
+            بعد الدخول بنجاح، يمكنك الانتقال إلى القسم الثالث:
+            <a href="client-3-edit-profile.html">تعديل الملف الشخصي</a>،
+            أو القسم السادس مباشرة:
+            <a href="client-6-make-request.html">تقديم طلب توصيل</a>.
+            يمكنك أيضاً العودة إلى <a href="client.html">فهرس دليل العميل</a> لاختيار قسم آخر.
+        </span>
+    </div>
+
+    <div class="footer">
+        <span data-i18n="clientLogin.footer.copyright">© 2026 كوبا العيون – جميع الحقوق محفوظة</span><br>
+        <a href="https://legal.kouba.site/privacy-ar" data-i18n="clientLogin.footer.privacy">سياسة الخصوصية</a>
+        &nbsp;•&nbsp;
+        <a href="https://legal.kouba.site/terms-ar" data-i18n="clientLogin.footer.terms">شروط الخدمة</a>
+    </div>
+</div>
+
+<!--
+    OPTIONAL I18N LOADER
+    Reads ?lang=fr|en|es from the URL, fetches i18n/<lang>.json, and swaps:
+        [data-i18n]       → textContent
+        [data-i18n-html]  → innerHTML
+        [data-i18n-alt]   → .alt on <img>, aria-label on others
+    Failures are swallowed — Arabic fallback stays visible.
+-->
+<script>
+(function () {
+    try {
+        var lang = new URLSearchParams(location.search).get('lang');
+        if (!lang || lang === 'ar') return;
+        fetch('i18n/' + lang + '.json')
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (t) {
+                if (!t) return;
+                document.querySelectorAll('[data-i18n]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n')];
+                    if (v != null) el.textContent = v;
+                });
+                document.querySelectorAll('[data-i18n-html]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n-html')];
+                    if (v != null) el.innerHTML = v;
+                });
+                document.querySelectorAll('[data-i18n-alt]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n-alt')];
+                    if (v == null) return;
+                    if (el.tagName === 'IMG') el.alt = v;
+                    else el.setAttribute('aria-label', v);
+                });
+            })
+            .catch(function () {});
+    } catch (e) {}
+})();
+</script>
+</body>
+</html>

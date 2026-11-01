@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="clientSignup.pageTitle">إنشاء حساب – دليل العميل – كوبا</title>
+    <!--
+    ──────────────────────────────────────────────────────────────
+    THEME — grey palette (client). No orange, no blue chrome.
+    Driver pages flip the same variables to Ross (dusty rose).
+
+    SCREENS — p1/p2/p3 are inline HTML+CSS mockups rendered in
+    the guide's own visual language (grey frame, white screen,
+    subtle borders). They are NOT a separate app design system.
+    Only the semantic colors named in the body text appear:
+        green ✓  → valid field / valid phone
+        slate-blue → primary action button ("اللون الأزرق")
+    All other chrome is the guide's grey palette.
+
+    LOCALIZATION — every text node inside every mockup is
+    data-i18n'd, including the app UI text. When ?lang=fr is
+    set, the login mockup shows "Bon retour", the role cards
+    show "Client / Chauffeur", etc. The screen is a rendered
+    translation target, not a frozen screenshot.
+
+        data-i18n       → textContent
+        data-i18n-html  → innerHTML
+        data-i18n-alt   → .alt on <img>, aria-label on others
+    Arabic is the fallback. Translation files:
+        i18n/en.json, fr.json, es.json
+    ──────────────────────────────────────────────────────────────
+    -->
+    <style>
+        :root {
+            --accent:        #4b5563;
+            --accent-dark:   #1f2937;
+            --accent-light:  #6b7280;
+            --accent-muted:  #9ca3af;
+            --bg-page:       #f3f4f6;
+            --bg-subtle:     #f9fafb;
+            --bg-highlight:  #f3f4f6;
+            --border:        #e5e7eb;
+            --border-hover:  #4b5563;
+            --shadow-hover:  rgba(75, 85, 99, 0.12);
+            --action:        #5b7f9e;   /* muted slate-blue — matches "اللون الأزرق" */
+            --success:       #16a34a;
+            --success-bg:    #f0fdf4;
+            --success-border:#22c55e;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Cairo', 'Inter', -apple-system, 'Segoe UI', sans-serif;
+            background: var(--bg-page);
+            color: #1e293b;
+            line-height: 1.75;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px 45px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--accent);
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        .back-link:hover { text-decoration: underline; }
+        h1 {
+            color: var(--accent-dark);
+            border-bottom: 3px solid var(--accent);
+            padding-bottom: 12px;
+            margin-bottom: 8px;
+            font-size: 1.8rem;
+        }
+        .subtitle {
+            font-size: 1rem;
+            color: var(--accent-light);
+            margin-bottom: 25px;
+        }
+        h2 {
+            color: var(--accent-dark);
+            margin: 30px 0 14px;
+            font-size: 1.25rem;
+            border-right: 4px solid var(--accent);
+            padding-right: 15px;
+        }
+        h3 { color: #1e293b; margin: 18px 0 8px; font-size: 1.05rem; }
+        p { margin-bottom: 14px; font-size: 0.95rem; text-align: justify; }
+
+        .intro-box {
+            background: var(--bg-highlight);
+            border-right: 4px solid var(--accent);
+            padding: 15px 18px;
+            border-radius: 12px;
+            margin: 0 0 25px 0;
+        }
+
+        /* ─── Step list ─────────────────────────────────────── */
+        .steps {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            counter-reset: step;
+        }
+        .step {
+            position: relative;
+            padding: 18px 70px 18px 20px;
+            margin-bottom: 14px;
+            background: var(--bg-subtle);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            counter-increment: step;
+        }
+        .step::before {
+            content: counter(step);
+            position: absolute;
+            right: 20px;
+            top: 16px;
+            width: 34px;
+            height: 34px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+        .step-title {
+            font-weight: bold;
+            color: var(--accent-dark);
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+        .step-body {
+            font-size: 0.93rem;
+            color: #334155;
+        }
+        .step-body ul {
+            margin: 8px 18px 4px 0;
+        }
+        .step-body li {
+            margin-bottom: 4px;
+        }
+        .hint {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 6px 12px;
+            background: var(--bg-highlight);
+            border-right: 3px solid var(--accent);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: var(--accent-dark);
+        }
+        .callout-info {
+            background: #e8f5e9;
+            border-right: 4px solid #2e7d32;
+            padding: 14px 18px;
+            border-radius: 10px;
+            margin: 14px 0;
+            font-size: 0.92rem;
+            color: #1b5e20;
+        }
+
+        /* ─── Screen mockup (in the guide's own design) ─────── */
+        .screen-mock {
+            display: flex;
+            justify-content: center;
+            margin: 18px 0 6px;
+        }
+        .phone {
+            width: 280px;
+            max-width: 100%;
+            border: 1.5px solid var(--border);
+            border-radius: 22px;
+            padding: 5px;
+            background: #fff;
+            box-shadow: 0 3px 14px rgba(0,0,0,0.05);
+        }
+        .phone-screen {
+            border-radius: 17px;
+            overflow: hidden;
+            background: #fff;
+            border: 1px solid var(--border);
+            min-height: 460px;
+            display: flex;
+            flex-direction: column;
+        }
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px 6px;
+            font-size: 0.65rem;
+            color: var(--accent-light);
+            background: var(--bg-subtle);
+            border-bottom: 1px solid var(--border);
+            direction: ltr;
+            font-weight: 600;
+        }
+        .status-bar .icons {
+            display: flex;
+            gap: 4px;
+            font-size: 0.6rem;
+        }
+        .app-body {
+            flex: 1;
+            padding: 14px 16px 18px;
+            display: flex;
+            flex-direction: column;
+        }
+        .app-brand {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 700;
+            color: var(--accent-dark);
+            font-size: 0.8rem;
+            margin-bottom: 12px;
+        }
+        .app-brand .logo {
+            width: 20px;
+            height: 20px;
+            background: var(--accent-dark);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            color: white;
+        }
+        .app-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--accent-dark);
+            margin-bottom: 2px;
+        }
+        .app-sub {
+            font-size: 0.68rem;
+            color: var(--accent-light);
+            margin-bottom: 12px;
+        }
+        .field {
+            margin-bottom: 9px;
+        }
+        .field-label {
+            display: block;
+            font-size: 0.65rem;
+            color: var(--accent-light);
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+        .input {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1.2px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 0.7rem;
+            background: #fff;
+            color: #1e293b;
+            min-height: 34px;
+        }
+        .input.valid {
+            border-color: var(--success-border);
+            background: var(--success-bg);
+        }
+        .input .check {
+            color: var(--success);
+            font-weight: 800;
+            font-size: 0.72rem;
+        }
+        .forgot {
+            text-align: left;
+            font-size: 0.65rem;
+            color: var(--accent);
+            font-weight: 600;
+            margin: 3px 0 10px;
+            direction: rtl;
+            text-align: end;
+        }
+        .btn {
+            padding: 9px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 700;
+            font-size: 0.72rem;
+            text-align: center;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-family: inherit;
+            cursor: default;
+        }
+        .btn-primary {
+            background: var(--action);
+            color: white;
+        }
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent-muted);
+            font-size: 0.62rem;
+            margin: 12px 0;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+        .hint-line {
+            text-align: center;
+            font-size: 0.65rem;
+            color: var(--accent-light);
+            margin-bottom: 6px;
+        }
+        .link-block {
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--accent-dark);
+            border: 1.5px solid var(--accent-dark);
+            border-radius: 8px;
+            padding: 7px;
+            position: relative;
+            background: var(--bg-highlight);
+        }
+        .link-block .arrow-up {
+            position: absolute;
+            top: -22px;
+            right: 50%;
+            transform: translateX(50%);
+            font-size: 1rem;
+            color: var(--accent);
+        }
+
+        /* ─── Radio cards (p2) ─────────────────────────────── */
+        .section-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--accent-dark);
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+        }
+        .radio-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 9px;
+            padding: 10px;
+            border: 1.2px solid var(--border);
+            border-radius: 9px;
+            margin-bottom: 7px;
+            background: #fff;
+        }
+        .radio-card.selected {
+            border-color: var(--accent-dark);
+            background: var(--bg-highlight);
+        }
+        .radio-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-muted);
+            flex-shrink: 0;
+            margin-top: 2px;
+            position: relative;
+        }
+        .radio-card.selected .radio-dot {
+            border-color: var(--accent-dark);
+        }
+        .radio-card.selected .radio-dot::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            background: var(--accent-dark);
+            border-radius: 50%;
+        }
+        .radio-card .radio-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--accent-dark);
+        }
+        .radio-card .radio-desc {
+            font-size: 0.63rem;
+            color: var(--accent-light);
+            margin-top: 2px;
+        }
+
+        /* ─── Full form (p3) ───────────────────────────────── */
+        .form-tight .field { margin-bottom: 6px; }
+        .form-tight .field-label { font-size: 0.62rem; margin-bottom: 2px; }
+        .form-tight .input {
+            padding: 6px 9px;
+            min-height: 30px;
+            font-size: 0.66rem;
+        }
+        .city-row {
+            display: flex;
+            gap: 6px;
+        }
+        .city-row .field { flex: 1; }
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.63rem;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+        .checkbox {
+            width: 12px;
+            height: 12px;
+            border: 1.2px solid var(--accent-muted);
+            border-radius: 3px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.5rem;
+            color: white;
+            font-weight: 900;
+        }
+        .checkbox.checked {
+            background: var(--accent-dark);
+            border-color: var(--accent-dark);
+        }
+
+        /* ─── Troubleshooting box ───────────────────────────── */
+        .troubleshoot {
+            background: #fef2f2;
+            border-right: 4px solid #dc2626;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin: 30px 0 20px 0;
+        }
+        .troubleshoot h3 {
+            color: #991b1b;
+            margin: 0 0 12px 0;
+        }
+        .troubleshoot dt {
+            font-weight: bold;
+            color: #7f1d1d;
+            margin-top: 12px;
+            font-size: 0.93rem;
+        }
+        .troubleshoot dt:first-of-type { margin-top: 0; }
+        .troubleshoot dd {
+            margin-right: 0;
+            font-size: 0.9rem;
+            color: #1f2937;
+        }
+
+        .next-box {
+            background: #e8f5e9;
+            border-right: 4px solid #2e7d32;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin: 30px 0 20px 0;
+        }
+        .next-box a { font-weight: bold; }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--accent-muted);
+        }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        @media (max-width: 700px) {
+            .container { padding: 25px 20px; }
+            h1 { font-size: 1.5rem; }
+            h2 { font-size: 1.15rem; }
+            .step { padding-right: 60px; }
+            .step::before { right: 14px; }
+            .phone { width: 250px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a class="back-link" href="client.html" data-i18n="clientSignup.back">→ العودة إلى دليل العميل</a>
+
+    <h1 data-i18n="clientSignup.heading">📝 إنشاء حساب مع تأكيد البريد الإلكتروني</h1>
+    <p class="subtitle" data-i18n="clientSignup.subtitle">القسم الأول من دليل العميل — التسجيل مرة واحدة، ثم التحقق من البريد.</p>
+
+    <div class="intro-box" data-i18n-html="clientSignup.intro">
+        <strong>قبل البدء:</strong> ثبّت تطبيق كوبا على هاتفك. عند فتح التطبيق لأول مرة ستظهر شاشة تسجيل الدخول.
+        اضغط على <strong>«إنشاء حساب»</strong> للانتقال إلى نموذج التسجيل.
+        التحقق من البريد ليس إلزامياً لاستخدام التطبيق مباشرة، لكنه مطلوب لاحقاً للميزات المالية واستعادة كلمة المرور.
+    </div>
+
+    <h2 data-i18n="clientSignup.stepsHeading">خطوات التسجيل</h2>
+
+    <ol class="steps">
+        <li class="step">
+            <div class="step-title" data-i18n="clientSignup.step1.title">افتح التطبيق واضغط على «إنشاء حساب»</div>
+            <div class="step-body" data-i18n-html="clientSignup.step1.body">
+                في شاشة تسجيل الدخول، اضغط على رابط <strong>إنشاء حساب</strong> في أسفل الشاشة.
+                سيُفتح نموذج التسجيل.
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="شاشة الدخول مع تمييز رابط إنشاء حساب"
+                    data-i18n-alt="clientSignup.shot1.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <div class="status-bar">
+                            <span>9:41</span>
+                            <span class="icons">📶 🔋</span>
+                        </div>
+                        <div class="app-body">
+                            <div class="app-brand">
+                                <span class="logo">💧</span>
+                                <span data-i18n="clientSignup.mock1.brand">كوبا</span>
+                            </div>
+                            <div class="app-title" data-i18n="clientSignup.mock1.title">مرحباً بعودتك</div>
+                            <div class="app-sub" data-i18n="clientSignup.mock1.subtitle">سجّل الدخول للمتابعة</div>
+
+                            <div class="field">
+                                <label class="field-label" data-i18n="clientSignup.mock1.emailLabel">البريد الإلكتروني</label>
+                                <div class="input" data-i18n="clientSignup.mock1.emailPlaceholder">example@mail.com</div>
+                            </div>
+                            <div class="field">
+                                <label class="field-label" data-i18n="clientSignup.mock1.passwordLabel">كلمة المرور</label>
+                                <div class="input">•••••••• 👁</div>
+                            </div>
+                            <div class="forgot" data-i18n="clientSignup.mock1.forgot">نسيت كلمة المرور؟</div>
+
+                            <button class="btn btn-primary" type="button" data-i18n="clientSignup.mock1.loginBtn">تسجيل الدخول</button>
+
+                            <div class="divider" data-i18n="clientSignup.mock1.divider">أو</div>
+                            <div class="hint-line" data-i18n="clientSignup.mock1.noAccount">ليس لديك حساب؟</div>
+                            <div class="link-block">
+                                <span class="arrow-up">👇</span>
+                                <span data-i18n="clientSignup.mock1.createLink">إنشاء حساب</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </li>
+
+        <li class="step">
+            <div class="step-title" data-i18n="clientSignup.step2.title">أدخل اسمك الكامل</div>
+            <div class="step-body" data-i18n-html="clientSignup.step2.body">
+                اكتب الاسم الذي سيراه السائق أثناء توجهه إليك.
+                <ul>
+                    <li>يُفضّل استخدام اسمك الحقيقي — سيستخدمه السائق للتعرف على التوصيل.</li>
+                    <li>تظهر علامة الصح الخضراء فور تعبئة الحقل.</li>
+                </ul>
+            </div>
+        </li>
+
+        <li class="step">
+            <div class="step-title" data-i18n="clientSignup.step3.title">أدخل بريدك الإلكتروني</div>
+            <div class="step-body" data-i18n-html="clientSignup.step3.body">
+                سيُستخدم هذا البريد لتسجيل الدخول ولتلقّي رسالة التحقق.
+                <ul>
+                    <li>استخدم بريداً يمكنك الوصول إليه من هذا الهاتف.</li>
+                    <li>الحقل يتحول إلى الأخضر فقط عند صلاحية صيغة البريد.</li>
+                </ul>
+            </div>
+        </li>
+
+        <li class="step">
+            <div class="step-title" data-i18n="clientSignup.step4.title">اختر كلمة مرور</div>
+            <div class="step-body" data-i18n-html="clientSignup.step4.body">
+                يجب أن تحتوي كلمة المرور على:
+                <ul>
+                    <li>8 أحرف على الأقل</li>
+                    <li>حرف كبير واحد (A–Z)</li>
+                    <li>حرف صغير واحد (a–z)</li>
+                    <li>رقم واحد (0–9)</li>
+                    <li>رمز خاص واحد، مثل <code>!@#$%^&amp;*</code></li>
+                </ul>
+                <span class="hint" data-i18n="clientSignup.step4.hint">تظهر القواعد أثناء الكتابة، حتى ترى بوضوح الشرط الذي لم يتحقق بعد.</span>
+            </div>
+        </li>
+
+        <li class="step">
+            <div class="step-title" data-i18n="clientSignup.step5.title">أكّد كلمة المرور</div>
+            <div class="step-body" data-i18n="clientSignup.step5.body">
+                أعد كتابة كلمة المرور نفسها. علامة الصح الخضراء تؤكد تطابق الحقلين.
+            </div>
+        </li>
+
+        <li class="step">
+            <div class="step-title" data-i18n="clientSignup.step6.title">اختر الملف الشخصي «عميل»</div>
+            <div class="step-body" data-i18n-html="clientSignup.step6.body">
+                تحت قسم <strong>الملف المهني</strong>، تأكد من تحديد <strong>عميل</strong>.
+                هذا هو الخيار الافتراضي، لذا لا تحتاج عادةً إلى تغييره.
+                <span class="hint" data-i18n="clientSignup.step6.hint">ملف «السائق» مخصص فقط لمن يقومون بتوصيل الماء، ويتطلب خطوة تحقق من قِبل الإدارة.</span>
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="زر الاختيار مع تحديد «عميل»"
+                    data-i18n-alt="clientSignup.shot2.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <div class="status-bar">
+                            <span>9:41</span>
+                            <span class="icons">📶 🔋</span>
+                        </div>
+                        <div class="app-body">
+                            <div class="section-label" data-i18n="clientSignup.mock2.sectionLabel">الملف المهني</div>
+
+                            <div class="radio-card selected">
+                                <span class="radio-dot"></span>
+                                <div>
+                                    <div class="radio-title" data-i18n="clientSignup.mock2.clientTitle">عميل</div>
+                                    <div class="radio-desc" data-i18n="clientSignup.mock2.clientDesc">أطلب توصيل الماء</div>
+                                </div>
+                            </div>
+
+                            <div class="radio-card">
+                                <span class="radio-dot"></span>
+                                <div>
+                                    <div class="radio-title" data-i18n="clientSignup.mock2.driverTitle">سائق</div>
+                                    <div class="radio-desc" data-i18n="clientSignup.mock2.driverDesc">أوصّل الماء إلى العملاء</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </li>
+
+        <li class="step">
+            <div class="step-title" data-i18n="clientSignup.step7.title">اختر بلدك ومدينتك</div>
+            <div class="step-body" data-i18n-html="clientSignup.step7.body">
+                التطبيق يحدد <strong>المغرب</strong> افتراضياً. إذا كنت في بلد آخر، اضغط على حقل البلد واختر بلدك، ثم اختر مدينتك من القائمة المنسدلة.
+                <span class="hint" data-i18n="clientSignup.step7.hint">في العيون تُضاف مصادر المياه المحلية تلقائياً إلى حسابك، وهي التي ستظهر لاحقاً في نموذج الطلب.</span>
+            </div>
+        </li>
+
+        <li class="step">
+            <div class="step-title" data-i18n="clientSignup.step8.title">أدخل رقم هاتفك</div>
+            <div class="step-body" data-i18n-html="clientSignup.step8.body">
+                اختر رمز البلد أولاً، ثم اكتب الرقم بدون الصفر الأول.
+                <ul>
+                    <li>في المغرب يجب أن يتكوّن الرقم من 9 أرقام بالضبط، ويبدأ بـ 5 أو 6 أو 7.</li>
+                    <li>علامة الصح الخضراء تعني أن الرقم صالح ولم يُستخدم في حساب آخر.</li>
+                </ul>
+            </div>
+        </li>
+
+        <li class="step">
+            <div class="step-title" data-i18n="clientSignup.step9.title">اقرأ ووافق على الاتفاقيات القانونية</div>
+            <div class="step-body" data-i18n-html="clientSignup.step9.body">
+                ضع علامة أمام:
+                <ul>
+                    <li><strong>شروط الخدمة</strong> (إلزامي)</li>
+                    <li><strong>سياسة الخصوصية</strong> (إلزامي)</li>
+                    <li><strong>الموافقة التسويقية</strong> (اختياري)</li>
+                </ul>
+                الضغط على نص أي منها يفتح الصفحة القانونية المقابلة في المتصفح.
+                <span class="hint" data-i18n="clientSignup.step9.hint">الموافقة التسويقية منفصلة، ويمكن تغييرها لاحقاً من إعدادات التطبيق.</span>
+            </div>
+        </li>
+
+        <li class="step">
+            <div class="step-title" data-i18n="clientSignup.step10.title">اضغط على «تسجيل»</div>
+            <div class="step-body" data-i18n-html="clientSignup.step10.body">
+                عندما تكون جميع الحقول صالحة والاتفاقيتان الإلزاميتان محددتين، يتحول الزر إلى اللون الأزرق ويصبح قابلاً للنقر.
+                اضغط عليه لإنشاء الحساب.
+                <ul>
+                    <li>يعرض الزر مؤشر تحميل صغيراً أثناء إنشاء الحساب.</li>
+                    <li>إذا حدث خطأ، تظهر رسالة حمراء أسفل الشاشة تشرح السبب.</li>
+                </ul>
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="النموذج مكتملاً مع زر تسجيل مفعّل"
+                    data-i18n-alt="clientSignup.shot3.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <div class="status-bar">
+                            <span>9:41</span>
+                            <span class="icons">📶 🔋</span>
+                        </div>
+                        <div class="app-body form-tight">
+                            <div class="app-title" style="font-size:0.85rem; margin-bottom:9px;" data-i18n="clientSignup.mock3.title">إنشاء حساب</div>
+
+                            <div class="field">
+                                <label class="field-label" data-i18n="clientSignup.mock3.nameLabel">الاسم الكامل</label>
+                                <div class="input valid">
+                                    <span data-i18n="clientSignup.mock3.nameValue">محمد أحمد</span>
+                                    <span class="check">✓</span>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label class="field-label" data-i18n="clientSignup.mock3.emailLabel">البريد الإلكتروني</label>
+                                <div class="input valid">
+                                    <span data-i18n="clientSignup.mock3.emailValue">mohamed@mail.com</span>
+                                    <span class="check">✓</span>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label class="field-label" data-i18n="clientSignup.mock3.passwordLabel">كلمة المرور</label>
+                                <div class="input valid">
+                                    <span>••••••••</span>
+                                    <span class="check">✓</span>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label class="field-label" data-i18n="clientSignup.mock3.confirmLabel">تأكيد كلمة المرور</label>
+                                <div class="input valid">
+                                    <span>••••••••</span>
+                                    <span class="check">✓</span>
+                                </div>
+                            </div>
+
+                            <div class="city-row">
+                                <div class="field">
+                                    <label class="field-label" data-i18n="clientSignup.mock3.countryLabel">البلد</label>
+                                    <div class="input" data-i18n="clientSignup.mock3.countryValue">المغرب</div>
+                                </div>
+                                <div class="field">
+                                    <label class="field-label" data-i18n="clientSignup.mock3.cityLabel">المدينة</label>
+                                    <div class="input" data-i18n="clientSignup.mock3.cityValue">العيون</div>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label class="field-label" data-i18n="clientSignup.mock3.phoneLabel">رقم الهاتف</label>
+                                <div class="input valid">
+                                    <span data-i18n="clientSignup.mock3.phoneValue">🇲🇦 6 12 34 56 78</span>
+                                    <span class="check">✓</span>
+                                </div>
+                            </div>
+
+                            <div style="margin-top:6px;">
+                                <div class="checkbox-row">
+                                    <span class="checkbox checked">✓</span>
+                                    <span data-i18n="clientSignup.mock3.terms">أوافق على شروط الخدمة</span>
+                                </div>
+                                <div class="checkbox-row">
+                                    <span class="checkbox checked">✓</span>
+                                    <span data-i18n="clientSignup.mock3.privacy">أوافق على سياسة الخصوصية</span>
+                                </div>
+                                <div class="checkbox-row">
+                                    <span class="checkbox"></span>
+                                    <span data-i18n="clientSignup.mock3.marketing">الموافقة التسويقية (اختياري)</span>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-primary" type="button" style="margin-top:10px;" data-i18n="clientSignup.mock3.registerBtn">تسجيل</button>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </li>
+
+        <li class="step">
+            <div class="step-title" data-i18n="clientSignup.step11.title">أصبحت الآن في الشاشة الرئيسية للعميل</div>
+            <div class="step-body" data-i18n-html="clientSignup.step11.body">
+                بعد التسجيل تنتقل الصفحة إلى <strong>الشاشة الرئيسية للعميل</strong>. من هنا يمكنك إرسال أول طلب توصيل.
+                <ul>
+                    <li>تُحفظ تفاصيل حسابك، ويمكنك تسجيل الدخول مجدداً لاحقاً بالبريد وكلمة المرور نفسيهما.</li>
+                    <li>تُرسل رسالة التحقق إلى البريد الذي سجّلت به تلقائياً بمجرد نجاح التسجيل.</li>
+                </ul>
+            </div>
+        </li>
+    </ol>
+
+    <h2 data-i18n="clientSignup.emailHeading">تأكيد البريد الإلكتروني</h2>
+    <p data-i18n="clientSignup.emailIntro">
+        بمجرد اكتمال التسجيل، يرسل الخادم رسالة تحقق تلقائياً إلى بريدك. أنت تنتقل مباشرة إلى الشاشة الرئيسية، ويمكنك استخدام التطبيق فوراً دون انتظار الرسالة.
+    </p>
+
+    <div class="callout-info" data-i18n-html="clientSignup.calloutWhy">
+        <strong>لماذا التحقق مطلوب؟</strong>
+        بعض الميزات تحتاج إلى بريد إلكتروني مُتحقق منه:
+        <ul>
+            <li>استعادة كلمة المرور في حال نسيانها.</li>
+            <li>استلام الحوالات المالية وربط المحفظة.</li>
+            <li>تفعيل حساب السائق (إن كنت سائقاً).</li>
+        </ul>
+    </div>
+
+    <ol class="steps" style="counter-reset: step 11;">
+        <li class="step">
+            <div class="step-title" data-i18n="clientSignup.step12.title">افتح بريدك الإلكتروني</div>
+            <div class="step-body" data-i18n-html="clientSignup.step12.body">
+                افتح تطبيق البريد على هاتفك أو الكمبيوتر، وابحث عن رسالة من كوبا.
+                إذا لم تجدها في صندوق الوارد، تحقق من مجلد <strong>الرسائل غير المرغوب فيها</strong> أو <strong>البريد العشوائي</strong>.
+            </div>
+        </li>
+
+        <li class="step">
+            <div class="step-title" data-i18n="clientSignup.step13.title">اضغط على رابط التحقق</div>
+            <div class="step-body" data-i18n-html="clientSignup.step13.body">
+                داخل الرسالة، اضغط على زر أو رابط <strong>«تأكيد البريد الإلكتروني»</strong>.
+                يفتح الرابط صفحة تأكيد في المتصفح. عند نجاح التحقق، تظهر رسالة تأكيد ويمكنك إغلاق الصفحة.
+            </div>
+        </li>
+
+        <li class="step">
+            <div class="step-title" data-i18n="clientSignup.step14.title">تحقق من الحالة داخل التطبيق</div>
+            <div class="step-body" data-i18n-html="clientSignup.step14.body">
+                ارجع إلى تطبيق كوبا وافتح <em>الحساب ← الملف الشخصي</em>.
+                يظهر بجانب بريدك الإلكتروني شعار <strong>«مُتحقق»</strong> باللون الأخضر.
+                إذا بقي باللون الرمادي، قد تحتاج إلى إعادة تحميل الشاشة أو تسجيل الخروج والدخول مرة أخرى.
+            </div>
+        </li>
+
+        <li class="step">
+            <div class="step-title" data-i18n="clientSignup.step15.title">إذا لم تصلك الرسالة</div>
+            <div class="step-body" data-i18n-html="clientSignup.step15.body">
+                من <em>الملف الشخصي ← البريد الإلكتروني</em>، اضغط على <strong>«إعادة إرسال رسالة التحقق»</strong>.
+                <ul>
+                    <li>تأكد من أن البريد المكتوب صحيح — يمكنك تعديله من نفس الشاشة.</li>
+                    <li>انتظر بضع دقائق بين كل محاولة والأخرى.</li>
+                    <li>إذا استمرت المشكلة، افتح تذكرة دعم من داخل التطبيق.</li>
+                </ul>
+            </div>
+        </li>
+    </ol>
+
+    <div class="troubleshoot">
+        <h3 data-i18n="clientSignup.troubleshoot.heading">إذا واجهت خطأً أثناء التسجيل</h3>
+        <dl>
+            <dt data-i18n="clientSignup.troubleshoot.dt1">«أدخل 3 أرقام إضافية» أسفل حقل الهاتف</dt>
+            <dd data-i18n="clientSignup.troubleshoot.dd1">الرقم أقل من 9 أرقام المطلوبة. أضف الأرقام الناقصة. يظهر هذا التنبيه في حالة المغرب فقط.</dd>
+
+            <dt data-i18n="clientSignup.troubleshoot.dt2">«رقم الهاتف مسجّل بالفعل»</dt>
+            <dd data-i18n="clientSignup.troubleshoot.dd2">يوجد حساب بالفعل لهذا الرقم. استخدم رقماً آخر، أو سجّل الدخول بالحساب الحالي بدلاً من إنشاء حساب جديد.</dd>
+
+            <dt data-i18n="clientSignup.troubleshoot.dt3">«البريد الإلكتروني مستخدم بالفعل»</dt>
+            <dd data-i18n="clientSignup.troubleshoot.dd3">هذا البريد مرتبط بحساب آخر. استخدم بريداً مختلفاً، أو سجّل الدخول بالحساب الحالي.</dd>
+
+            <dt data-i18n="clientSignup.troubleshoot.dt4">زر «تسجيل» رمادي ولا يستجيب</dt>
+            <dd data-i18n="clientSignup.troubleshoot.dd4">هناك حقل إلزامي أو اتفاقية مطلوبة لم تُستوفَ. ارجع إلى أعلى النموذج: كل حقل إلزامي يعرض تلميحاً أحمر عندما لا يكون صالحاً، ويجب تحديد كلا المربعين الإلزاميين.</dd>
+
+            <dt data-i18n="clientSignup.troubleshoot.dt5">يُغلق التطبيق فوراً بعد الضغط على «تسجيل»</dt>
+            <dd data-i18n="clientSignup.troubleshoot.dd5">احتفظ بسجل الأعطال إن أمكن. أرسله إلى عنوان الدعم في أسفل الصفحة مع طراز الهاتف وإصدار أندرويد.</dd>
+        </dl>
+    </div>
+
+    <div class="next-box">
+        <span data-i18n-html="clientSignup.next.body">
+            <strong>الخطوة التالية:</strong>
+            بعد إنشاء الحساب والتحقق من البريد، توجّه إلى القسم الثاني:
+            <a href="client-2-login.html">تسجيل الدخول</a>.
+            يمكنك أيضاً العودة إلى <a href="client.html">فهرس دليل العميل</a> لاختيار قسم آخر.
+        </span>
+    </div>
+
+    <div class="footer">
+        <span data-i18n="clientSignup.footer.copyright">© 2026 كوبا العيون – جميع الحقوق محفوظة</span><br>
+        <a href="https://legal.kouba.site/privacy-ar" data-i18n="clientSignup.footer.privacy">سياسة الخصوصية</a>
+        &nbsp;•&nbsp;
+        <a href="https://legal.kouba.site/terms-ar" data-i18n="clientSignup.footer.terms">شروط الخدمة</a>
+    </div>
+</div>
+
+<!--
+    OPTIONAL I18N LOADER
+    Reads ?lang=fr|en|es from the URL, fetches i18n/<lang>.json, and swaps:
+        [data-i18n]       → textContent
+        [data-i18n-html]  → innerHTML
+        [data-i18n-alt]   → .alt on <img>, aria-label on others
+    Failures are swallowed — Arabic fallback stays visible.
+-->
+<script>
+(function () {
+    try {
+        var lang = new URLSearchParams(location.search).get('lang');
+        if (!lang || lang === 'ar') return;
+        fetch('i18n/' + lang + '.json')
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (t) {
+                if (!t) return;
+                document.querySelectorAll('[data-i18n]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n')];
+                    if (v != null) el.textContent = v;
+                });
+                document.querySelectorAll('[data-i18n-html]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n-html')];
+                    if (v != null) el.innerHTML = v;
+                });
+                document.querySelectorAll('[data-i18n-alt]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n-alt')];
+                    if (v == null) return;
+                    if (el.tagName === 'IMG') el.alt = v;
+                    else el.setAttribute('aria-label', v);
+                });
+            })
+            .catch(function () {});
+    } catch (e) {}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="clientSupport.pageTitle">التواصل مع الدعم – كوبا</title>
+    <!--
+    ──────────────────────────────────────────────────────────────
+    THEME — grey palette (client). No orange, no blue in page chrome.
+    Semantic green (closed/verified) and red (danger/error) kept
+    because they are status colors, not theme accents.
+    Primary action button uses --action (slate-blue), shared with
+    login / signup / credit pages for consistency.
+
+    SCREENS — p10–p19 are inline HTML+CSS mockups rendered in
+    the guide's own visual language (grey frame, white screen,
+    subtle borders). Every mockup includes a decorative finger
+    (.hand, aria-hidden) that points at the element the step
+    body text is describing. Fingers are absolutely positioned
+    within .phone-screen so coordinates stay stable across
+    translations.
+        p10  open ticket form (empty)
+        p11  form with image attached → points at "صورة محددة"
+        p12  form with FAQ button → points at FAQ
+        p13  "open ticket exists" warning → points at buttons
+        p14  "previous ticket closed" warning → points at buttons
+        p15  conversation view — open, reply bar visible
+        p16  conversation view — waiting-for-support bar
+        p17  conversation view — reply bar, points at ➤
+        p18  conversation view + image preview → points at "تنزيل"
+        p19  conversation view — closed, closed bar
+
+    Screenshot numbering so far:
+        p1–p3   → client-1-signup.html
+        p4–p5   → client-2-login.html
+        p6–p7   → client-3-edit-profile.html
+        p8–p9   → client-4-add-credit.html
+        p10–p19 → this file
+    Next available number: p20.
+
+    LOCALIZATION — every text node inside every mockup is
+    data-i18n'd. ?lang=fr renders "Contacter le support",
+    "En attente du support…", etc. Fingers use aria-hidden so
+    screen readers skip them (they're decorative).
+
+        data-i18n       → textContent
+        data-i18n-html  → innerHTML (contains <strong>, <ul>, <table>)
+        data-i18n-alt   → .alt on <img>, aria-label on others
+    Translation files:
+        i18n/en.json, fr.json, es.json
+    ──────────────────────────────────────────────────────────────
+    -->
+    <style>
+        :root {
+            --accent:        #4b5563;
+            --accent-dark:   #1f2937;
+            --accent-light:  #6b7280;
+            --accent-muted:  #9ca3af;
+            --bg-page:       #f3f4f6;
+            --bg-subtle:     #f9fafb;
+            --bg-highlight:  #f3f4f6;
+            --border:        #e5e7eb;
+            --border-hover:  #4b5563;
+            --shadow-hover:  rgba(75, 85, 99, 0.12);
+            /* Neutral "warning" palette — stone */
+            --warn-bg:       #f5f5f4;
+            --warn-border:   #57534e;
+            /* Primary action — matches signup/login/credit pages */
+            --action:        #5b7f9e;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Cairo', 'Inter', -apple-system, 'Segoe UI', sans-serif;
+            background: var(--bg-page);
+            color: #1e293b;
+            line-height: 1.75;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px 45px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--accent);
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        .back-link:hover { text-decoration: underline; }
+        h1 {
+            color: var(--accent-dark);
+            border-bottom: 3px solid var(--accent);
+            padding-bottom: 12px;
+            margin-bottom: 8px;
+            font-size: 1.9rem;
+        }
+        .subtitle {
+            font-size: 1rem;
+            color: var(--accent-light);
+            margin-bottom: 30px;
+        }
+
+        .intro-box {
+            background: var(--bg-highlight);
+            border-right: 4px solid var(--accent);
+            padding: 15px 18px;
+            border-radius: 12px;
+            margin: 0 0 30px 0;
+            font-size: 0.95rem;
+        }
+
+        /* ─── Steps ─────────────────────────────────────────── */
+        .step {
+            display: flex;
+            gap: 18px;
+            margin-bottom: 28px;
+            align-items: flex-start;
+        }
+        .step-number {
+            flex-shrink: 0;
+            width: 38px;
+            height: 38px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 2px;
+        }
+        .step-body { flex: 1; }
+        .step-title {
+            font-weight: bold;
+            color: var(--accent-dark);
+            font-size: 1.08rem;
+            margin-bottom: 6px;
+        }
+        .step-desc {
+            font-size: 0.95rem;
+            color: #334155;
+        }
+        .step-desc ul {
+            padding-right: 22px;
+            margin-top: 8px;
+        }
+        .step-desc li {
+            margin-bottom: 6px;
+        }
+
+        /* ─── Field table ───────────────────────────────────── */
+        .field-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0 6px;
+            font-size: 0.9rem;
+        }
+        .field-table th,
+        .field-table td {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            text-align: right;
+        }
+        .field-table th {
+            background: #f1f5f9;
+            color: var(--accent-dark);
+            font-weight: bold;
+        }
+        .field-table tr:nth-child(even) td {
+            background: #fafafa;
+        }
+
+        /* ─── Callouts ──────────────────────────────────────── */
+        .callout {
+            display: flex;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            margin: 16px 0;
+            font-size: 0.92rem;
+            align-items: flex-start;
+        }
+        .callout-icon { flex-shrink: 0; font-size: 1.15rem; margin-top: 1px; }
+        .callout-body { flex: 1; }
+        .callout-warn {
+            background: var(--warn-bg);
+            border-right: 4px solid var(--warn-border);
+        }
+        .callout-danger {
+            background: #fef2f2;
+            border-right: 4px solid #ef4444;
+        }
+        .callout-info {
+            background: var(--bg-highlight);
+            border-right: 4px solid var(--accent);
+        }
+        .callout-success {
+            background: #f0fdf4;
+            border-right: 4px solid #22c55e;
+        }
+        .callout strong { color: var(--accent-dark); }
+
+        /* ─── Inline message bubbles (step 10 body) ────────── */
+        .bubble {
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin: 8px 0;
+            font-size: 0.9rem;
+            max-width: 92%;
+        }
+        .bubble-user {
+            background: var(--bg-subtle);
+            border: 1px solid var(--border);
+            margin-right: 0;
+        }
+        .bubble-admin {
+            background: var(--bg-highlight);
+            border: 1px solid var(--border);
+            margin-right: auto;
+            margin-left: 0;
+        }
+        .bubble-head {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-bottom: 4px;
+            color: var(--accent-light);
+        }
+        .bubble-admin .bubble-head { color: var(--accent-dark); }
+        .bubble-user .bubble-head { color: #475569; }
+
+        /* ─── Status chips ─────────────────────────────────── */
+        .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+        .chip-open   { background: #64748b; color: white; }
+        .chip-closed { background: #22c55e; color: white; }
+
+        .section-title {
+            color: var(--accent-dark);
+            font-size: 1.25rem;
+            margin: 34px 0 14px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* ─── Screen mockup (in the guide's own design) ─────── */
+        .screen-mock {
+            display: flex;
+            justify-content: center;
+            margin: 18px 0 6px;
+        }
+        .phone {
+            width: 290px;
+            max-width: 100%;
+            border: 1.5px solid var(--border);
+            border-radius: 22px;
+            padding: 5px;
+            background: #fff;
+            box-shadow: 0 3px 14px rgba(0,0,0,0.05);
+        }
+        .phone-screen {
+            position: relative;
+            border-radius: 17px;
+            overflow: hidden;
+            background: #fff;
+            border: 1px solid var(--border);
+            min-height: 470px;
+            display: flex;
+            flex-direction: column;
+        }
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px 6px;
+            font-size: 0.65rem;
+            color: var(--accent-light);
+            background: var(--bg-subtle);
+            border-bottom: 1px solid var(--border);
+            direction: ltr;
+            font-weight: 600;
+        }
+        .status-bar .icons {
+            display: flex;
+            gap: 4px;
+            font-size: 0.6rem;
+        }
+        .app-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-subtle);
+        }
+        .app-bar .back-arrow {
+            color: var(--accent-dark);
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+        .app-bar .title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent-dark);
+            flex: 1;
+        }
+        .app-content {
+            flex: 1;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .ticket-label {
+            display: block;
+            font-size: 0.65rem;
+            color: var(--accent-light);
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+        .ticket-input {
+            border: 1.2px solid var(--border);
+            border-radius: 8px;
+            padding: 9px 10px;
+            font-size: 0.7rem;
+            color: var(--accent-muted);
+            background: #fff;
+            min-height: 34px;
+        }
+        .ticket-input.tall {
+            min-height: 74px;
+            padding-top: 10px;
+        }
+        .attach-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            border: 1.2px dashed var(--border);
+            border-radius: 8px;
+            padding: 9px 10px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: var(--accent-light);
+            background: var(--bg-subtle);
+        }
+        .attach-btn.success {
+            border: 1.2px solid #22c55e;
+            background: #f0fdf4;
+            color: #16a34a;
+        }
+        .submit-btn {
+            padding: 9px;
+            border-radius: 8px;
+            background: var(--action);
+            color: white;
+            font-weight: 700;
+            font-size: 0.72rem;
+            text-align: center;
+        }
+        .faq-btn {
+            padding: 9px;
+            border-radius: 8px;
+            border: 1.2px solid var(--accent-dark);
+            background: transparent;
+            color: var(--accent-dark);
+            font-weight: 700;
+            font-size: 0.68rem;
+            text-align: center;
+        }
+        .faq-btn.highlight {
+            border-color: var(--action);
+            background: rgba(91, 127, 158, 0.08);
+            color: var(--action);
+        }
+
+        /* Warning screens */
+        .warn-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+            gap: 10px;
+        }
+        .warn-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .warn-icon.open {
+            background: var(--warn-bg);
+            border: 2px solid var(--warn-border);
+            color: var(--warn-border);
+        }
+        .warn-icon.closed {
+            background: #f0fdf4;
+            border: 2px solid #22c55e;
+            color: #16a34a;
+        }
+        .warn-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--accent-dark);
+        }
+        .warn-body {
+            font-size: 0.68rem;
+            color: var(--accent-light);
+            line-height: 1.5;
+            max-width: 220px;
+        }
+        .warn-btns {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .warn-btn-primary {
+            background: var(--action);
+            color: white;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 0.66rem;
+            font-weight: 700;
+        }
+        .warn-btn-secondary {
+            background: transparent;
+            color: var(--accent-dark);
+            border: 1.2px solid var(--border);
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 0.66rem;
+            font-weight: 700;
+        }
+
+        /* Conversation */
+        .conv-header {
+            padding: 8px 14px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-subtle);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .conv-header .chip {
+            font-size: 0.6rem;
+            padding: 2px 8px;
+        }
+        .conv-messages {
+            flex: 1;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow: hidden;
+        }
+        .phone .bubble {
+            padding: 7px 9px;
+            font-size: 0.66rem;
+            margin: 0;
+            max-width: 82%;
+            border-radius: 10px;
+        }
+        .phone .bubble.bubble-user { align-self: flex-start; }
+        .phone .bubble.bubble-admin { align-self: flex-end; }
+        .phone .bubble-head {
+            font-size: 0.55rem;
+            margin-bottom: 2px;
+        }
+        .bubble .attachment {
+            margin-top: 4px;
+            background: var(--bg-subtle);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 14px 12px;
+            text-align: center;
+            font-size: 1.1rem;
+            color: var(--accent-light);
+        }
+        .reply-bar {
+            padding: 8px 12px;
+            border-top: 1px solid var(--border);
+            background: #fff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .reply-input {
+            flex: 1;
+            border: 1.2px solid var(--border);
+            border-radius: 16px;
+            padding: 6px 10px;
+            font-size: 0.62rem;
+            color: var(--accent-muted);
+            min-height: 26px;
+            display: flex;
+            align-items: center;
+        }
+        .reply-attach {
+            color: var(--accent-light);
+            font-size: 0.8rem;
+        }
+        .reply-send {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--action);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.62rem;
+            flex-shrink: 0;
+        }
+        .status-bar-bottom {
+            padding: 10px 14px;
+            text-align: center;
+            font-size: 0.66rem;
+            font-weight: 600;
+        }
+        .status-bar-bottom.waiting {
+            background: var(--warn-bg);
+            border-top: 2px solid var(--warn-border);
+            color: var(--warn-border);
+        }
+        .status-bar-bottom.closed {
+            background: #f0fdf4;
+            border-top: 2px solid #22c55e;
+            color: #16a34a;
+        }
+
+        /* Image preview modal */
+        .preview-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.78);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            z-index: 10;
+        }
+        .preview-modal {
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            width: 100%;
+        }
+        .preview-image {
+            background: var(--bg-subtle);
+            border: 1px dashed var(--border);
+            border-radius: 5px;
+            padding: 30px 15px;
+            text-align: center;
+            font-size: 2rem;
+            color: var(--accent-light);
+            margin-bottom: 8px;
+        }
+        .preview-btns {
+            display: flex;
+            gap: 6px;
+        }
+        .preview-btn {
+            flex: 1;
+            padding: 7px;
+            border-radius: 5px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-align: center;
+            position: relative;
+        }
+        .preview-btn.primary {
+            background: var(--action);
+            color: white;
+        }
+        .preview-btn.secondary {
+            background: var(--bg-subtle);
+            color: var(--accent-dark);
+            border: 1px solid var(--border);
+        }
+
+        /* ─── Annotation fingers ───────────────────────────── */
+        .hand {
+            position: absolute;
+            font-size: 1.15rem;
+            pointer-events: none;
+            animation: hand-bob 1.6s ease-in-out infinite;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.28));
+            line-height: 1;
+            z-index: 6;
+        }
+        .preview-overlay .hand {
+            z-index: 12;
+        }
+        @keyframes hand-bob {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--accent-muted);
+        }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        .next-prev {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: var(--bg-subtle);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--accent-dark);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .nav-btn:hover {
+            border-color: var(--accent);
+            box-shadow: 0 6px 16px var(--shadow-hover);
+            text-decoration: none;
+        }
+
+        @media (max-width: 700px) {
+            .container { padding: 25px 20px; }
+            h1 { font-size: 1.5rem; }
+            .step { gap: 12px; }
+            .step-number { width: 32px; height: 32px; font-size: 0.9rem; }
+            .field-table { font-size: 0.82rem; }
+            .phone { width: 250px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a class="back-link" href="client.html" data-i18n="clientSupport.back">→ العودة إلى دليل العميل</a>
+
+    <h1 data-i18n="clientSupport.heading">🎧 التواصل مع الدعم</h1>
+    <p class="subtitle" data-i18n="clientSupport.subtitle">كيف تفتح تذكرة دعم، تتابع الردود، وتغلق التذكرة.</p>
+
+    <div class="intro-box" data-i18n-html="clientSupport.intro">
+        <strong>قبل البدء:</strong> لكل مستخدم <strong>تذكرة دعم واحدة مفتوحة في الوقت الواحد</strong>.
+        يمكنك إرسال رسائل جديدة أو إرفاق صور داخل التذكرة، لكن لا يمكنك فتح تذكرة ثانية
+        حتى تُغلق الحالية. بعد إغلاقها يمكنك فتح تذكرة جديدة.
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         PART 1 — OPENING A TICKET
+    ═════════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="clientSupport.part1.title">الجزء الأول — فتح تذكرة دعم جديدة</h2>
+
+    <!-- 1 -->
+    <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientSupport.step1.title">الوصول إلى شاشة الدعم</div>
+            <div class="step-desc" data-i18n-html="clientSupport.step1.body">
+                من الملف الشخصي أو من الشاشة الرئيسية، اضغط على <strong>«التواصل مع الدعم»</strong>.
+                يقوم التطبيق تلقائياً بفحص حالتك:
+                <ul>
+                    <li><strong>لديك تذكرة مفتوحة</strong> ← تظهر شاشة تنبيه برتقالية تطلب منك عرضها.</li>
+                    <li><strong>لديك تذكرة مغلقة فقط</strong> ← تظهر شاشة خضراء تعرضها أو تخفيها.</li>
+                    <li><strong>لا توجد تذاكر</strong> ← تُفتح صفحة إنشاء تذكرة جديدة.</li>
+                </ul>
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="شاشة إنشاء تذكرة دعم جديدة مع الحقول"
+                    data-i18n-alt="clientSupport.shot1.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="top: 46px; left: 96px;" aria-hidden="true">👉</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="app-bar">
+                            <span class="back-arrow">→</span>
+                            <span class="title" data-i18n="clientSupport.mock1.title">تذكرة دعم جديدة</span>
+                        </div>
+                        <div class="app-content">
+                            <div>
+                                <span class="ticket-label" data-i18n="clientSupport.mock1.subjectLabel">الموضوع</span>
+                                <div class="ticket-input" data-i18n="clientSupport.mock1.subjectPlaceholder">اكتب موضوعاً قصيراً…</div>
+                            </div>
+                            <div>
+                                <span class="ticket-label" data-i18n="clientSupport.mock1.messageLabel">الرسالة</span>
+                                <div class="ticket-input tall" data-i18n="clientSupport.mock1.messagePlaceholder">اشرح مشكلتك بالتفصيل…</div>
+                            </div>
+                            <div class="attach-btn">📎 <span data-i18n="clientSupport.mock1.attachBtn">إرفاق لقطة شاشة (اختياري)</span></div>
+                            <div class="submit-btn" data-i18n="clientSupport.mock1.submitBtn">إرسال التذكرة</div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientSupport.step2.title">ملء نموذج التذكرة</div>
+            <div class="step-desc">
+                <div data-i18n="clientSupport.step2.intro">املأ الحقلين التاليين:</div>
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="clientSupport.step2.table.colField">الحقل</th>
+                            <th data-i18n="clientSupport.step2.table.colMax">الحد الأقصى</th>
+                            <th data-i18n="clientSupport.step2.table.colNotes">ملاحظات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n="clientSupport.step2.table.r1c1">الموضوع</td>
+                            <td data-i18n="clientSupport.step2.table.r1c2">100 حرف</td>
+                            <td data-i18n="clientSupport.step2.table.r1c3">وصف قصير وواضح للمشكلة.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientSupport.step2.table.r2c1">الرسالة</td>
+                            <td data-i18n="clientSupport.step2.table.r2c2">500 حرف</td>
+                            <td data-i18n="clientSupport.step2.table.r2c3">تفاصيل المشكلة، الوقت، والخطوات التي جعلتها تحدث.</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div data-i18n="clientSupport.step2.footnote">لا يمكن إرسال التذكرة قبل ملء الحقلين.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientSupport.step3.title">إرفاق لقطة شاشة (اختياري)</div>
+            <div class="step-desc" data-i18n-html="clientSupport.step3.body">
+                اضغط <strong>«إرفاق لقطة شاشة»</strong> لاختيار صورة من معرض هاتفك.
+                <ul>
+                    <li>الصورة تُضغط تلقائياً (حد أقصى 1920×1920 بكسل).</li>
+                    <li>بعد الاختيار تظهر رسالة خضراء <em>«صورة محددة»</em>.</li>
+                    <li>الإرفاق اختياري لكنه <strong>يسرّع كثيراً</strong> حل المشكلة.</li>
+                </ul>
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="نموذج التذكرة بعد إرفاق صورة — يظهر «📎 صورة محددة»"
+                    data-i18n-alt="clientSupport.shot2.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="top: 305px; left: 26px;" aria-hidden="true">👉</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="app-bar">
+                            <span class="back-arrow">→</span>
+                            <span class="title" data-i18n="clientSupport.mock1.title">تذكرة دعم جديدة</span>
+                        </div>
+                        <div class="app-content">
+                            <div>
+                                <span class="ticket-label" data-i18n="clientSupport.mock1.subjectLabel">الموضوع</span>
+                                <div class="ticket-input" data-i18n="clientSupport.mock1.subjectFilled">طلبي متأخر</div>
+                            </div>
+                            <div>
+                                <span class="ticket-label" data-i18n="clientSupport.mock1.messageLabel">الرسالة</span>
+                                <div class="ticket-input tall" data-i18n="clientSupport.mock1.messageFilled">مرحباً، طلبي متأخر عن الموعد المتوقع…</div>
+                            </div>
+                            <div class="attach-btn success">
+                                📎 <span data-i18n="clientSupport.mock1.attachedLabel">صورة محددة</span>
+                            </div>
+                            <div class="submit-btn" data-i18n="clientSupport.mock1.submitBtn">إرسال التذكرة</div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientSupport.step4.title">إرسال التذكرة</div>
+            <div class="step-desc">
+                <div data-i18n-html="clientSupport.step4.intro">
+                    اضغط زر <strong>«إرسال التذكرة»</strong>. يؤكد التطبيق عملية الإرسال برسالة
+                    ثم يعود بك إلى الصفحة السابقة. تظهر حالتك كالتالي:
+                </div>
+                <div class="chip-row">
+                    <span class="chip chip-open" data-i18n="clientSupport.step4.chipOpen">الحالة: مفتوحة</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="step">
+        <div class="step-number">5</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientSupport.step5.title">زر الأسئلة الشائعة (FAQ)</div>
+            <div class="step-desc" data-i18n-html="clientSupport.step5.body">
+                في أسفل شاشة إنشاء التذكرة يوجد زر <strong>«عرض الأسئلة الشائعة»</strong>.
+                اضغطه لفتح موقع الأسئلة الشائعة في المتصفح، فربما تجد إجابة سريعة قبل
+                فتح تذكرة.
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="زر «عرض الأسئلة الشائعة» أسفل شاشة إنشاء التذكرة"
+                    data-i18n-alt="clientSupport.shot3.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="bottom: 55px; left: 50%; translate: -50% 0;" aria-hidden="true">👇</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="app-bar">
+                            <span class="back-arrow">→</span>
+                            <span class="title" data-i18n="clientSupport.mock1.title">تذكرة دعم جديدة</span>
+                        </div>
+                        <div class="app-content">
+                            <div>
+                                <span class="ticket-label" data-i18n="clientSupport.mock1.subjectLabel">الموضوع</span>
+                                <div class="ticket-input" data-i18n="clientSupport.mock1.subjectPlaceholder">اكتب موضوعاً قصيراً…</div>
+                            </div>
+                            <div>
+                                <span class="ticket-label" data-i18n="clientSupport.mock1.messageLabel">الرسالة</span>
+                                <div class="ticket-input tall" data-i18n="clientSupport.mock1.messagePlaceholder">اشرح مشكلتك بالتفصيل…</div>
+                            </div>
+                            <div class="attach-btn">📎 <span data-i18n="clientSupport.mock1.attachBtn">إرفاق لقطة شاشة (اختياري)</span></div>
+                            <div class="submit-btn" data-i18n="clientSupport.mock1.submitBtn">إرسال التذكرة</div>
+                            <div class="faq-btn highlight">❓ <span data-i18n="clientSupport.mock1.faqBtn">عرض الأسئلة الشائعة</span></div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         PART 2 — WARNING SCREENS
+    ═════════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="clientSupport.part2.title">الجزء الثاني — شاشتا التنبيه</h2>
+
+    <!-- 6 -->
+    <div class="step">
+        <div class="step-number">6</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientSupport.step6.title">تنبيه: لديك تذكرة مفتوحة</div>
+            <div class="step-desc" data-i18n-html="clientSupport.step6.body">
+                إذا كانت لديك تذكرة مفتوحة، تظهر شاشة برتقالية تخبرك أنك
+                <strong>لا تستطيع فتح تذكرة جديدة</strong> حتى تُغلق الحالية. اضغط
+                <strong>«عرض التذكرة»</strong> للانتقال إليها، أو <strong>«رجوع»</strong>
+                للخروج.
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="تنبيه «لديك تذكرة مفتوحة» — زر «عرض التذكرة» وزر «رجوع»"
+                    data-i18n-alt="clientSupport.shot4.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="bottom: 138px; left: 50%; translate: -50% 0;" aria-hidden="true">👇</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="app-bar">
+                            <span class="back-arrow">→</span>
+                            <span class="title" data-i18n="clientSupport.mock2.bar">التواصل مع الدعم</span>
+                        </div>
+                        <div class="warn-screen">
+                            <div class="warn-icon open">ℹ️</div>
+                            <div class="warn-title" data-i18n="clientSupport.mock2.title">لديك تذكرة مفتوحة</div>
+                            <div class="warn-body" data-i18n="clientSupport.mock2.body">
+                                لا يمكنك فتح تذكرة جديدة حتى تُغلق التذكرة الحالية.
+                            </div>
+                            <div class="warn-btns">
+                                <div class="warn-btn-primary" data-i18n="clientSupport.mock2.viewBtn">عرض التذكرة</div>
+                                <div class="warn-btn-secondary" data-i18n="clientSupport.mock2.backBtn">رجوع</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- 7 -->
+    <div class="step">
+        <div class="step-number">7</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientSupport.step7.title">تنبيه: تذكرتك السابقة مغلقة</div>
+            <div class="step-desc" data-i18n-html="clientSupport.step7.body">
+                بعد إغلاق تذكرتك، إذا حاولت فتح تذكرة جديدة فوراً تظهر شاشة خضراء تُعلمك
+                أن التذكرة السابقة مغلقة. لديك خياران:
+                <ul>
+                    <li><strong>عرض التذكرة</strong> — لمراجعة المحادثة السابقة.</li>
+                    <li><strong>إخفاء</strong> — لإخفائها من حسابك ثم فتح تذكرة جديدة.</li>
+                </ul>
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="تنبيه «تذكرتك السابقة مغلقة» — زر «عرض التذكرة» وزر «إخفاء»"
+                    data-i18n-alt="clientSupport.shot5.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="bottom: 138px; left: 50%; translate: -50% 0;" aria-hidden="true">👇</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="app-bar">
+                            <span class="back-arrow">→</span>
+                            <span class="title" data-i18n="clientSupport.mock3.bar">التواصل مع الدعم</span>
+                        </div>
+                        <div class="warn-screen">
+                            <div class="warn-icon closed">✅</div>
+                            <div class="warn-title" data-i18n="clientSupport.mock3.title">تذكرتك السابقة مغلقة</div>
+                            <div class="warn-body" data-i18n="clientSupport.mock3.body">
+                                يمكنك عرض المحادثة السابقة، أو إخفاؤها لفتح تذكرة جديدة.
+                            </div>
+                            <div class="warn-btns">
+                                <div class="warn-btn-primary" data-i18n="clientSupport.mock3.viewBtn">عرض التذكرة</div>
+                                <div class="warn-btn-secondary" data-i18n="clientSupport.mock3.hideBtn">إخفاء</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <div class="callout callout-info">
+        <div class="callout-icon">ℹ️</div>
+        <div class="callout-body" data-i18n-html="clientSupport.calloutHide">
+            <strong>الإخفاء غير نهائي:</strong>
+            إخفاء التذكرة لا يحذفها — تبقى محفوظة لدى الدعم لأغراض المراجعة. الإخفاء
+            يخصّ واجهتك فقط لتتمكن من فتح تذكرة جديدة.
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         PART 3 — TICKET CONVERSATION
+    ═════════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="clientSupport.part3.title">الجزء الثالث — محادثة التذكرة</h2>
+
+    <!-- 8 -->
+    <div class="step">
+        <div class="step-number">8</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientSupport.step8.title">فتح التذكرة</div>
+            <div class="step-desc" data-i18n-html="clientSupport.step8.body">
+                اضغط على <strong>«عرض التذكرة»</strong>. تظهر شاشة المحادثة مع:
+                <ul>
+                    <li>الموضوع في الأعلى.</li>
+                    <li>شريط الحالة (مفتوحة / مغلقة).</li>
+                    <li>محادثة مرتّبة زمنياً بينك وبين الدعم.</li>
+                </ul>
+                تُحدَّث الشاشة <strong>تلقائياً</strong> عند وصول أي رد جديد دون الحاجة
+                لتحديثها يدوياً.
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="شاشة محادثة التذكرة — الموضوع + شريط الحالة + رسائل الدعم والمستخدم"
+                    data-i18n-alt="clientSupport.shot6.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="top: 78px; right: 88px;" aria-hidden="true">👉</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="app-bar">
+                            <span class="back-arrow">→</span>
+                            <span class="title" data-i18n="clientSupport.mock4.title">طلبي متأخر</span>
+                        </div>
+                        <div class="conv-header">
+                            <span class="chip chip-open" data-i18n="clientSupport.mock4.chip">مفتوحة</span>
+                        </div>
+                        <div class="conv-messages">
+                            <div class="bubble bubble-user">
+                                <div class="bubble-head">
+                                    <span data-i18n="clientSupport.mock4.you">أنت</span>
+                                    <span>14:05</span>
+                                </div>
+                                <span data-i18n="clientSupport.mock4.userMsg">مرحباً، طلبي متأخر.</span>
+                            </div>
+                            <div class="bubble bubble-admin">
+                                <div class="bubble-head">
+                                    <span data-i18n="clientSupport.mock4.admin">الدعم</span>
+                                    <span>14:12</span>
+                                </div>
+                                <span data-i18n="clientSupport.mock4.adminMsg">أهلاً بك، تم التواصل مع السائق. هل تحتاج مساعدة أخرى؟</span>
+                            </div>
+                        </div>
+                        <div class="reply-bar">
+                            <div class="reply-input" data-i18n="clientSupport.mock4.replyPlaceholder">اكتب رداً…</div>
+                            <span class="reply-attach">📎</span>
+                            <span class="reply-send">➤</span>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- 9 -->
+    <div class="step">
+        <div class="step-number">9</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientSupport.step9.title">تنسيق الرسائل</div>
+            <div class="step-desc">
+                <div data-i18n="clientSupport.step9.intro">
+                    يدعم عرض الرسائل (سواء منك أو من الدعم) تنسيقاً بسيطاً:
+                </div>
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="clientSupport.step9.table.colWrite">الكتابة</th>
+                            <th data-i18n="clientSupport.step9.table.colResult">النتيجة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>**نص**</code></td><td><strong>نص عريض</strong></td></tr>
+                        <tr><td><code>*نص*</code></td><td><em>نص مائل</em></td></tr>
+                        <tr><td><code>__نص__</code></td><td><u>نص مسطّر</u></td></tr>
+                        <tr><td><code>[نص](https://…)</code></td><td data-i18n="clientSupport.step9.table.link">رابط قابل للنقر</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 10 -->
+    <div class="step">
+        <div class="step-number">10</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientSupport.step10.title">متى يمكنك الرد؟</div>
+            <div class="step-desc">
+                <div data-i18n-html="clientSupport.step10.intro">
+                    لا يمكنك إرسال رد إلا في هذه الحالة:
+                    <ul>
+                        <li>التذكرة <strong>مفتوحة</strong>، و</li>
+                        <li>آخر رسالة كانت من <strong>الدعم</strong>، و</li>
+                        <li>المحادثة غير <strong>معطّلة مؤقتاً</strong> من الإدارة.</li>
+                    </ul>
+                    في الحالات الأخرى يظهر أسفل الشاشة شريط توضيحي:
+                </div>
+
+                <div class="bubble bubble-user">
+                    <div class="bubble-head">
+                        <span data-i18n="clientSupport.step10.demo.you">أنت</span>
+                        <span>14:05</span>
+                    </div>
+                    <span data-i18n="clientSupport.step10.demo.userMsg">مرحباً، طلبي متأخر.</span>
+                </div>
+                <div class="bubble bubble-admin">
+                    <div class="bubble-head">
+                        <span data-i18n="clientSupport.step10.demo.admin">الدعم</span>
+                        <span>14:12</span>
+                    </div>
+                    <span data-i18n="clientSupport.step10.demo.adminMsg">أهلاً بك، تم التواصل مع السائق. هل تحتاج مساعدة أخرى؟</span>
+                </div>
+
+                <div style="margin-top:10px;" data-i18n="clientSupport.step10.midNote">
+                    إذا لم يرد الدعم بعد على أول رسالة، يظهر شريط برتقالي:
+                </div>
+                <div class="callout callout-warn" style="margin-top:8px;">
+                    <div class="callout-icon">⏳</div>
+                    <div class="callout-body" data-i18n-html="clientSupport.step10.calloutWaiting">
+                        <strong>في انتظار رد الدعم…</strong> لا يمكنك الرد حتى يرد فريق الدعم على رسالتك.
+                    </div>
+                </div>
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="شريط «في انتظار رد الدعم» أسفل شاشة التذكرة بدل حقل الكتابة"
+                    data-i18n-alt="clientSupport.shot7.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="bottom: 58px; left: 50%; translate: -50% 0;" aria-hidden="true">👇</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="app-bar">
+                            <span class="back-arrow">→</span>
+                            <span class="title" data-i18n="clientSupport.mock4.title">طلبي متأخر</span>
+                        </div>
+                        <div class="conv-header">
+                            <span class="chip chip-open" data-i18n="clientSupport.mock4.chip">مفتوحة</span>
+                        </div>
+                        <div class="conv-messages">
+                            <div class="bubble bubble-user">
+                                <div class="bubble-head">
+                                    <span data-i18n="clientSupport.mock4.you">أنت</span>
+                                    <span>14:05</span>
+                                </div>
+                                <span data-i18n="clientSupport.mock4.userMsg">مرحباً، طلبي متأخر.</span>
+                            </div>
+                        </div>
+                        <div class="status-bar-bottom waiting" data-i18n="clientSupport.mock4.waitingBar">
+                            ⏳ في انتظار رد الدعم…
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- 11 -->
+    <div class="step">
+        <div class="step-number">11</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientSupport.step11.title">إرسال رد</div>
+            <div class="step-desc" data-i18n-html="clientSupport.step11.body">
+                عندما يسمح لك بالرد، يظهر حقل كتابة في أسفل الشاشة:
+                <ul>
+                    <li>اكتب الرد (حتى 500 حرف).</li>
+                    <li>أرفق صورة بـ أيقونة <strong>📎</strong> إن احتجت.</li>
+                    <li>اضغط <strong>➤</strong> للإرسال.</li>
+                </ul>
+                بعد الإرسال تظهر رسالة <em>«تم إرسال الرد، بانتظار الدعم»</em>، ويعود
+                الشريط البرتقالي للظهور حتى يرد الدعم من جديد.
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="حقل الرد + زر الإرفاق + زر الإرسال — في أسفل شاشة التذكرة"
+                    data-i18n-alt="clientSupport.shot8.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="bottom: 26px; left: 2px;" aria-hidden="true">👉</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="app-bar">
+                            <span class="back-arrow">→</span>
+                            <span class="title" data-i18n="clientSupport.mock4.title">طلبي متأخر</span>
+                        </div>
+                        <div class="conv-header">
+                            <span class="chip chip-open" data-i18n="clientSupport.mock4.chip">مفتوحة</span>
+                        </div>
+                        <div class="conv-messages">
+                            <div class="bubble bubble-user">
+                                <div class="bubble-head">
+                                    <span data-i18n="clientSupport.mock4.you">أنت</span>
+                                    <span>14:05</span>
+                                </div>
+                                <span data-i18n="clientSupport.mock4.userMsg">مرحباً، طلبي متأخر.</span>
+                            </div>
+                            <div class="bubble bubble-admin">
+                                <div class="bubble-head">
+                                    <span data-i18n="clientSupport.mock4.admin">الدعم</span>
+                                    <span>14:12</span>
+                                </div>
+                                <span data-i18n="clientSupport.mock4.adminMsg">أهلاً بك، تم التواصل مع السائق. هل تحتاج مساعدة أخرى؟</span>
+                            </div>
+                        </div>
+                        <div class="reply-bar">
+                            <div class="reply-input" data-i18n="clientSupport.mock4.replyFilled">شكراً، لا شيء آخر.</div>
+                            <span class="reply-attach">📎</span>
+                            <span class="reply-send">➤</span>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- 12 -->
+    <div class="step">
+        <div class="step-number">12</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientSupport.step12.title">عرض الصور والمرفقات</div>
+            <div class="step-desc" data-i18n-html="clientSupport.step12.body">
+                إذا أرفق الدعم (أو أنت) صورة أو ملفاً:
+                <ul>
+                    <li><strong>صورة:</strong> تظهر مصغّرة داخل الرسالة. اضغط عليها لعرضها
+                        بالحجم الكامل مع إمكانية <strong>تنزيلها</strong>.</li>
+                    <li><strong>ملف PDF:</strong> يظهر باسمه وأيقونته الحمراء. اضغط عليه
+                        لاختيار <strong>عرض</strong> أو <strong>تنزيل</strong>.</li>
+                </ul>
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="معاينة صورة داخل رسالة — نافذة معاينة بالحجم الكامل + زر «تنزيل» + زر «إغلاق»"
+                    data-i18n-alt="clientSupport.shot9.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="app-bar">
+                            <span class="back-arrow">→</span>
+                            <span class="title" data-i18n="clientSupport.mock4.title">طلبي متأخر</span>
+                        </div>
+                        <div class="conv-header">
+                            <span class="chip chip-open" data-i18n="clientSupport.mock4.chip">مفتوحة</span>
+                        </div>
+                        <div class="conv-messages">
+                            <div class="bubble bubble-user">
+                                <div class="bubble-head">
+                                    <span data-i18n="clientSupport.mock4.you">أنت</span>
+                                    <span>14:05</span>
+                                </div>
+                                <span data-i18n="clientSupport.mock4.userMsg">مرحباً، طلبي متأخر.</span>
+                            </div>
+                            <div class="bubble bubble-admin">
+                                <div class="bubble-head">
+                                    <span data-i18n="clientSupport.mock4.admin">الدعم</span>
+                                    <span>14:12</span>
+                                </div>
+                                <span data-i18n="clientSupport.mock4.adminImgMsg">تم التحقق. أرفق صورة الإيصال أدناه:</span>
+                                <div class="attachment">🖼️</div>
+                            </div>
+                        </div>
+                        <div class="preview-overlay">
+                            <div class="preview-modal">
+                                <div class="preview-image">🖼️</div>
+                                <div class="preview-btns">
+                                    <div class="preview-btn primary">
+                                        <span class="hand" style="top: -26px; left: 50%; translate: -50% 0;" aria-hidden="true">👇</span>
+                                        <span data-i18n="clientSupport.mock4.download">تنزيل</span>
+                                    </div>
+                                    <div class="preview-btn secondary" data-i18n="clientSupport.mock4.close">إغلاق</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- 13 -->
+    <div class="step">
+        <div class="step-number">13</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientSupport.step13.title">إغلاق التذكرة</div>
+            <div class="step-desc">
+                <div data-i18n-html="clientSupport.step13.intro">
+                    عندما تُغلق التذكرة من قِبَل الدعم تظهر شريط أخضر أسفل الشاشة:
+                </div>
+                <div class="chip-row">
+                    <span class="chip chip-closed" data-i18n="clientSupport.step13.chipClosed">الحالة: مغلقة</span>
+                </div>
+                <div class="callout callout-success">
+                    <div class="callout-icon">✅</div>
+                    <div class="callout-body" data-i18n-html="clientSupport.step13.calloutClosed">
+                        <strong>تم إغلاق التذكرة.</strong> يمكنك الرجوع وفتح تذكرة جديدة
+                        إذا ظهرت مشكلة أخرى.
+                    </div>
+                </div>
+                <div data-i18n-html="clientSupport.step13.footnote">
+                    لا يظهر حقل رد في التذكرة المغلقة. اضغط <strong>«رجوع»</strong>
+                    للعودة إلى قائمة الدعم.
+                </div>
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="شريط «التذكرة مغلقة» + زر رجوع — في أسفل شاشة التذكرة بدل حقل الرد"
+                    data-i18n-alt="clientSupport.shot10.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="bottom: 58px; left: 50%; translate: -50% 0;" aria-hidden="true">👇</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="app-bar">
+                            <span class="back-arrow">→</span>
+                            <span class="title" data-i18n="clientSupport.mock4.title">طلبي متأخر</span>
+                        </div>
+                        <div class="conv-header">
+                            <span class="chip chip-closed" data-i18n="clientSupport.mock4.chipClosed">مغلقة</span>
+                        </div>
+                        <div class="conv-messages">
+                            <div class="bubble bubble-user">
+                                <div class="bubble-head">
+                                    <span data-i18n="clientSupport.mock4.you">أنت</span>
+                                    <span>14:05</span>
+                                </div>
+                                <span data-i18n="clientSupport.mock4.userMsg">مرحباً، طلبي متأخر.</span>
+                            </div>
+                            <div class="bubble bubble-admin">
+                                <div class="bubble-head">
+                                    <span data-i18n="clientSupport.mock4.admin">الدعم</span>
+                                    <span>14:12</span>
+                                </div>
+                                <span data-i18n="clientSupport.mock4.adminCloseMsg">تم حل المشكلة. سنغلق التذكرة الآن — شكراً لتواصلك.</span>
+                            </div>
+                        </div>
+                        <div class="status-bar-bottom closed" data-i18n="clientSupport.mock4.closedBar">
+                            ✅ التذكرة مغلقة — لا يمكن الرد
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         PART 4 — RESTRICTIONS
+    ═════════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="clientSupport.rulesHeading">قواعد يجب معرفتها</h2>
+
+    <div class="callout callout-warn">
+        <div class="callout-icon">🔒</div>
+        <div class="callout-body" data-i18n-html="clientSupport.rules.chatDisabled">
+            <strong>تعطيل المحادثة مؤقتاً:</strong>
+            إذا رأيت شريطاً أحمر بعنوان <em>«تم تعطيل المحادثة من قِبَل الإدارة»</em>،
+            فهذا يعني أن الرد مؤجل مؤقتاً. يظهر أيضاً أيقونة قفل 🔒 بجانب شريط الحالة.
+            انتظر انتهاء المدة أو تواصل مع الدعم بطريقة أخرى.
+        </div>
+    </div>
+
+    <div class="callout callout-info">
+        <div class="callout-icon">💬</div>
+        <div class="callout-body" data-i18n-html="clientSupport.rules.oneTicket">
+            <strong>تذكرة واحدة فقط:</strong>
+            لا يمكنك فتح أكثر من تذكرة مفتوحة في نفس الوقت. إذا أردت طرح مشكلة جديدة،
+            انتظر إغلاق الحالية أو تواصل مع الدعم لطلب إغلاقها.
+        </div>
+    </div>
+
+    <div class="callout callout-danger">
+        <div class="callout-icon">🚫</div>
+        <div class="callout-body" data-i18n-html="clientSupport.rules.misconduct">
+            <strong>سلوك غير لائق:</strong>
+            تكرار فتح تذاكر بنفس المشكلة، أو إرسال رسائل مسيئة، أو إرفاق محتوى غير لائق قد
+            يؤدي إلى تعطيل المحادثة مؤقتاً أو أرشفة الحساب في الحالات القصوى.
+        </div>
+    </div>
+
+    <!-- ─── Next / prev ──────────────────────────────────── -->
+    <div class="next-prev">
+        <a class="nav-btn" href="client-4-add-credit.html" data-i18n="clientSupport.nav.prev">→ السابق: إضافة الرصيد</a>
+        <a class="nav-btn" href="client-6-make-request.html" data-i18n="clientSupport.nav.next">التالي: تقديم طلب توصيل ←</a>
+    </div>
+
+    <div class="footer">
+        <span data-i18n="clientSupport.footer.copyright">© 2026 كوبا العيون – جميع الحقوق محفوظة</span><br>
+        <a href="https://legal.kouba.site/privacy-ar" data-i18n="clientSupport.footer.privacy">سياسة الخصوصية</a>
+        &nbsp;•&nbsp;
+        <a href="https://legal.kouba.site/terms-ar" data-i18n="clientSupport.footer.terms">شروط الخدمة</a>
+    </div>
+</div>
+
+<!--
+    OPTIONAL I18N LOADER
+    Reads ?lang=fr|en|es from the URL, fetches i18n/<lang>.json,
+    and swaps [data-i18n], [data-i18n-html], [data-i18n-alt].
+    For data-i18n-alt: sets .alt on <img>, aria-label on everything else
+    (the phone mockups use <figure role="img">, which has no .alt).
+    Failures are swallowed — Arabic fallback stays visible.
+-->
+<script>
+(function () {
+    try {
+        var lang = new URLSearchParams(location.search).get('lang');
+        if (!lang || lang === 'ar') return;
+        fetch('i18n/' + lang + '.json')
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (t) {
+                if (!t) return;
+                document.querySelectorAll('[data-i18n]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n')];
+                    if (v != null) el.textContent = v;
+                });
+                document.querySelectorAll('[data-i18n-html]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n-html')];
+                    if (v != null) el.innerHTML = v;
+                });
+                document.querySelectorAll('[data-i18n-alt]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n-alt')];
+                    if (v == null) return;
+                    if (el.tagName === 'IMG') {
+                        el.alt = v;
+                    } else {
+                        el.setAttribute('aria-label', v);
+                    }
+                });
+            })
+            .catch(function () {});
+    } catch (e) {}
+})();
+</script>
+</body>
+</html>

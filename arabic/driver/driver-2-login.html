@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="driverLogin.pageTitle">تسجيل الدخول – دليل السائق</title>
+    <!--
+    ──────────────────────────────────────────────────────────────
+    THEME — ROSS palette (driver). Dusty rose, no orange, no blue.
+    .road-banner     → rose gradient
+    .step-number     → var(--accent)
+    .callout-warn    → pale rose + deep rose-brown
+    .callout-info    → rose tint
+    .field-table th  → neutral (#f1f5f9)
+    All former blue accents → var(--accent)
+
+    SCREENS — p38–p40 are inline HTML+CSS mockups reproducing
+    the actual LoginScreen widget tree:
+
+        p38  default login screen      → logo, app title, tagline,
+                                          email, password, forgot
+                                          link, stay-signed-in,
+                                          login button, signup link
+        p39  login with error banner   → same screen + red banner
+                                          between tagline and email
+        p40  forgot-password dialog    → AlertDialog with email
+                                          field and Cancel /
+                                          Send Reset Link actions
+
+    What LoginScreen does NOT do (and therefore this page does
+    not show): email-verification gate, approval gate, archive
+    gate, permissions prompts, role picker, post-login home
+    preview. Those live in signup_screen.dart (link to driver-1)
+    and driver_profile_screen.dart (link to driver-3).
+
+    Screenshot numbering:
+        p1–p37   → client guide + driver signup
+        p38–p40  → this file
+        p41      → next available (driver-3)
+
+    LOCALIZATION
+    data-i18n / data-i18n-html / data-i18n-alt
+    Arabic is fallback. i18n/en.json, fr.json, es.json.
+    ──────────────────────────────────────────────────────────────
+    -->
+    <style>
+        :root {
+            --accent:        #b76e79;
+            --accent-dark:   #5c3438;
+            --accent-light:  #a6747c;
+            --accent-muted:  #c9a5ab;
+            --bg-page:       #f9f4f5;
+            --bg-subtle:     #fdf8f9;
+            --bg-highlight:  #faeeee;
+            --border:        #ecdde0;
+            --border-hover:  #b76e79;
+            --shadow-hover:  rgba(183, 110, 121, 0.15);
+            --warn-bg:       #f5eef0;
+            --warn-border:   #5c3438;
+            --action:        #b76e79;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Cairo', 'Inter', -apple-system, 'Segoe UI', sans-serif;
+            background: var(--bg-page);
+            color: #1e293b;
+            line-height: 1.75;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px 45px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--accent);
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        .back-link:hover { text-decoration: underline; }
+        h1 {
+            color: var(--accent-dark);
+            border-bottom: 3px solid var(--accent);
+            padding-bottom: 12px;
+            margin-bottom: 8px;
+            font-size: 1.9rem;
+        }
+        .subtitle {
+            font-size: 1rem;
+            color: var(--accent-light);
+            margin-bottom: 30px;
+        }
+
+        .intro-box {
+            background: var(--bg-highlight);
+            border-right: 4px solid var(--accent);
+            padding: 15px 18px;
+            border-radius: 12px;
+            margin: 0 0 30px 0;
+            font-size: 0.95rem;
+        }
+        .intro-box ul { padding-right: 22px; margin-top: 8px; }
+        .intro-box li { margin-bottom: 4px; }
+
+        .road-banner {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: linear-gradient(135deg, #7c474d 0%, #b76e79 100%);
+            color: white;
+            border-radius: 14px;
+            padding: 18px 22px;
+            margin-bottom: 30px;
+        }
+        .road-banner-icon {
+            font-size: 2.2rem;
+            flex-shrink: 0;
+        }
+        .road-banner-body { flex: 1; }
+        .road-banner-title {
+            font-size: 1.05rem;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .road-banner-desc {
+            font-size: 0.88rem;
+            opacity: 0.92;
+            line-height: 1.55;
+        }
+
+        .step {
+            display: flex;
+            gap: 18px;
+            margin-bottom: 28px;
+            align-items: flex-start;
+        }
+        .step-number {
+            flex-shrink: 0;
+            width: 38px;
+            height: 38px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 2px;
+        }
+        .step-body { flex: 1; }
+        .step-title {
+            font-weight: bold;
+            color: var(--accent-dark);
+            font-size: 1.08rem;
+            margin-bottom: 6px;
+        }
+        .step-desc {
+            font-size: 0.95rem;
+            color: #334155;
+        }
+        .step-desc ul {
+            padding-right: 22px;
+            margin-top: 8px;
+        }
+        .step-desc li { margin-bottom: 6px; }
+
+        .field-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0 6px;
+            font-size: 0.9rem;
+        }
+        .field-table th,
+        .field-table td {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            text-align: right;
+        }
+        .field-table th {
+            background: #f1f5f9;
+            color: var(--accent-dark);
+            font-weight: bold;
+        }
+        .field-table tr:nth-child(even) td { background: #fafafa; }
+
+        .callout {
+            display: flex;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            margin: 16px 0;
+            font-size: 0.92rem;
+            align-items: flex-start;
+        }
+        .callout-icon { flex-shrink: 0; font-size: 1.15rem; margin-top: 1px; }
+        .callout-body { flex: 1; }
+        .callout-warn   { background: var(--warn-bg); border-right: 4px solid var(--warn-border); }
+        .callout-danger { background: #fef2f2; border-right: 4px solid #ef4444; }
+        .callout-info   { background: var(--bg-highlight); border-right: 4px solid var(--accent); }
+        .callout-success{ background: #f0fdf4; border-right: 4px solid #22c55e; }
+        .callout strong { color: var(--accent-dark); }
+
+        .section-title {
+            color: var(--accent-dark);
+            font-size: 1.25rem;
+            margin: 34px 0 14px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* ─── Phone frame ─────────────────────────────────────── */
+        .screen-mock {
+            display: flex;
+            justify-content: center;
+            margin: 18px 0 6px;
+        }
+        .phone {
+            width: 290px;
+            max-width: 100%;
+            border: 1.5px solid var(--border);
+            border-radius: 22px;
+            padding: 5px;
+            background: #fff;
+            box-shadow: 0 3px 14px rgba(0,0,0,0.05);
+        }
+        .phone-screen {
+            position: relative;
+            border-radius: 17px;
+            overflow: hidden;
+            background: #fff;
+            border: 1px solid var(--border);
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px 6px;
+            font-size: 0.65rem;
+            color: var(--accent-light);
+            background: var(--bg-subtle);
+            border-bottom: 1px solid var(--border);
+            direction: ltr;
+            font-weight: 600;
+        }
+        .status-bar .icons { display: flex; gap: 4px; font-size: 0.6rem; }
+
+        /* ─── Login screen content ────────────────────────────── */
+        .login-content {
+            flex: 1;
+            padding: 18px 18px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+        .login-logo {
+            width: 52px;
+            height: 52px;
+            margin: 6px auto 0;
+            border-radius: 12px;
+            background: var(--bg-highlight);
+            border: 1.5px solid var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .login-app-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--accent-dark);
+            text-align: center;
+            margin-top: 2px;
+            line-height: 1.2;
+        }
+        .login-tagline {
+            font-size: 0.62rem;
+            font-style: italic;
+            color: var(--accent-light);
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        /* Text field mock */
+        .ff-label {
+            display: block;
+            font-size: 0.55rem;
+            color: var(--accent-light);
+            font-weight: 600;
+            margin-bottom: 1px;
+            margin-right: 3px;
+        }
+        .ff {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1.2px solid var(--border);
+            border-radius: 8px;
+            padding: 7px 9px;
+            background: #fff;
+            min-height: 34px;
+        }
+        .ff .icon {
+            color: var(--accent-light);
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+        .ff .value {
+            flex: 1;
+            font-size: 0.66rem;
+            color: var(--accent-dark);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .ff .value.ph { color: var(--accent-muted); }
+        .ff .suffix {
+            color: var(--accent-muted);
+            font-size: 0.72rem;
+            flex-shrink: 0;
+        }
+
+        /* Error banner */
+        .login-error-banner {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 7px;
+            padding: 7px 9px;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            font-size: 0.6rem;
+            color: #991b1b;
+            margin-bottom: 4px;
+        }
+        .login-error-banner .icon {
+            color: #dc2626;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        /* Forgot password link (right-aligned TextButton) */
+        .login-forgot {
+            align-self: flex-end;
+            font-size: 0.62rem;
+            color: var(--accent);
+            font-weight: 600;
+            margin: -2px 2px 2px;
+        }
+
+        /* Stay signed in row */
+        .login-stay-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.64rem;
+            color: var(--accent-dark);
+            margin: 2px 0;
+        }
+        .login-stay-row .chk-box {
+            width: 13px;
+            height: 13px;
+            border: 1.2px solid var(--accent-muted);
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.55rem;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+        .login-stay-row .chk-box.checked {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        /* Login button */
+        .btn-primary {
+            padding: 11px;
+            border-radius: 8px;
+            background: var(--action);
+            color: white;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-align: center;
+            margin-top: 2px;
+        }
+
+        /* Signup link at bottom */
+        .login-new-to {
+            text-align: center;
+            font-size: 0.66rem;
+            color: var(--accent);
+            font-weight: 700;
+            margin-top: 12px;
+        }
+
+        /* ─── AlertDialog overlay ─────────────────────────────── */
+        .dialog-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .dialog {
+            background: white;
+            border-radius: 10px;
+            padding: 14px;
+            width: 100%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
+        }
+        .dialog-title {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: var(--accent-dark);
+            margin-bottom: 10px;
+        }
+        .dialog-field {
+            border: 1.2px solid var(--border);
+            border-radius: 8px;
+            padding: 7px 9px;
+            font-size: 0.66rem;
+            color: var(--accent-muted);
+            min-height: 34px;
+            margin-bottom: 12px;
+        }
+        .dialog-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+        .dialog-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.62rem;
+            font-weight: 700;
+        }
+        .dialog-btn.cancel {
+            color: var(--accent-dark);
+            background: transparent;
+        }
+        .dialog-btn.primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* ─── Annotation fingers ─────────────────────────────── */
+        .phone-screen .hand {
+            position: absolute;
+            font-size: 1.15rem;
+            z-index: 12;
+            pointer-events: none;
+            animation: hand-bob 1.6s ease-in-out infinite;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.28));
+            line-height: 1;
+        }
+        @keyframes hand-bob {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--accent-muted);
+        }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        .next-prev {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: var(--bg-subtle);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--accent-dark);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .nav-btn:hover {
+            border-color: var(--accent);
+            box-shadow: 0 6px 16px var(--shadow-hover);
+            text-decoration: none;
+        }
+
+        @media (max-width: 700px) {
+            .container { padding: 25px 20px; }
+            h1 { font-size: 1.5rem; }
+            .step { gap: 12px; }
+            .step-number { width: 32px; height: 32px; font-size: 0.9rem; }
+            .field-table { font-size: 0.82rem; }
+            .phone { width: 260px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a class="back-link" href="driver.html" data-i18n="driverLogin.back">→ العودة إلى دليل السائق</a>
+
+    <h1 data-i18n="driverLogin.heading">🔑 تسجيل الدخول</h1>
+    <p class="subtitle" data-i18n="driverLogin.subtitle">عُد إلى التطبيق بسرعة — سجّل الدخول للوصول إلى الشاشة الرئيسية.</p>
+
+    <div class="road-banner">
+        <div class="road-banner-icon">🚚</div>
+        <div class="road-banner-body">
+            <div class="road-banner-title" data-i18n="driverLogin.roadBanner.title">جاهز للانطلاق؟</div>
+            <div class="road-banner-desc" data-i18n="driverLogin.roadBanner.desc">
+                شاشة الدخول واحدة لكل من العميل والسائق. بعد إدخال بريدك وكلمة المرور،
+                يفتح التطبيق بك على الشاشة الرئيسية المناسبة لدورك.
+            </div>
+        </div>
+    </div>
+
+    <div class="intro-box" data-i18n-html="driverLogin.intro">
+        <strong>قبل البدء:</strong> استخدم نفس البريد الإلكتروني وكلمة المرور التي أنشأتها
+        عند التسجيل. تسجيل الدخول يعتمد على بيانات الدخول فقط:
+        <ul>
+            <li>لا يتحقق التطبيق من <strong>تأكيد البريد</strong> في هذه الشاشة.</li>
+            <li>لا يتحقق من <strong>اعتماد الوثائق</strong> أيضاً — يمكنك الدخول قبل الاعتماد.</li>
+            <li>لكن استقبال الطلبات يبقى معطّلاً حتى تُعتمد وثائقك من الملف الشخصي
+                (<a href="driver-3-edit-profile.html">القسم الثالث</a>).</li>
+            <li>تأكد من <strong>اتصال الإنترنت</strong> — تسجيل الدخول يتم عبر الخادم.</li>
+        </ul>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         PART 1 — LOGIN STEPS
+    ═════════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="driverLogin.part1.title">الجزء الأول — خطوات تسجيل الدخول</h2>
+
+    <!-- 1 -->
+    <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverLogin.step1.title">فتح شاشة تسجيل الدخول</div>
+            <div class="step-desc" data-i18n-html="driverLogin.step1.body">
+                إذا كانت جلستك السابقة محفوظة، يفتح التطبيق على الشاشة الرئيسية مباشرة.
+                وإلا، تظهر شاشة الدخول. من الأعلى إلى الأسفل:
+                <ul>
+                    <li><strong>شعار كوبا</strong> (SVG) في المنتصف.</li>
+                    <li><strong>اسم التطبيق</strong> بخط كبير عريض.</li>
+                    <li><strong>شعار نصي قصير</strong> بخط مائل رمادي.</li>
+                    <li>حقل <strong>البريد الإلكتروني</strong>.</li>
+                    <li>حقل <strong>كلمة المرور</strong> مع أيقونة عين.</li>
+                    <li>رابط <strong>«نسيت كلمة المرور؟»</strong> على اليمين.</li>
+                    <li>مربع <strong>«تذكّرني»</strong>.</li>
+                    <li>زر <strong>«تسجيل الدخول»</strong> بعرض الشاشة.</li>
+                    <li>زر <strong>«جديد على كوبا؟ إنشاء حساب»</strong> أسفل الشاشة.</li>
+                </ul>
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="شاشة تسجيل الدخول: شعار، عنوان، حقلا البريد وكلمة المرور، خيارات، زر الدخول"
+                    data-i18n-alt="driverLogin.shot1.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="bottom: 128px; left: 50%; translate: -50% 0;" aria-hidden="true">👇</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="login-content">
+                            <div class="login-logo">💧</div>
+                            <div class="login-app-title" data-i18n="driverLogin.mock1.appTitle">كوبا</div>
+                            <div class="login-tagline" data-i18n="driverLogin.mock1.tagline">توصيل الماء إلى بابك</div>
+
+                            <div class="ff">
+                                <span class="icon">✉️</span>
+                                <span class="value ph" data-i18n="driverLogin.mock1.emailPlaceholder">البريد الإلكتروني</span>
+                            </div>
+                            <div class="ff">
+                                <span class="icon">🔒</span>
+                                <span class="value ph" data-i18n="driverLogin.mock1.passwordPlaceholder">كلمة المرور</span>
+                                <span class="suffix">👁</span>
+                            </div>
+                            <div class="login-forgot" data-i18n="driverLogin.mock1.forgot">نسيت كلمة المرور؟</div>
+                            <div class="login-stay-row">
+                                <span class="chk-box checked">✓</span>
+                                <span data-i18n="driverLogin.mock1.stay">تذكّرني</span>
+                            </div>
+                            <div class="btn-primary" data-i18n="driverLogin.mock1.login">تسجيل الدخول</div>
+                            <div class="login-new-to" data-i18n="driverLogin.mock1.newTo">جديد على كوبا؟ إنشاء حساب</div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverLogin.step2.title">إدخال البريد الإلكتروني</div>
+            <div class="step-desc" data-i18n-html="driverLogin.step2.body">
+                اكتب البريد نفسه الذي استخدمته عند التسجيل. لوحة المفاتيح تفتح بنوع
+                <strong>بريد إلكتروني</strong> لتسهيل الكتابة. لا يوجد تحقق من صيغة البريد
+                قبل الضغط على الزر — التحقق يتم على الخادم.
+            </div>
+        </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverLogin.step3.title">إدخال كلمة المرور</div>
+            <div class="step-desc" data-i18n-html="driverLogin.step3.body">
+                اكتب كلمة المرور. يظهر الحقل بنقاط مخفية مع أيقونة <strong>👁</strong>
+                في نهايته:
+                <ul>
+                    <li>اضغط الأيقونة لكشف كلمة المرور مؤقتاً.</li>
+                    <li>اضغط مجدداً لإخفائها.</li>
+                    <li>يمكنك إرسال النموذج بالضغط على <strong>Enter</strong> من لوحة المفاتيح مباشرة.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverLogin.step4.title">مربع «تذكّرني»</div>
+            <div class="step-desc" data-i18n-html="driverLogin.step4.body">
+                المربع <strong>مفعّل افتراضياً</strong>. معناه:
+                <ul>
+                    <li>تُحفظ جلستك على الهاتف (في ذاكرة التطبيق المحلية).</li>
+                    <li>في المرة القادمة، يفتح التطبيق على الشاشة الرئيسية بدون المرور بشاشة الدخول.</li>
+                    <li>يمكنك إلغاء تحديده إذا كنت تستخدم هاتفاً مشتركاً.</li>
+                </ul>
+                <strong>للخروج:</strong> استخدم زر «تسجيل الخروج» من الملف الشخصي — يُمسح
+                بذلك هذا الحفظ.
+            </div>
+        </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="step">
+        <div class="step-number">5</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverLogin.step5.title">الضغط على «تسجيل الدخول»</div>
+            <div class="step-desc" data-i18n-html="driverLogin.step5.body">
+                اضغط الزر. أثناء المعالجة:
+                <ul>
+                    <li>يتحول الزر إلى <strong>مؤشر تحميل دوّار</strong> ويُعطَّل.</li>
+                    <li>يُرسَل البريد وكلمة المرور إلى الخادم للتحقق.</li>
+                    <li>لا يمكن الضغط مرة أخرى حتى ينتهي الطلب.</li>
+                </ul>
+                عند النجاح، يحدد التطبيق دورك ثم ينتقل بك إلى الشاشة الرئيسية المناسبة.
+                عند الفشل، تظهر رسالة الخطأ — راجع الجزء الثاني.
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         PART 2 — ERRORS
+    ═════════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="driverLogin.part2.title">الجزء الثاني — الأخطاء المحتملة</h2>
+
+    <!-- 6 -->
+    <div class="step">
+        <div class="step-number">6</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverLogin.step6.title">بريد أو كلمة مرور خاطئة</div>
+            <div class="step-desc" data-i18n-html="driverLogin.step6.body">
+                إذا لم يطابق البريد أو كلمة المرور أي حساب على الخادم:
+                <ul>
+                    <li>تظهر <strong>لافتة حمراء</strong> أعلى النموذج (بين الشعار وحقل البريد)
+                        تحتوي على رسالة <em>«البريد الإلكتروني أو كلمة المرور غير صحيحة»</em>.</li>
+                    <li>تظهر نفس الرسالة أيضاً في <strong>SnackBar أحمر أسفل الشاشة</strong>.</li>
+                    <li>تبقى الشاشة كما هي — يمكنك تصحيح البيانات والمحاولة مرة أخرى.</li>
+                    <li>لأسباب أمنية، لا يخبرك التطبيق أيّهما خاطئ.</li>
+                </ul>
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="شاشة الدخول مع لافتة خطأ حمراء أعلى النموذج"
+                    data-i18n-alt="driverLogin.shot2.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="top: 218px; left: 2px;" aria-hidden="true">👉</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="login-content">
+                            <div class="login-logo">💧</div>
+                            <div class="login-app-title" data-i18n="driverLogin.mock2.appTitle">كوبا</div>
+                            <div class="login-tagline" data-i18n="driverLogin.mock2.tagline">توصيل الماء إلى بابك</div>
+
+                            <div class="login-error-banner">
+                                <span class="icon">⚠</span>
+                                <span data-i18n="driverLogin.mock2.errorMsg">البريد الإلكتروني أو كلمة المرور غير صحيحة</span>
+                            </div>
+
+                            <div class="ff">
+                                <span class="icon">✉️</span>
+                                <span class="value" data-i18n="driverLogin.mock2.emailValue">ahmed@example.com</span>
+                            </div>
+                            <div class="ff">
+                                <span class="icon">🔒</span>
+                                <span class="value" data-i18n="driverLogin.mock2.passwordValue">••••••••</span>
+                                <span class="suffix">👁</span>
+                            </div>
+                            <div class="login-forgot" data-i18n="driverLogin.mock2.forgot">نسيت كلمة المرور؟</div>
+                            <div class="login-stay-row">
+                                <span class="chk-box checked">✓</span>
+                                <span data-i18n="driverLogin.mock2.stay">تذكّرني</span>
+                            </div>
+                            <div class="btn-primary" data-i18n="driverLogin.mock2.login">تسجيل الدخول</div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- 7 -->
+    <div class="step">
+        <div class="step-number">7</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverLogin.step7.title">محاولات كثيرة جداً</div>
+            <div class="step-desc" data-i18n-html="driverLogin.step7.body">
+                الخادم يحمي تسجيل الدخول بحد <strong>10 محاولات في كل 15 دقيقة لكل عنوان
+                IP</strong>. عند تجاوز الحد:
+                <ul>
+                    <li>يرفض الخادم الطلب قبل التحقق من البيانات (رمز <code>429</code>).</li>
+                    <li>تظهر اللافتة الحمراء مع رسالة <em>«عدد كبير جداً من المحاولات. حاول
+                        مرة أخرى لاحقاً»</em>.</li>
+                    <li>كل محاولة إضافية <strong>تعيد تشغيل نافذة الـ 15 دقيقة</strong>.</li>
+                </ul>
+                <strong>ما تفعله:</strong> توقف عن المحاولة وانتظر 15 دقيقة، أو استخدم
+                خيار «نسيت كلمة المرور؟» بدلاً من إعادة المحاولة.
+            </div>
+        </div>
+    </div>
+
+    <!-- 8 -->
+    <div class="step">
+        <div class="step-number">8</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverLogin.step8.title">حقول فارغة</div>
+            <div class="step-desc" data-i18n-html="driverLogin.step8.body">
+                إذا ضغطت على «تسجيل الدخول» وأحد الحقلين فارغ:
+                <ul>
+                    <li>تظهر رسالة قصيرة في <strong>SnackBar</strong> (لا تُرسَل أي بيانات
+                        للخادم).</li>
+                    <li>لا تظهر لافتة حمراء في أعلى النموذج — الزر لا يُرسل الطلب أصلاً.</li>
+                    <li>لا تُحتسب هذه المحاولة ضمن حد المحاولات العشرة.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9 -->
+    <div class="step">
+        <div class="step-number">9</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverLogin.step9.title">تعذّر تحديد الدور (حالة نادرة)</div>
+            <div class="step-desc" data-i18n-html="driverLogin.step9.body">
+                بعد نجاح الدخول، يحدد التطبيق دورك من ثلاثة مصادر بالترتيب:
+                <ol style="padding-right:22px;margin-top:8px;">
+                    <li>الذاكرة المحلية (أسرع).</li>
+                    <li>إذا لم يجدها، يستعلم قاعدة البيانات عن حقل <code>role</code> في حسابك.</li>
+                    <li>إذا فشل الاستعلام أيضاً، يستخدم الدور الافتراضي <strong>«عميل»</strong>.</li>
+                </ol>
+                <div class="callout callout-warn" style="margin-top:8px;">
+                    <div class="callout-icon">⚠️</div>
+                    <div class="callout-body" data-i18n-html="driverLogin.step9.callout">
+                        <strong>إذا كنت سائقاً ووصلت إلى الشاشة الرئيسية للعميل:</strong>
+                        فهذا يعني أن الدور لم يُقرأ من الخادم. تظهر لك رسالة برتقالية
+                        قصيرة عند الدخول. سجّل الخروج ثم أعد المحاولة؛ إذا استمرت
+                        المشكلة، تواصل مع الدعم.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         PART 3 — FORGOT PASSWORD
+    ═════════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="driverLogin.part3.title">الجزء الثالث — استعادة كلمة المرور</h2>
+
+    <!-- 10 -->
+    <div class="step">
+        <div class="step-number">10</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverLogin.step10.title">فتح حوار الاستعادة</div>
+            <div class="step-desc" data-i18n-html="driverLogin.step10.body">
+                من شاشة الدخول، اضغط على <strong>«نسيت كلمة المرور؟»</strong>.
+                تظهر نافذة منبثقة (AlertDialog) تحتوي:
+                <ul>
+                    <li>عنوان <strong>«استعادة كلمة المرور»</strong>.</li>
+                    <li>حقل واحد فقط: <strong>البريد الإلكتروني</strong>.</li>
+                    <li>زر <strong>«إلغاء»</strong> لإغلاق النافذة بدون إرسال.</li>
+                    <li>زر <strong>«إرسال رابط الاستعادة»</strong> — وهو الإجراء الأساسي.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 11 -->
+    <div class="step">
+        <div class="step-number">11</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverLogin.step11.title">إرسال رابط الاستعادة</div>
+            <div class="step-desc" data-i18n-html="driverLogin.step11.body">
+                أدخل بريدك واضغط <strong>«إرسال رابط الاستعادة»</strong>:
+                <ul>
+                    <li>إذا كان البريد بصيغة صحيحة (يحتوي على <code>@</code>)، يُرسَل الطلب
+                        للخادم.</li>
+                    <li>عند النجاح، تُغلق النافذة وتظهر رسالة <strong>خضراء</strong> أسفل
+                        الشاشة.</li>
+                    <li>يصلك بريد من كوبا يحتوي رابط إعادة تعيين كلمة المرور.</li>
+                    <li>إن كان البريد بصيغة خاطئة، يظهر تنبيه أحمر أسفل الحقل ولا يُرسَل شيء.</li>
+                </ul>
+                بعد فتح الرابط من بريدك، تفتح صفحة إعادة التعيين — عيّن كلمة المرور الجديدة
+                ثم عُد إلى شاشة الدخول.
+                <div class="callout callout-info" style="margin-top:8px;">
+                    <div class="callout-icon">📧</div>
+                    <div class="callout-body" data-i18n-html="driverLogin.step11.callout">
+                        <strong>لم يصل البريد؟</strong>
+                        تحقق من مجلد <em>الرسائل غير المرغوب فيها (Spam)</em>. انتظر دقيقة
+                        قبل إعادة الإرسال — البريد قد يتأخر.
+                    </div>
+                </div>
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="نافذة استعادة كلمة المرور: حقل بريد، زر إلغاء، زر إرسال رابط"
+                    data-i18n-alt="driverLogin.shot3.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="top: 320px; left: 44px;" aria-hidden="true">👉</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="login-content">
+                            <div class="login-logo">💧</div>
+                            <div class="login-app-title" data-i18n="driverLogin.mock3.appTitle">كوبا</div>
+                            <div class="login-tagline" data-i18n="driverLogin.mock3.tagline">توصيل الماء إلى بابك</div>
+                            <div class="ff">
+                                <span class="icon">✉️</span>
+                                <span class="value ph" data-i18n="driverLogin.mock3.emailPlaceholder">البريد الإلكتروني</span>
+                            </div>
+                            <div class="ff">
+                                <span class="icon">🔒</span>
+                                <span class="value ph" data-i18n="driverLogin.mock3.passwordPlaceholder">كلمة المرور</span>
+                                <span class="suffix">👁</span>
+                            </div>
+                        </div>
+                        <div class="dialog-backdrop">
+                            <div class="dialog">
+                                <div class="dialog-title" data-i18n="driverLogin.mock3.dialogTitle">استعادة كلمة المرور</div>
+                                <div class="dialog-field" data-i18n="driverLogin.mock3.emailField">البريد الإلكتروني</div>
+                                <div class="dialog-actions">
+                                    <span class="dialog-btn cancel" data-i18n="driverLogin.mock3.cancel">إلغاء</span>
+                                    <span class="dialog-btn primary" data-i18n="driverLogin.mock3.send">إرسال رابط الاستعادة</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         PART 4 — AFTER LOGIN
+    ═════════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="driverLogin.part4.title">الجزء الرابع — بعد الدخول</h2>
+
+    <!-- 12 -->
+    <div class="step">
+        <div class="step-number">12</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverLogin.step12.title">الانتقال إلى الشاشة الرئيسية</div>
+            <div class="step-desc" data-i18n-html="driverLogin.step12.body">
+                بعد نجاح الدخول، يحدد التطبيق دورك ثم ينتقل بك إلى:
+                <ul>
+                    <li><strong>السائق</strong> ← الشاشة الرئيسية للسائق
+                        (خريطة، مفتاح الاستعداد، المحفظة، سجل التوصيلات…).
+                        راجع <a href="driver-7-history.html">القسم السابع</a> للتفاصيل.</li>
+                    <li><strong>العميل</strong> ← الشاشة الرئيسية للعميل.</li>
+                    <li><strong>المدير</strong> ← لوحة الإدارة.</li>
+                </ul>
+                تسجيل الدخول نفسه لا يعرض أي شاشة وسيطة — الانتقال مباشر من زر الدخول
+                إلى الشاشة الرئيسية.
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         RULES
+    ═════════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="driverLogin.rulesHeading">قواعد يجب معرفتها</h2>
+
+    <div class="callout callout-info">
+        <div class="callout-icon">🔐</div>
+        <div class="callout-body" data-i18n-html="driverLogin.rules.security">
+            <strong>الأمان:</strong>
+            لا تشارك كلمة المرور مع أي شخص، حتى لو ادّعى أنه من فريق كوبا. كوبا لا تطلب منك
+            كلمة المرور أبداً عبر الهاتف أو البريد.
+        </div>
+    </div>
+
+    <div class="callout callout-warn">
+        <div class="callout-icon">📱</div>
+        <div class="callout-body" data-i18n-html="driverLogin.rules.sharedDevice">
+            <strong>«تذكّرني» على جهاز مشترك:</strong>
+            إذا كان الهاتف مستخدماً من قِبَل أشخاص آخرين، <strong>ألغِ تحديد «تذكّرني»</strong>
+            قبل الدخول، أو استخدم زر تسجيل الخروج بعد الانتهاء.
+        </div>
+    </div>
+
+    <div class="callout callout-success">
+        <div class="callout-icon">📶</div>
+        <div class="callout-body" data-i18n-html="driverLogin.rules.offline">
+            <strong>الاتصال مطلوب لتسجيل الدخول:</strong>
+            تسجيل الدخول يتم عبر الخادم — بدون إنترنت لا يمكن إنشاء جلسة جديدة. إذا كانت
+            جلستك محفوظة، فالشاشة الرئيسية تفتح ببيانات مخزّنة مؤقتاً، لكن لن تصلك طلبات
+            جديدة حتى عودة الاتصال.
+        </div>
+    </div>
+
+    <div class="callout callout-danger">
+        <div class="callout-icon">🚫</div>
+        <div class="callout-body" data-i18n-html="driverLogin.rules.limit">
+            <strong>حد 10 محاولات / 15 دقيقة:</strong>
+            لا تحاول تخمين كلمة المرور. إذا نسيتها، استخدم خيار الاستعادة عبر البريد بدلاً
+            من إعادة المحاولة.
+        </div>
+    </div>
+
+    <!-- ─── Next / prev ──────────────────────────────────── -->
+    <div class="next-prev">
+        <a class="nav-btn" href="driver-1-signup.html" data-i18n="driverLogin.nav.prev">→ السابق: إنشاء الحساب</a>
+        <a class="nav-btn" href="driver-3-edit-profile.html" data-i18n="driverLogin.nav.next">التالي: تعديل الملف الشخصي ←</a>
+    </div>
+
+    <div class="footer">
+        <span data-i18n="driverLogin.footer.copyright">© 2026 كوبا العيون – جميع الحقوق محفوظة</span><br>
+        <a href="https://legal.kouba.site/privacy-ar" data-i18n="driverLogin.footer.privacy">سياسة الخصوصية</a>
+        &nbsp;•&nbsp;
+        <a href="https://legal.kouba.site/terms-ar" data-i18n="driverLogin.footer.terms">شروط الخدمة</a>
+    </div>
+</div>
+
+<!--
+    OPTIONAL I18N LOADER
+    Reads ?lang=fr|en|es from the URL, fetches i18n/<lang>.json,
+    and swaps [data-i18n], [data-i18n-html], [data-i18n-alt].
+    data-i18n-alt sets .alt on <img>, aria-label on <figure>.
+-->
+<script>
+(function () {
+    try {
+        var lang = new URLSearchParams(location.search).get('lang');
+        if (!lang || lang === 'ar') return;
+        fetch('i18n/' + lang + '.json')
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (t) {
+                if (!t) return;
+                document.querySelectorAll('[data-i18n]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n')];
+                    if (v != null) el.textContent = v;
+                });
+                document.querySelectorAll('[data-i18n-html]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n-html')];
+                    if (v != null) el.innerHTML = v;
+                });
+                document.querySelectorAll('[data-i18n-alt]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n-alt')];
+                    if (v == null) return;
+                    if (el.tagName === 'IMG') {
+                        el.alt = v;
+                    } else {
+                        el.setAttribute('aria-label', v);
+                    }
+                });
+            })
+            .catch(function () {});
+    } catch (e) {}
+})();
+</script>
+</body>
+</html>

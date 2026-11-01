@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="driverSignup.pageTitle">إنشاء حساب السائق – كوبا</title>
+    <!--
+    ──────────────────────────────────────────────────────────────
+    THEME — ROSS palette (driver). Dusty rose, no orange, no blue.
+    .callout-warn → pale rose + deep rose-brown (was orange)
+    .chip-pending → deep rose-brown              (was orange)
+
+    SCREENS — p35–p37 are inline HTML+CSS mockups rendered in
+    the guide's visual language. They reproduce the ONE unified
+    SignUpScreen (SignUpScreen in signup_screen.dart) used by
+    both clients and drivers, scrolled in three parts:
+
+        p35  form top    → name, email, password, confirm
+        p36  form middle → professional section, role=toggle,
+                          country, city, water source (driver only)
+        p37  form bottom → phone, 3 checkboxes, register button
+
+    The screen does NOT contain a role-picker wizard, a separate
+    email-verification screen, vehicle data, document upload,
+    or under-review/approved/rejected screens. Those live in:
+        driver-2-login.html        (login + email verification)
+        driver-3-edit-profile.html (vehicle, docs, review states)
+
+    Screenshot numbering:
+        p1–p34   → client guide (complete)
+        p35–p37  → this file
+        p38      → next available (driver-2-login)
+
+    LOCALIZATION
+    data-i18n / data-i18n-html / data-i18n-alt
+    Arabic is fallback. i18n/en.json, fr.json, es.json.
+    ──────────────────────────────────────────────────────────────
+    -->
+    <style>
+        :root {
+            --accent:        #b76e79;
+            --accent-dark:   #5c3438;
+            --accent-light:  #a6747c;
+            --accent-muted:  #c9a5ab;
+            --bg-page:       #f9f4f5;
+            --bg-subtle:     #fdf8f9;
+            --bg-highlight:  #faeeee;
+            --border:        #ecdde0;
+            --border-hover:  #b76e79;
+            --shadow-hover:  rgba(183, 110, 121, 0.15);
+            --warn-bg:       #f5eef0;
+            --warn-border:   #5c3438;
+            /* Primary action — driver rose */
+            --action:        #b76e79;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Cairo', 'Inter', -apple-system, 'Segoe UI', sans-serif;
+            background: var(--bg-page);
+            color: #1e293b;
+            line-height: 1.75;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px 45px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--accent);
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        .back-link:hover { text-decoration: underline; }
+        h1 {
+            color: var(--accent-dark);
+            border-bottom: 3px solid var(--accent);
+            padding-bottom: 12px;
+            margin-bottom: 8px;
+            font-size: 1.9rem;
+        }
+        .subtitle {
+            font-size: 1rem;
+            color: var(--accent-light);
+            margin-bottom: 30px;
+        }
+
+        .intro-box {
+            background: var(--bg-highlight);
+            border-right: 4px solid var(--accent);
+            padding: 15px 18px;
+            border-radius: 12px;
+            margin: 0 0 30px 0;
+            font-size: 0.95rem;
+        }
+        .intro-box ul { padding-right: 22px; margin-top: 8px; }
+        .intro-box li { margin-bottom: 4px; }
+
+        /* ─── Steps ─────────────────────────────────────────── */
+        .step {
+            display: flex;
+            gap: 18px;
+            margin-bottom: 28px;
+            align-items: flex-start;
+        }
+        .step-number {
+            flex-shrink: 0;
+            width: 38px;
+            height: 38px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 2px;
+        }
+        .step-body { flex: 1; }
+        .step-title {
+            font-weight: bold;
+            color: var(--accent-dark);
+            font-size: 1.08rem;
+            margin-bottom: 6px;
+        }
+        .step-desc {
+            font-size: 0.95rem;
+            color: #334155;
+        }
+        .step-desc ul {
+            padding-right: 22px;
+            margin-top: 8px;
+        }
+        .step-desc li { margin-bottom: 6px; }
+
+        /* ─── Field table ───────────────────────────────────── */
+        .field-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0 6px;
+            font-size: 0.9rem;
+        }
+        .field-table th,
+        .field-table td {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            text-align: right;
+        }
+        .field-table th {
+            background: #f1f5f9;
+            color: var(--accent-dark);
+            font-weight: bold;
+        }
+        .field-table tr:nth-child(even) td { background: #fafafa; }
+
+        /* ─── Callouts ──────────────────────────────────────── */
+        .callout {
+            display: flex;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            margin: 16px 0;
+            font-size: 0.92rem;
+            align-items: flex-start;
+        }
+        .callout-icon { flex-shrink: 0; font-size: 1.15rem; margin-top: 1px; }
+        .callout-body { flex: 1; }
+        .callout-warn   { background: var(--warn-bg); border-right: 4px solid var(--warn-border); }
+        .callout-danger { background: #fef2f2; border-right: 4px solid #ef4444; }
+        .callout-info   { background: var(--bg-highlight); border-right: 4px solid var(--accent); }
+        .callout-success{ background: #f0fdf4; border-right: 4px solid #22c55e; }
+        .callout strong { color: var(--accent-dark); }
+
+        .section-title {
+            color: var(--accent-dark);
+            font-size: 1.25rem;
+            margin: 34px 0 14px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* ─── Screen mockup (phone frame in Ross language) ── */
+        .screen-mock {
+            display: flex;
+            justify-content: center;
+            margin: 18px 0 6px;
+        }
+        .phone {
+            width: 290px;
+            max-width: 100%;
+            border: 1.5px solid var(--border);
+            border-radius: 22px;
+            padding: 5px;
+            background: #fff;
+            box-shadow: 0 3px 14px rgba(0,0,0,0.05);
+        }
+        .phone-screen {
+            position: relative;
+            border-radius: 17px;
+            overflow: hidden;
+            background: #fff;
+            border: 1px solid var(--border);
+            min-height: 480px;
+            display: flex;
+            flex-direction: column;
+        }
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px 6px;
+            font-size: 0.65rem;
+            color: var(--accent-light);
+            background: var(--bg-subtle);
+            border-bottom: 1px solid var(--border);
+            direction: ltr;
+            font-weight: 600;
+        }
+        .status-bar .icons { display: flex; gap: 4px; font-size: 0.6rem; }
+        .app-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-subtle);
+        }
+        .app-bar .back-arrow {
+            color: var(--accent-dark);
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+        .app-bar .title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent-dark);
+            flex: 1;
+        }
+        .app-content {
+            flex: 1;
+            padding: 12px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+        }
+
+        /* Text field mock (mirrors Flutter TextFormField with OutlineInputBorder) */
+        .ff-label {
+            display: block;
+            font-size: 0.55rem;
+            color: var(--accent-light);
+            font-weight: 600;
+            margin-bottom: 1px;
+            margin-right: 3px;
+        }
+        .ff {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1.2px solid var(--border);
+            border-radius: 8px;
+            padding: 7px 9px;
+            background: #fff;
+            min-height: 32px;
+        }
+        .ff .icon {
+            color: var(--accent-light);
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+        .ff .value {
+            flex: 1;
+            font-size: 0.66rem;
+            color: var(--accent-dark);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .ff .value.ph { color: var(--accent-muted); }
+        .ff .suffix {
+            color: var(--accent-muted);
+            font-size: 0.72rem;
+            flex-shrink: 0;
+        }
+        .ff .suffix.ok { color: #22c55e; }
+        .ff .suffix.err { color: #ef4444; }
+        .ff.err { border-color: #ef4444; }
+        .ff-helper {
+            font-size: 0.55rem;
+            color: var(--accent-muted);
+            margin-right: 4px;
+            margin-top: 2px;
+        }
+        .ff-error {
+            font-size: 0.55rem;
+            color: #ef4444;
+            margin-right: 4px;
+            margin-top: 2px;
+        }
+
+        /* Section header inside form */
+        .form-section {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--accent-dark);
+            margin: 4px 0 2px;
+        }
+
+        /* Segmented button (client | driver) */
+        .segmented {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-subtle);
+            border: 1.2px solid var(--border);
+            border-radius: 8px;
+            padding: 3px;
+        }
+        .segmented .seg {
+            flex: 1;
+            text-align: center;
+            padding: 6px 4px;
+            border-radius: 6px;
+            font-size: 0.64rem;
+            font-weight: 700;
+            color: var(--accent-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .segmented .seg.selected {
+            background: var(--bg-highlight);
+            color: var(--accent-dark);
+            border: 1px solid var(--accent);
+        }
+
+        /* Dropdown mock */
+        .dd {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1.2px solid var(--border);
+            border-radius: 8px;
+            padding: 7px 9px;
+            background: #fff;
+            min-height: 32px;
+        }
+        .dd .icon {
+            color: var(--accent-light);
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+        .dd .value {
+            flex: 1;
+            font-size: 0.66rem;
+            color: var(--accent-dark);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .dd .caret {
+            color: var(--accent-muted);
+            font-size: 0.6rem;
+            flex-shrink: 0;
+        }
+
+        /* Primary button */
+        .btn-primary {
+            padding: 10px;
+            border-radius: 8px;
+            background: var(--action);
+            color: white;
+            font-weight: 700;
+            font-size: 0.72rem;
+            text-align: center;
+            margin-top: 4px;
+        }
+        .btn-primary.disabled {
+            background: #d1d5db;
+            color: #9ca3af;
+        }
+
+        /* Checkbox row */
+        .chk-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            font-size: 0.6rem;
+            color: var(--accent-dark);
+            line-height: 1.4;
+        }
+        .chk-box {
+            width: 13px;
+            height: 13px;
+            border: 1.2px solid var(--accent-muted);
+            border-radius: 3px;
+            flex-shrink: 0;
+            margin-top: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.55rem;
+            font-weight: 900;
+        }
+        .chk-box.checked {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        .chk-row .link {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+
+        /* Phone input (InternationalPhoneNumberInput) */
+        .phone-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1.2px solid var(--border);
+            border-radius: 8px;
+            padding: 7px 9px;
+            background: #fff;
+            min-height: 32px;
+        }
+        .phone-wrap .flag {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            flex-shrink: 0;
+            padding-right: 6px;
+            border-right: 1px solid var(--border);
+        }
+        .phone-wrap .flag .code {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--accent-dark);
+        }
+        .phone-wrap .number {
+            flex: 1;
+            font-size: 0.66rem;
+            color: var(--accent-dark);
+            direction: ltr;
+            text-align: left;
+        }
+
+        /* ─── Annotation fingers ───────────────────────────── */
+        .phone-screen .hand {
+            position: absolute;
+            font-size: 1.15rem;
+            z-index: 6;
+            pointer-events: none;
+            animation: hand-bob 1.6s ease-in-out infinite;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.28));
+            line-height: 1;
+        }
+        @keyframes hand-bob {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--accent-muted);
+        }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        .next-prev {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: var(--bg-subtle);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--accent-dark);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .nav-btn:hover {
+            border-color: var(--accent);
+            box-shadow: 0 6px 16px var(--shadow-hover);
+            text-decoration: none;
+        }
+
+        @media (max-width: 700px) {
+            .container { padding: 25px 20px; }
+            h1 { font-size: 1.5rem; }
+            .step { gap: 12px; }
+            .step-number { width: 32px; height: 32px; font-size: 0.9rem; }
+            .field-table { font-size: 0.82rem; }
+            .phone { width: 250px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a class="back-link" href="driver.html" data-i18n="driverSignup.back">→ العودة إلى دليل السائق</a>
+
+    <h1 data-i18n="driverSignup.heading">📝 إنشاء حساب كسائق</h1>
+    <p class="subtitle" data-i18n="driverSignup.subtitle">شاشة تسجيل واحدة مشتركة بين العميل والسائق — الفرق هو اختيار دور «سائق» واختيار مصدر المياه.</p>
+
+    <div class="intro-box" data-i18n-html="driverSignup.intro">
+        <strong>قبل البدء:</strong> تستخدم شاشة تسجيل واحدة لكل من العميل والسائق.
+        الفرق الأساسي بالنسبة لك:
+        <ul>
+            <li>في قسم <strong>«الملف المهني»</strong>، يجب اختيار <strong>«سائق»</strong>.</li>
+            <li>سيظهر <strong>حقل إضافي</strong> بعنوان «مصدر المياه» تختار منه مصدر المياه الخاص بك.</li>
+            <li>بعد إتمام التسجيل، ينتقل التطبيق بك إلى الشاشة الرئيسية للسائق — لكن استقبال الطلبات يحتاج <strong>اعتماد وثائقك</strong> من الإدارة (انظر «تعديل الملف الشخصي والمركبة»).</li>
+        </ul>
+    </div>
+
+    <!-- 1 -->
+    <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverSignup.step1.title">فتح شاشة التسجيل</div>
+            <div class="step-desc" data-i18n-html="driverSignup.step1.body">
+                من شاشة تسجيل الدخول، اضغط على رابط <strong>«إنشاء حساب»</strong> أسفل النموذج.
+                تفتح شاشة عنوانها <strong>«إنشاء حساب»</strong>، وأول ما تراه هو حقل الاسم الكامل.
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="الجزء الأعلى من شاشة التسجيل: الاسم، البريد، كلمة المرور، تأكيد كلمة المرور"
+                    data-i18n-alt="driverSignup.shot1.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="top: 246px; left: 2px;" aria-hidden="true">👉</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="app-bar">
+                            <span class="back-arrow">←</span>
+                            <span class="title" data-i18n="driverSignup.mock1.bar">إنشاء حساب</span>
+                        </div>
+                        <div class="app-content" style="gap: 9px;">
+                            <div>
+                                <span class="ff-label" data-i18n="driverSignup.mock1.nameLabel">الاسم الكامل</span>
+                                <div class="ff">
+                                    <span class="icon">👤</span>
+                                    <span class="value" data-i18n="driverSignup.mock1.nameValue">أحمد محمد</span>
+                                    <span class="suffix ok">✓</span>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="ff-label" data-i18n="driverSignup.mock1.emailLabel">البريد الإلكتروني</span>
+                                <div class="ff">
+                                    <span class="icon">✉️</span>
+                                    <span class="value" data-i18n="driverSignup.mock1.emailValue">ahmed@example.com</span>
+                                    <span class="suffix ok">✓</span>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="ff-label" data-i18n="driverSignup.mock1.passwordLabel">كلمة المرور</span>
+                                <div class="ff">
+                                    <span class="icon">🔒</span>
+                                    <span class="value" data-i18n="driverSignup.mock1.passwordValue">••••••••</span>
+                                    <span class="suffix">👁</span>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="ff-label" data-i18n="driverSignup.mock1.confirmLabel">تأكيد كلمة المرور</span>
+                                <div class="ff">
+                                    <span class="icon">🔒</span>
+                                    <span class="value" data-i18n="driverSignup.mock1.confirmValue">••••••••</span>
+                                    <span class="suffix">👁</span>
+                                </div>
+                            </div>
+                            <div class="form-section" data-i18n="driverSignup.mock1.professionalHeader">الملف المهني</div>
+                            <div class="segmented">
+                                <div class="seg"><span>🛒</span><span data-i18n="driverSignup.mock1.roleClient">عميل</span></div>
+                                <div class="seg selected"><span>🚚</span><span data-i18n="driverSignup.mock1.roleDriver">سائق</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverSignup.step2.title">البيانات الأساسية</div>
+            <div class="step-desc">
+                <div data-i18n="driverSignup.step2.intro">املأ الحقول الأربعة الأولى:</div>
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="driverSignup.step2.table.colField">الحقل</th>
+                            <th data-i18n="driverSignup.step2.table.colRule">الشرط</th>
+                            <th data-i18n="driverSignup.step2.table.colIndicator">المؤشر</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n="driverSignup.step2.table.r1c1">الاسم الكامل</td>
+                            <td data-i18n="driverSignup.step2.table.r1c2">غير فارغ.</td>
+                            <td data-i18n="driverSignup.step2.table.r1c3">علامة صح خضراء عند الصحة.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverSignup.step2.table.r2c1">البريد الإلكتروني</td>
+                            <td data-i18n="driverSignup.step2.table.r2c2">صيغة بريد صحيحة (علامة @ ونقطة).</td>
+                            <td data-i18n="driverSignup.step2.table.r2c3">علامة صح خضراء عند الصحة.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverSignup.step2.table.r3c1">كلمة المرور</td>
+                            <td data-i18n="driverSignup.step2.table.r3c2">8+ أحرف، حرف كبير، حرف صغير، رقم، رمز خاص.</td>
+                            <td data-i18n="driverSignup.step2.table.r3c3">علامة صح خضراء عند استيفاء الشروط.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverSignup.step2.table.r4c1">تأكيد كلمة المرور</td>
+                            <td data-i18n="driverSignup.step2.table.r4c2">مطابقة كلمة المرور تماماً.</td>
+                            <td data-i18n="driverSignup.step2.table.r4c3">علامة صح خضراء عند المطابقة.</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div data-i18n-html="driverSignup.step2.footnote">
+                    حقل كلمة المرور يتحول إلى <strong>حقل نقاط مخفية</strong> — اضغط على أيقونة 👁 بجانبه لإظهارها مؤقتاً.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverSignup.step3.title">اختيار دور «سائق»</div>
+            <div class="step-desc" data-i18n-html="driverSignup.step3.body">
+                تحت عنوان <strong>«الملف المهني»</strong>، تظهر بطاقتان قابلتان للاختيار:
+                <ul>
+                    <li><strong>عميل</strong> (🛒) — الخيار المحدد افتراضياً.</li>
+                    <li><strong>سائق</strong> (🚚) — يجب اختياره لتفعيل خيارات السائق.</li>
+                </ul>
+                اضغط على بطاقة <strong>«سائق»</strong>. عند تحديدها:
+                <ul>
+                    <li>تتغير خلفية البطاقة إلى لون مميز وإطار ملوّن.</li>
+                    <li>يظهر حقل <strong>«مصدر المياه»</strong> أسفل حقل المدينة مباشرة (خطوة 5).</li>
+                    <li>هذا الاختيار <strong>لا يمكن تغييره بعد إنشاء الحساب</strong>.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverSignup.step4.title">البلد والمدينة</div>
+            <div class="step-desc" data-i18n-html="driverSignup.step4.body">
+                مباشرة أسفل اختيار الدور:
+                <ul>
+                    <li><strong>قائمة البلد</strong>: يظهر المغرب افتراضياً (🇲🇦). يمكنك تغييره.</li>
+                    <li><strong>قائمة المدينة</strong>: بعد اختيار البلد، تُحمَّل مدنه تلقائياً. للمغرب، تكون <strong>«Laayoune» / العيون</strong> محددة مسبقاً.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="step">
+        <div class="step-number">5</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverSignup.step5.title">مصدر المياه — حقل السائق</div>
+            <div class="step-desc">
+                <div data-i18n-html="driverSignup.step5.intro">
+                    يظهر هذا الحقل <strong>فقط</strong> إذا اخترت «سائق» وحددت مدينة.
+                    في العيون، الخيارات المتاحة:
+                </div>
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="driverSignup.step5.table.colSource">المصدر</th>
+                            <th data-i18n="driverSignup.step5.table.colNote">ملاحظة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n="driverSignup.step5.table.r1c1">عيافة (Ayaafa)</td>
+                            <td data-i18n="driverSignup.step5.table.r1c2">الخيار الأول افتراضياً.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverSignup.step5.table.r2c1">طانطان (TanTan)</td>
+                            <td data-i18n="driverSignup.step5.table.r2c2">—</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverSignup.step5.table.r3c1">غدير (Ghadir)</td>
+                            <td data-i18n="driverSignup.step5.table.r3c2">—</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverSignup.step5.table.r4c1">تصفية (Tasfya)</td>
+                            <td data-i18n="driverSignup.step5.table.r4c2">—</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div data-i18n-html="driverSignup.step5.footnote">
+                    للمدن الأخرى، يكون الخيار الوحيد هو <strong>«خارجي» (External)</strong>.
+                    لا يمكن إرسال النموذج بدون اختيار مصدر المياه.
+                </div>
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="وسط نموذج التسجيل: الدور، البلد، المدينة، مصدر المياه"
+                    data-i18n-alt="driverSignup.shot2.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="top: 268px; left: 2px;" aria-hidden="true">👉</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="app-bar">
+                            <span class="back-arrow">←</span>
+                            <span class="title" data-i18n="driverSignup.mock2.bar">إنشاء حساب</span>
+                        </div>
+                        <div class="app-content" style="gap: 10px;">
+                            <div class="form-section" data-i18n="driverSignup.mock2.professionalHeader">الملف المهني</div>
+                            <div class="segmented">
+                                <div class="seg"><span>🛒</span><span data-i18n="driverSignup.mock2.roleClient">عميل</span></div>
+                                <div class="seg selected"><span>🚚</span><span data-i18n="driverSignup.mock2.roleDriver">سائق</span></div>
+                            </div>
+                            <div class="dd">
+                                <span class="icon">🌐</span>
+                                <span class="value" data-i18n="driverSignup.mock2.countryValue">🇲🇦 المغرب</span>
+                                <span class="caret">▾</span>
+                            </div>
+                            <div class="dd">
+                                <span class="icon">🏙️</span>
+                                <span class="value" data-i18n="driverSignup.mock2.cityValue">العيون</span>
+                                <span class="caret">▾</span>
+                            </div>
+                            <div class="form-section" data-i18n="driverSignup.mock2.waterSourceHeader">مصدر المياه</div>
+                            <div class="dd">
+                                <span class="icon">💧</span>
+                                <span class="value" data-i18n="driverSignup.mock2.waterSourceValue">عيافة</span>
+                                <span class="caret">▾</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- 6 -->
+    <div class="step">
+        <div class="step-number">6</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverSignup.step6.title">رقم الهاتف</div>
+            <div class="step-desc" data-i18n-html="driverSignup.step6.body">
+                حقل رقم الهاتف يعرض <strong>علم البلد ورمز الاتصال</strong> بجانب رقمك.
+                بالنسبة للمغرب:
+                <ul>
+                    <li>يجب أن يكون الرقم <strong>9 أرقام بالضبط</strong> (بدون رمز الدولة).</li>
+                    <li>يجب أن يبدأ بـ <strong>5</strong> أو <strong>6</strong> أو <strong>7</strong>.</li>
+                    <li>إذا كان الرقم قصيراً، يظهر أسفله عدّاد: «أدخل X رقماً إضافياً».</li>
+                    <li>إذا كان الرقم مسجّلاً بحساب آخر، يظهر تنبيه أحمر: «رقم الهاتف مسجّل بالفعل».</li>
+                </ul>
+                عند اكتمال الشروط، تظهر <strong>علامة صح خضراء</strong> بجانب الحقل.
+            </div>
+        </div>
+    </div>
+
+    <!-- 7 -->
+    <div class="step">
+        <div class="step-number">7</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverSignup.step7.title">الاتفاقيات القانونية</div>
+            <div class="step-desc" data-i18n-html="driverSignup.step7.body">
+                تحت عنوان <strong>«الاتفاقيات القانونية»</strong>، ثلاثة مربعات اختيار:
+                <ul>
+                    <li>☑ <strong>أوافق على شروط الخدمة</strong> — <em>إلزامي</em>.</li>
+                    <li>☑ <strong>أوافق على سياسة الخصوصية</strong> — <em>إلزامي</em>.</li>
+                    <li>☐ <strong>أوافق على الاتصالات التسويقية</strong> — اختياري.</li>
+                </ul>
+                الضغط على نص أي اتفاقية يفتح صفحتها القانونية في المتصفح.
+                زر «تسجيل» <strong>لا يُفعَّل</strong> قبل تحديد المربعين الإلزاميين.
+            </div>
+        </div>
+    </div>
+
+    <!-- 8 -->
+    <div class="step">
+        <div class="step-number">8</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverSignup.step8.title">زر «تسجيل»</div>
+            <div class="step-desc" data-i18n-html="driverSignup.step8.body">
+                زر <strong>«تسجيل»</strong> أسفل الشاشة يتحول من <strong>رمادي (معطّل)</strong>
+                إلى <strong>ملوّن (مفعّل)</strong> عندما تتحقق <em>كل</em> الشروط:
+                <ul>
+                    <li>الحقول الأساسية صحيحة.</li>
+                    <li>مصدر المياه محدَّد (للسائق).</li>
+                    <li>البريد الإلكتروني غير مسجّل مسبقاً.</li>
+                    <li>رقم الهاتف صالح وغير مسجّل مسبقاً.</li>
+                    <li>مربعا الشروط والخصوصية محدَّدان.</li>
+                </ul>
+                عند الضغط، يعرض الزر <strong>مؤشر تحميل</strong> ثم يتم إنشاء الحساب.
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="أسفل نموذج التسجيل: الهاتف، الاتفاقيات، زر تسجيل مفعّل"
+                    data-i18n-alt="driverSignup.shot3.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="bottom: 42px; left: 50%; translate: -50% 0;" aria-hidden="true">👇</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="app-bar">
+                            <span class="back-arrow">←</span>
+                            <span class="title" data-i18n="driverSignup.mock3.bar">إنشاء حساب</span>
+                        </div>
+                        <div class="app-content" style="gap: 10px;">
+                            <div class="phone-wrap">
+                                <div class="flag">
+                                    <span data-i18n="driverSignup.mock3.flag">🇲🇦</span>
+                                    <span class="code">+212</span>
+                                    <span class="caret">▾</span>
+                                </div>
+                                <span class="number" data-i18n="driverSignup.mock3.phoneValue">612 345 678</span>
+                                <span class="suffix ok" style="color:#22c55e;">✓</span>
+                            </div>
+                            <div class="form-section" data-i18n="driverSignup.mock3.legalHeader">الاتفاقيات القانونية</div>
+                            <div class="chk-row">
+                                <span class="chk-box checked">✓</span>
+                                <span><span data-i18n="driverSignup.mock3.agreeTo">أوافق على</span> <span class="link" data-i18n="driverSignup.mock3.terms">شروط الخدمة</span></span>
+                            </div>
+                            <div class="chk-row">
+                                <span class="chk-box checked">✓</span>
+                                <span><span data-i18n="driverSignup.mock3.agreeTo">أوافق على</span> <span class="link" data-i18n="driverSignup.mock3.privacy">سياسة الخصوصية</span></span>
+                            </div>
+                            <div class="chk-row">
+                                <span class="chk-box"></span>
+                                <span class="link" data-i18n="driverSignup.mock3.marketing">أوافق على الاتصالات التسويقية</span>
+                            </div>
+                            <div class="btn-primary" data-i18n="driverSignup.mock3.submit">تسجيل</div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         AFTER SIGNUP
+    ═════════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="driverSignup.afterSignup.title">بعد الضغط على «تسجيل»</h2>
+
+    <div class="step">
+        <div class="step-number">9</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverSignup.step9.title">ما يحدث مباشرة</div>
+            <div class="step-desc" data-i18n-html="driverSignup.step9.body">
+                عند نجاح التسجيل:
+                <ul>
+                    <li>يُنشَأ الحساب على الخادم.</li>
+                    <li>يُرسَل تلقائياً <strong>بريد إلكتروني للتحقق</strong> إلى البريد الذي أدخلته.</li>
+                    <li>ينتقل التطبيق بك مباشرة إلى <strong>الشاشة الرئيسية للسائق</strong>.</li>
+                </ul>
+                لا يوجد زر «انتظر التحقق» — يمكنك استخدام التطبيق فوراً، لكن بعض الميزات
+                (مثل استقبال الطلبات) تبقى معطّلة حتى يتم اعتماد وثائقك من الإدارة.
+            </div>
+        </div>
+    </div>
+
+    <div class="step">
+        <div class="step-number">10</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverSignup.step10.title">تأكيد البريد الإلكتروني</div>
+            <div class="step-desc" data-i18n-html="driverSignup.step10.body">
+                تحقّق من بريدك (وصندوق <strong>الرسائل غير المرغوب فيها</strong>) واضغط على رابط
+                التحقق. لديك <strong>عدة أيام</strong> لتأكيد البريد. للحصول على رابط جديد،
+                استخدم زر <strong>«إعادة إرسال البريد»</strong> من الملف الشخصي أو من الشاشة
+                الرئيسية.
+            </div>
+        </div>
+    </div>
+
+    <div class="step">
+        <div class="step-number">11</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverSignup.step11.title">استكمال الملف الشخصي والوثائق</div>
+            <div class="step-desc" data-i18n-html="driverSignup.step11.body">
+                بعد الوصول إلى الشاشة الرئيسية، <strong>لا يمكنك استقبال طلبات بعد</strong>.
+                الخطوة التالية إلزامية: انتقل إلى
+                <a href="driver-3-edit-profile.html">الملف الشخصي والتحقق</a>
+                لرفع:
+                <ul>
+                    <li>صورة الجهة اليمنى من مؤخرة المركبة تُظهر الرقم التسلسلي.</li>
+                    <li>إثبات ملكية الرقم التسلسلي (صورة أو PDF).</li>
+                </ul>
+                يبقى حسابك <strong>غير معتمد</strong> حتى تُراجع الإدارة وثائقك وتوافق عليها.
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         RULES
+    ═════════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="driverSignup.rulesHeading">قواعد يجب معرفتها</h2>
+
+    <div class="callout callout-warn">
+        <div class="callout-icon">🔄</div>
+        <div class="callout-body" data-i18n-html="driverSignup.rules.roleFixed">
+            <strong>الدور ثابت بعد التسجيل:</strong>
+            بمجرد إنشاء حساب كسائق، لا يمكن تحويله إلى حساب عميل، والعكس صحيح. تحتاج
+            حساباً منفصلاً إن أردت استخدام التطبيق بالدورين.
+        </div>
+    </div>
+
+    <div class="callout callout-info">
+        <div class="callout-icon">💧</div>
+        <div class="callout-body" data-i18n-html="driverSignup.rules.waterSource">
+            <strong>مصدر المياه في التسجيل:</strong>
+            الاختيار من شاشة التسجيل هو أول مصدر فقط. إذا كنت تعمل على أكثر من مصدر،
+            يمكنك إضافة المصادر الأخرى من الملف الشخصي بعد التسجيل (حسب ما تسمح به
+            الإدارة).
+        </div>
+    </div>
+
+    <div class="callout callout-success">
+        <div class="callout-icon">✉️</div>
+        <div class="callout-body" data-i18n-html="driverSignup.rules.emailSent">
+            <strong>بريد التحقق يصل تلقائياً:</strong>
+            بمجرد نجاح التسجيل، يرسل الخادم بريد التحقق. راقب صندوق الوارد (ومجلد
+            الرسائل غير المرغوب فيها) بعد التسجيل.
+        </div>
+    </div>
+
+    <div class="callout callout-danger">
+        <div class="callout-icon">🚫</div>
+        <div class="callout-body" data-i18n-html="driverSignup.rules.fraudWarning">
+            <strong>بيانات مضلّلة = أرشفة الحساب:</strong>
+            إدخال اسم وهمي، أو بريد أو رقم هاتف لا يخصّك، أو وثائق مزوّرة لاحقاً — كل ذلك
+            يؤدي إلى رفض فوري وربما أرشفة دائمة. المعلومات تُراجع.
+        </div>
+    </div>
+
+    <!-- ─── Next / prev ──────────────────────────────────── -->
+    <div class="next-prev">
+        <a class="nav-btn" href="driver.html" data-i18n="driverSignup.nav.prev">→ العودة إلى دليل السائق</a>
+        <a class="nav-btn" href="driver-2-login.html" data-i18n="driverSignup.nav.next">التالي: تسجيل الدخول ←</a>
+    </div>
+
+    <div class="footer">
+        <span data-i18n="driverSignup.footer.copyright">© 2026 كوبا العيون – جميع الحقوق محفوظة</span><br>
+        <a href="https://legal.kouba.site/privacy-ar" data-i18n="driverSignup.footer.privacy">سياسة الخصوصية</a>
+        &nbsp;•&nbsp;
+        <a href="https://legal.kouba.site/terms-ar" data-i18n="driverSignup.footer.terms">شروط الخدمة</a>
+    </div>
+</div>
+
+<!--
+    OPTIONAL I18N LOADER
+    Reads ?lang=fr|en|es from the URL, fetches i18n/<lang>.json,
+    and swaps [data-i18n], [data-i18n-html], [data-i18n-alt].
+    data-i18n-alt sets .alt on <img>, aria-label on <figure>.
+-->
+<script>
+(function () {
+    try {
+        var lang = new URLSearchParams(location.search).get('lang');
+        if (!lang || lang === 'ar') return;
+        fetch('i18n/' + lang + '.json')
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (t) {
+                if (!t) return;
+                document.querySelectorAll('[data-i18n]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n')];
+                    if (v != null) el.textContent = v;
+                });
+                document.querySelectorAll('[data-i18n-html]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n-html')];
+                    if (v != null) el.innerHTML = v;
+                });
+                document.querySelectorAll('[data-i18n-alt]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n-alt')];
+                    if (v == null) return;
+                    if (el.tagName === 'IMG') {
+                        el.alt = v;
+                    } else {
+                        el.setAttribute('aria-label', v);
+                    }
+                });
+            })
+            .catch(function () {});
+    } catch (e) {}
+})();
+</script>
+</body>
+</html>

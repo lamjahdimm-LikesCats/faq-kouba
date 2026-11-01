@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="driverProfile.pageTitle">الملف الشخصي والتحقق – دليل السائق</title>
+    <!--
+    ──────────────────────────────────────────────────────────────
+    THEME — ROSS palette (driver). Dusty rose; no orange, no blue
+    in page chrome. Badge colors (Bronze / Silver / Gold / Expert /
+    Profi) preserved — they are content, not theme.
+
+    SOURCE OF TRUTH — lib/features/home/screens/driver_profile_screen.dart
+
+    SCREENS — p41–p46 are inline HTML+CSS mockups reproducing the
+    actual widget tree in order of the guide's steps:
+
+        p41  step 1   default profile (verification required)
+        p42  step 7   pending state
+        p43  step 8   approved (green chip)
+        p44  step 9   rejected (card + 2 doc tiles + resubmit)
+        p45  step 10  archived view (replaces whole body)
+        p46  step 11  edit dialog (AlertDialog over profile)
+
+    What the code does NOT render — therefore NOT in this page:
+    - Photo-spec tutorial / serial-number diagrams
+    - Carte-grise example screens
+    - A persistent grace-period banner
+        (_buildGracePeriodWarning exists but is never called in build())
+    - A 30-day cooldown banner (only an error snackbar via
+        _getUserFriendlyErrorMessage when updateBasicProfile fails)
+    - "PDF accepted" for truck papers
+        (_picker.pickImage() restricts to images)
+
+    Screenshot numbering:
+        p1–p40  → client + driver signup + driver login
+        p41–p46 → this file
+        p47     → next available (driver-4-wallet)
+    ──────────────────────────────────────────────────────────────
+    -->
+    <style>
+        :root {
+            --accent:        #b76e79;
+            --accent-dark:   #5c3438;
+            --accent-light:  #a6747c;
+            --accent-muted:  #c9a5ab;
+            --bg-page:       #f9f4f5;
+            --bg-subtle:     #fdf8f9;
+            --bg-highlight:  #faeeee;
+            --border:        #ecdde0;
+            --border-hover:  #b76e79;
+            --shadow-hover:  rgba(183, 110, 121, 0.15);
+            --warn-bg:       #f5eef0;
+            --warn-border:   #5c3438;
+            --action:        #b76e79;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Cairo', 'Inter', -apple-system, 'Segoe UI', sans-serif;
+            background: var(--bg-page);
+            color: #1e293b;
+            line-height: 1.75;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px 45px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        }
+        .back-link {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 0.85rem; color: var(--accent);
+            text-decoration: none; margin-bottom: 20px;
+        }
+        .back-link:hover { text-decoration: underline; }
+        h1 {
+            color: var(--accent-dark);
+            border-bottom: 3px solid var(--accent);
+            padding-bottom: 12px; margin-bottom: 8px; font-size: 1.9rem;
+        }
+        .subtitle { font-size: 1rem; color: var(--accent-light); margin-bottom: 30px; }
+        .intro-box {
+            background: var(--bg-highlight);
+            border-right: 4px solid var(--accent);
+            padding: 15px 18px; border-radius: 12px;
+            margin: 0 0 30px 0; font-size: 0.95rem;
+        }
+        .intro-box ul { padding-right: 22px; margin-top: 8px; }
+        .intro-box li { margin-bottom: 4px; }
+        .section-title {
+            color: var(--accent-dark); font-size: 1.25rem;
+            margin: 34px 0 14px; padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+        }
+        .step { display: flex; gap: 18px; margin-bottom: 28px; align-items: flex-start; }
+        .step-number {
+            flex-shrink: 0; width: 38px; height: 38px;
+            background: var(--accent); color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 1rem; margin-top: 2px;
+        }
+        .step-body { flex: 1; }
+        .step-title {
+            font-weight: bold; color: var(--accent-dark);
+            font-size: 1.08rem; margin-bottom: 6px;
+        }
+        .step-desc { font-size: 0.95rem; color: #334155; }
+        .step-desc ul { padding-right: 22px; margin-top: 8px; }
+        .step-desc li { margin-bottom: 6px; }
+        .field-table {
+            width: 100%; border-collapse: collapse;
+            margin: 12px 0 6px; font-size: 0.9rem;
+        }
+        .field-table th, .field-table td {
+            padding: 10px 12px; border: 1px solid var(--border); text-align: right;
+        }
+        .field-table th {
+            background: #f1f5f9; color: var(--accent-dark); font-weight: bold;
+        }
+        .field-table tr:nth-child(even) td { background: #fafafa; }
+        .callout {
+            display: flex; gap: 12px; padding: 14px 16px;
+            border-radius: 12px; margin: 16px 0; font-size: 0.92rem;
+            align-items: flex-start;
+        }
+        .callout-icon { flex-shrink: 0; font-size: 1.15rem; margin-top: 1px; }
+        .callout-body { flex: 1; }
+        .callout-warn    { background: var(--warn-bg); border-right: 4px solid var(--warn-border); }
+        .callout-danger  { background: #fef2f2; border-right: 4px solid #ef4444; }
+        .callout-info    { background: var(--bg-highlight); border-right: 4px solid var(--accent); }
+        .callout-success { background: #f0fdf4; border-right: 4px solid #22c55e; }
+        .callout strong { color: var(--accent-dark); }
+
+        /* Badge grid — inline demo, actual app badge colors preserved */
+        .badge-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px; margin: 12px 0;
+        }
+        .badge-item {
+            border-radius: 12px; padding: 16px 12px;
+            text-align: center; color: white; font-weight: 600;
+        }
+        .badge-item .icon { font-size: 1.4rem; display: block; margin-bottom: 6px; }
+        .badge-item .name { font-size: 0.95rem; margin-bottom: 2px; }
+        .badge-item .discount { font-size: 0.72rem; opacity: 0.85; }
+        .badge-bronze { background: linear-gradient(135deg, #CD7F32, #A0522D); }
+        .badge-silver { background: linear-gradient(135deg, #C0C0C0, #808080); }
+        .badge-gold   { background: linear-gradient(135deg, #FFD700, #FFA500); color: #422006; }
+        .badge-expert { background: linear-gradient(135deg, #2196F3, #0D47A1); }
+        .badge-profi  { background: linear-gradient(135deg, #9C27B0, #4A148C); }
+
+        /* ─── Phone frame ──────────────────────────────────── */
+        .screen-mock { display: flex; justify-content: center; margin: 18px 0 6px; }
+        .phone {
+            width: 290px; max-width: 100%;
+            border: 1.5px solid var(--border); border-radius: 22px;
+            padding: 5px; background: #fff;
+            box-shadow: 0 3px 14px rgba(0,0,0,0.05);
+        }
+        .phone-screen {
+            position: relative; border-radius: 17px; overflow: hidden;
+            background: #fff; border: 1px solid var(--border);
+            min-height: 500px; display: flex; flex-direction: column;
+        }
+        .status-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 16px 6px; font-size: 0.65rem;
+            color: var(--accent-light); background: var(--bg-subtle);
+            border-bottom: 1px solid var(--border);
+            direction: ltr; font-weight: 600;
+        }
+        .status-bar .icons { display: flex; gap: 4px; font-size: 0.6rem; }
+        .app-bar {
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 14px; border-bottom: 1px solid var(--border);
+            background: var(--bg-subtle);
+        }
+        .app-bar .title {
+            font-size: 0.85rem; font-weight: 700;
+            color: var(--accent-dark); flex: 1;
+        }
+        .app-bar .action-icon {
+            color: var(--accent-dark); font-size: 0.9rem; flex-shrink: 0;
+        }
+
+        /* ─── Profile content ──────────────────────────────── */
+        .pf-content {
+            flex: 1; padding: 12px 14px;
+            display: flex; flex-direction: column; gap: 8px;
+            overflow-y: auto;
+        }
+        .pf-avatar {
+            width: 60px; height: 60px; margin: 4px auto 0;
+            border-radius: 50%; background: #f1f5f9;
+            border: 1.2px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; color: var(--accent-muted);
+        }
+        .pf-avatar.grey { background: #e5e7eb; color: #9ca3af; }
+        .pf-change-photo {
+            text-align: center; font-size: 0.62rem;
+            color: var(--accent); font-weight: 700; margin-top: 2px;
+        }
+        .pf-email {
+            text-align: center; font-size: 0.75rem;
+            font-weight: 800; color: var(--accent-dark);
+            margin: 4px 0;
+        }
+        .pf-email.grey { color: #9ca3af; }
+
+        /* Badge card inside phone */
+        .pf-badge {
+            border-radius: 10px; padding: 10px;
+            color: white; background: linear-gradient(135deg, #CD7F32, #A0522D);
+            font-size: 0.6rem; margin: 4px 0;
+        }
+        .pf-badge.gold { background: linear-gradient(135deg, #FFD700, #FFA500); color: #422006; }
+        .pf-badge .head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .pf-badge .head .bicon { font-size: 1.15rem; flex-shrink: 0; }
+        .pf-badge .head .bbody { flex: 1; min-width: 0; }
+        .pf-badge .head .btitle { font-weight: 800; font-size: 0.72rem; }
+        .pf-badge .head .bdesc {
+            opacity: 0.9; font-size: 0.55rem;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .pf-badge .foot {
+            display: flex; justify-content: space-between;
+            align-items: center; gap: 6px;
+        }
+        .pf-badge .foot .points { font-size: 0.58rem; opacity: 0.95; }
+        .pf-badge .foot .bchip {
+            background: rgba(255,255,255,0.25);
+            padding: 2px 7px; border-radius: 999px;
+            font-size: 0.52rem; font-weight: 700;
+        }
+
+        /* Verification section inside phone */
+        .pf-verify-title {
+            font-size: 0.72rem; font-weight: 800;
+            color: var(--accent-dark); margin: 6px 0 3px;
+        }
+        .pf-verify-desc {
+            font-size: 0.58rem; color: var(--accent-light);
+            margin-bottom: 8px;
+        }
+        .pf-doc-tile {
+            display: flex; align-items: center; gap: 7px;
+            border: 1.2px solid var(--border); border-radius: 7px;
+            padding: 7px 8px; background: #fff; margin-bottom: 6px;
+        }
+        .pf-doc-tile .dicon { color: var(--accent); font-size: 0.9rem; flex-shrink: 0; }
+        .pf-doc-tile .dbody { flex: 1; min-width: 0; }
+        .pf-doc-tile .dname {
+            font-size: 0.6rem; font-weight: 700; color: var(--accent-dark);
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .pf-doc-tile .dstatus { font-size: 0.5rem; color: var(--accent-muted); margin-top: 1px; }
+        .pf-doc-tile .dstatus.uploaded { color: #16a34a; font-weight: 600; }
+        .pf-doc-tile .dbtn {
+            padding: 3px 8px; border-radius: 5px;
+            background: var(--accent); color: white;
+            font-size: 0.52rem; font-weight: 700; flex-shrink: 0;
+        }
+        .pf-submit-btn {
+            padding: 7px; border-radius: 6px;
+            background: var(--action); color: white;
+            font-weight: 700; font-size: 0.6rem;
+            text-align: center; margin-top: 4px;
+        }
+        .pf-submit-btn.disabled { background: #d1d5db; color: #9ca3af; }
+        .pf-hint {
+            font-size: 0.52rem; color: var(--accent-muted);
+            text-align: center; margin-top: 3px;
+        }
+
+        /* Pending card */
+        .pf-pending-card {
+            border-radius: 9px; padding: 12px 10px;
+            background: var(--bg-highlight); border: 1px solid var(--border);
+            text-align: center; margin: 6px 0;
+        }
+        .pf-pending-card .picon { font-size: 1.4rem; color: var(--accent-dark); margin-bottom: 4px; }
+        .pf-pending-card .ptitle {
+            font-weight: 800; color: var(--accent-dark);
+            font-size: 0.72rem; margin-bottom: 3px;
+        }
+        .pf-pending-card .pdesc {
+            color: var(--accent-dark); font-size: 0.55rem; line-height: 1.4;
+        }
+        .pf-pending-card .pdate {
+            color: var(--accent-muted); font-size: 0.52rem; margin-top: 6px;
+        }
+
+        /* Approved chip */
+        .pf-approved-wrap { display: flex; justify-content: center; padding: 12px 0; }
+        .pf-approved-chip {
+            display: inline-flex; align-items: center; gap: 5px;
+            background: #22c55e; color: white;
+            padding: 5px 14px; border-radius: 999px;
+            font-size: 0.62rem; font-weight: 700;
+        }
+
+        /* Rejected card */
+        .pf-rejected-card {
+            border-radius: 9px; padding: 12px 10px;
+            background: var(--warn-bg); border: 1px solid var(--warn-border);
+            text-align: center; margin-bottom: 6px;
+        }
+        .pf-rejected-card .ricon { font-size: 1.4rem; color: var(--warn-border); margin-bottom: 4px; }
+        .pf-rejected-card .rtitle {
+            font-weight: 800; color: var(--warn-border);
+            font-size: 0.72rem; margin-bottom: 3px;
+        }
+        .pf-rejected-card .rdesc {
+            color: var(--warn-border); font-size: 0.55rem; line-height: 1.4;
+        }
+        .pf-rejected-card .rattempts {
+            color: var(--accent-muted); font-size: 0.52rem; margin-top: 6px;
+        }
+
+        /* Archived card */
+        .pf-archived-card {
+            border-radius: 9px; padding: 12px 10px;
+            background: #fef2f2; border: 1px solid #fca5a5;
+            text-align: center; margin: 8px 0;
+        }
+        .pf-archived-card .aicon { font-size: 1.5rem; color: #dc2626; margin-bottom: 6px; }
+        .pf-archived-card .atitle {
+            font-weight: 800; color: #991b1b;
+            font-size: 0.75rem; margin-bottom: 4px;
+        }
+        .pf-archived-card .adesc {
+            color: #991b1b; font-size: 0.55rem; line-height: 1.4;
+        }
+        .pf-archived-card .abtn {
+            display: inline-block; margin-top: 8px;
+            padding: 5px 12px; background: var(--accent);
+            color: white; border-radius: 5px;
+            font-size: 0.58rem; font-weight: 700;
+        }
+
+        /* Info tile */
+        .pf-info {
+            display: flex; align-items: center; gap: 7px;
+            padding: 6px 0; border-bottom: 1px solid var(--bg-subtle);
+            font-size: 0.55rem;
+        }
+        .pf-info .iicon { color: var(--accent); font-size: 0.75rem; flex-shrink: 0; }
+        .pf-info .ibody { flex: 1; min-width: 0; }
+        .pf-info .ilabel { color: var(--accent-light); font-size: 0.5rem; }
+        .pf-info .ivalue {
+            color: var(--accent-dark); font-weight: 700;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .pf-info .iedit { color: var(--accent-muted); font-size: 0.65rem; flex-shrink: 0; }
+        .pf-info.disabled .iicon,
+        .pf-info.disabled .ivalue,
+        .pf-info.disabled .iedit { color: #9ca3af; }
+
+        /* Logout */
+        .pf-logout {
+            margin-top: 10px; padding: 9px; border-radius: 6px;
+            background: #fee2e2; color: #dc2626;
+            font-weight: 700; font-size: 0.62rem; text-align: center;
+        }
+
+        /* Dialog overlay */
+        .dialog-backdrop {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.5);
+            z-index: 10; display: flex; align-items: center;
+            justify-content: center; padding: 20px;
+        }
+        .dialog {
+            background: white; border-radius: 10px; padding: 14px;
+            width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.22);
+        }
+        .dialog-title {
+            font-size: 0.78rem; font-weight: 800;
+            color: var(--accent-dark); margin-bottom: 10px;
+        }
+        .dialog-field {
+            border: 1.2px solid var(--border); border-radius: 8px;
+            padding: 7px 9px; font-size: 0.66rem;
+            color: var(--accent-dark); min-height: 34px; margin-bottom: 4px;
+        }
+        .dialog-help {
+            font-size: 0.5rem; color: var(--accent-light); margin-bottom: 10px;
+        }
+        .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
+        .dialog-btn { padding: 6px 12px; border-radius: 6px; font-size: 0.6rem; font-weight: 700; }
+        .dialog-btn.cancel { color: var(--accent-dark); background: transparent; }
+        .dialog-btn.primary { background: var(--accent); color: white; }
+
+        /* Fingers */
+        .phone-screen .hand {
+            position: absolute; font-size: 1.1rem; z-index: 12;
+            pointer-events: none;
+            animation: hand-bob 1.6s ease-in-out infinite;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.28));
+            line-height: 1;
+        }
+        @keyframes hand-bob {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .footer {
+            margin-top: 40px; padding-top: 20px;
+            border-top: 1px solid var(--border);
+            text-align: center; font-size: 0.75rem; color: var(--accent-muted);
+        }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .next-prev {
+            display: flex; justify-content: space-between;
+            gap: 12px; margin-top: 40px; flex-wrap: wrap;
+        }
+        .nav-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 18px; background: var(--bg-subtle);
+            border: 2px solid var(--border); border-radius: 12px;
+            color: var(--accent-dark); font-weight: 600; font-size: 0.9rem;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .nav-btn:hover {
+            border-color: var(--accent);
+            box-shadow: 0 6px 16px var(--shadow-hover);
+            text-decoration: none;
+        }
+        @media (max-width: 700px) {
+            .container { padding: 25px 20px; }
+            h1 { font-size: 1.5rem; }
+            .step { gap: 12px; }
+            .step-number { width: 32px; height: 32px; font-size: 0.9rem; }
+            .field-table { font-size: 0.82rem; }
+            .phone { width: 260px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a class="back-link" href="driver.html" data-i18n="driverProfile.back">→ العودة إلى دليل السائق</a>
+
+    <h1 data-i18n="driverProfile.heading">👤 الملف الشخصي والتحقق</h1>
+    <p class="subtitle" data-i18n="driverProfile.subtitle">إدارة بياناتك، رفع وثائق المركبة، متابعة حالة التحقق، وشارة الأداء.</p>
+
+    <div class="intro-box" data-i18n-html="driverProfile.intro">
+        <strong>قبل البدء:</strong> صفحة الملف الشخصي هي البوابة التي منها تُفعَّل حسابك كسائق.
+        لا يمكنك استقبال أي طلب قبل <strong>اعتماد وثيقتَي المركبة</strong> من الإدارة:
+        <ul>
+            <li><strong>صورة الشاحنة</strong> — تُظهر الرقم التسلسلي (VIN).</li>
+            <li><strong>أوراق الشاحنة</strong> — تُثبت ملكية الرقم التسلسلي نفسه.</li>
+            <li>بقية الحقول (الاسم، البريد، الهاتف، المدينة، الدولة) قابلة للتعديل — بتفاصيل في الجزء الرابع.</li>
+        </ul>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         PART 1 — OVERVIEW
+    ═══════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="driverProfile.part1.title">الجزء الأول — نظرة عامة على الصفحة</h2>
+
+    <!-- 1 -->
+    <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverProfile.step1.title">فتح صفحة الملف الشخصي</div>
+            <div class="step-desc" data-i18n-html="driverProfile.step1.body">
+                من الشاشة الرئيسية للسائق، اضغط أيقونة <strong>الملف الشخصي</strong>.
+                الصفحة تُحدَّث تلقائياً عند أي تعديل من الخادم، ويمكنك أيضاً السحب للأسفل
+                لتحديث يدوي. الترتيب من الأعلى إلى الأسفل:
+                <ul>
+                    <li><strong>شريط العنوان</strong>: يحمل اسمك + أيقونة قلم للتعديل السريع للاسم.</li>
+                    <li><strong>صورتك الشخصية</strong> — اضغط عليها أو على «تغيير الصورة».</li>
+                    <li><strong>بريدك الإلكتروني</strong> — بخط عريض في المنتصف.</li>
+                    <li><strong>شارة الأداء</strong> (Bronze / Silver / Gold / Expert / Profi).</li>
+                    <li><strong>قسم التحقق</strong> — يختلف حسب حالتك الحالية.</li>
+                    <li><strong>بطاقات البيانات</strong>: الاسم، البريد، الهاتف، المدينة، الدولة.</li>
+                    <li><strong>مصدر المياه</strong> — يظهر فقط إذا كانت مدينتك العيون.</li>
+                    <li><strong>زر تسجيل الخروج</strong> باللون الأحمر.</li>
+                </ul>
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="أعلى صفحة الملف الشخصي: الصورة، البريد، الشارة، وقسم التحقق في حالة «مطلوب»"
+                    data-i18n-alt="driverProfile.shot1.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="top: 285px; left: 50%; translate: -50% 0;" aria-hidden="true">👇</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="app-bar">
+                            <span class="title" data-i18n="driverProfile.mock1.bar">أحمد محمد</span>
+                            <span class="action-icon">✏️</span>
+                        </div>
+                        <div class="pf-content">
+                            <div class="pf-avatar">📷</div>
+                            <div class="pf-change-photo" data-i18n="driverProfile.mock1.changePhoto">📷 تغيير الصورة</div>
+                            <div class="pf-email" data-i18n="driverProfile.mock1.emailValue">ahmed@example.com</div>
+
+                            <div class="pf-badge">
+                                <div class="head">
+                                    <span class="bicon">🏆</span>
+                                    <div class="bbody">
+                                        <div class="btitle" data-i18n="driverProfile.mock1.badgeTitle">الشارة: Bronze</div>
+                                        <div class="bdesc" data-i18n="driverProfile.mock1.badgeDesc">الشارة الابتدائية</div>
+                                    </div>
+                                </div>
+                                <div class="foot">
+                                    <span class="points" data-i18n="driverProfile.mock1.points">0 نقطة</span>
+                                    <span class="bchip" data-i18n="driverProfile.mock1.next">التالي: Silver</span>
+                                </div>
+                            </div>
+
+                            <div class="pf-verify-title" data-i18n="driverProfile.mock1.verifyTitle">التحقق مطلوب</div>
+                            <div class="pf-verify-desc" data-i18n="driverProfile.mock1.verifyDesc">ارفع الوثائق للتحقق</div>
+
+                            <div class="pf-doc-tile">
+                                <span class="dicon">📤</span>
+                                <div class="dbody">
+                                    <div class="dname" data-i18n="driverProfile.mock1.truckPhoto">صورة الشاحنة</div>
+                                    <div class="dstatus" data-i18n="driverProfile.mock1.notUploaded">لم تُرفع</div>
+                                </div>
+                                <span class="dbtn" data-i18n="driverProfile.mock1.upload">رفع</span>
+                            </div>
+
+                            <div class="pf-doc-tile">
+                                <span class="dicon">📤</span>
+                                <div class="dbody">
+                                    <div class="dname" data-i18n="driverProfile.mock1.truckPapers">أوراق الشاحنة</div>
+                                    <div class="dstatus" data-i18n="driverProfile.mock1.notUploaded">لم تُرفع</div>
+                                </div>
+                                <span class="dbtn" data-i18n="driverProfile.mock1.upload">رفع</span>
+                            </div>
+
+                            <div class="pf-submit-btn disabled" data-i18n="driverProfile.mock1.submit">إرسال للتحقق</div>
+                            <div class="pf-hint" data-i18n="driverProfile.mock1.hint">ارفع الوثيقتين أولاً</div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverProfile.step2.title">تغيير الصورة الشخصية</div>
+            <div class="step-desc" data-i18n-html="driverProfile.step2.body">
+                اضغط على صورتك أو على زر <strong>«تغيير الصورة»</strong> — كلاهما يفتح
+                نفس التدفق:
+                <ul>
+                    <li>يفتح معرض الهاتف لاختيار صورة.</li>
+                    <li>الصورة تُضغط تلقائياً (1024×1024، جودة 85%).</li>
+                    <li>يُفتح مربع <strong>قصّ 1×1</strong> — اضبط المنطقة ثم اضغط «تم».</li>
+                    <li>إن ألغيت القصّ، تُرفع الصورة الأصلية كما هي.</li>
+                    <li>بعد الرفع تظهر رسالة <em>«تم الرفع بنجاح»</em> وتتحدث صورتك مباشرة.</li>
+                </ul>
+                <div class="callout callout-info">
+                    <div class="callout-icon">📸</div>
+                    <div class="callout-body" data-i18n-html="driverProfile.step2.callout">
+                        <strong>لاحظ:</strong> الصورة الشخصية وحدها تُقصّ 1×1. صور الشاحنة
+                        والأوراق تُرفع كما هي بدون قصّ (خطوة 5).
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverProfile.step3.title">شارة الأداء (Badge)</div>
+            <div class="step-desc">
+                <div data-i18n="driverProfile.step3.intro">
+                    أسفل بريدك تظهر بطاقة الشارة. تبدأ بـ <strong>Bronze</strong>، وتتطور
+                    حسب نقاطك:
+                </div>
+
+                <div class="badge-grid">
+                    <div class="badge-item badge-bronze">
+                        <span class="icon">🏆</span>
+                        <div class="name">Bronze</div>
+                        <div class="discount" data-i18n="driverProfile.step3.badgeBronze.discount">بدون خصم</div>
+                    </div>
+                    <div class="badge-item badge-silver">
+                        <span class="icon">🏅</span>
+                        <div class="name">Silver</div>
+                        <div class="discount" data-i18n="driverProfile.step3.badgeSilver.discount">خصم على الرسوم</div>
+                    </div>
+                    <div class="badge-item badge-gold">
+                        <span class="icon">⭐</span>
+                        <div class="name">Gold</div>
+                        <div class="discount" data-i18n="driverProfile.step3.badgeGold.discount">خصم أعلى</div>
+                    </div>
+                    <div class="badge-item badge-expert">
+                        <span class="icon">🧠</span>
+                        <div class="name">Expert</div>
+                        <div class="discount" data-i18n="driverProfile.step3.badgeExpert.discount">خصم متقدم</div>
+                    </div>
+                    <div class="badge-item badge-profi">
+                        <span class="icon">✨</span>
+                        <div class="name">Profi</div>
+                        <div class="discount" data-i18n="driverProfile.step3.badgeProfi.discount">أعلى خصم</div>
+                    </div>
+                </div>
+
+                <div data-i18n="driverProfile.step3.intro2">بطاقة الشارة تعرض:</div>
+                <ul>
+                    <li data-i18n-html="driverProfile.step3.b1"><strong>اسم الشارة الحالية</strong> ووصف قصير.</li>
+                    <li data-i18n-html="driverProfile.step3.b2"><strong>عدد نقاطك الحالية</strong>.</li>
+                    <li data-i18n-html="driverProfile.step3.b3">إذا لم تبلغ أعلى شارة: <strong>الشارة التالية</strong> + شريط تقدّم (النقاط الحالية/الإجمالية).</li>
+                    <li data-i18n-html="driverProfile.step3.b4">إذا بلغت أعلى شارة: شارة <strong>«وصلت لأعلى مستوى»</strong>.</li>
+                    <li data-i18n-html="driverProfile.step3.b5">إذا كان للشارة خصم على الرسوم: <strong>شريط أخضر</strong> يظهر النسبة.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         PART 2 — VERIFICATION: UPLOAD & SUBMIT
+    ═══════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="driverProfile.part2.title">الجزء الثاني — التحقق: رفع الوثائق والإرسال</h2>
+
+    <!-- 4 -->
+    <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverProfile.step4.title">ما الذي يُطلب منك؟</div>
+            <div class="step-desc" data-i18n-html="driverProfile.step4.body">
+                قسم التحقق يعرض <strong>بطاقتين فقط</strong> — واحدة لكل وثيقة:
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="driverProfile.step4.table.colDoc">الوثيقة</th>
+                            <th data-i18n="driverProfile.step4.table.colWhat">ما يجب أن تُظهره</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n="driverProfile.step4.table.r1c1">صورة الشاحنة</td>
+                            <td data-i18n="driverProfile.step4.table.r1c2">يظهر فيها الرقم التسلسلي (VIN) على المركبة.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverProfile.step4.table.r2c1">أوراق الشاحنة</td>
+                            <td data-i18n="driverProfile.step4.table.r2c2">تُثبت ملكية الرقم التسلسلي نفسه.</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <strong>الرقم التسلسلي في الصورتين يجب أن يتطابق</strong> — أي اختلاف قد يؤدي
+                إلى الرفض.
+            </div>
+        </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="step">
+        <div class="step-number">5</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverProfile.step5.title">رفع كل وثيقة</div>
+            <div class="step-desc" data-i18n-html="driverProfile.step5.body">
+                لكل بطاقة زر <strong>«رفع»</strong> على اليسار. عند الضغط عليه:
+                <ul>
+                    <li>يفتح معرض الهاتف لاختيار صورة.</li>
+                    <li>الصورة تُضغط تلقائياً (1024×1024، جودة 85%).</li>
+                    <li><strong>لا يوجد قصّ</strong> لهاتين الوثيقتين — تُرفع كما هي.</li>
+                    <li>بعد الرفع، حالة البطاقة تتحول من <em>«لم تُرفع»</em> إلى <em>«تم الرفع»</em>.</li>
+                </ul>
+                <strong>ملاحظة:</strong> اختيار الصورة من المعرض (images only) — إذا كانت
+                وثيقتك ورقية، صوّرها أولاً من كاميرا الهاتف ثم ارفع الصورة.
+            </div>
+        </div>
+    </div>
+
+    <!-- 6 -->
+    <div class="step">
+        <div class="step-number">6</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverProfile.step6.title">إرسال طلب المراجعة</div>
+            <div class="step-desc" data-i18n-html="driverProfile.step6.body">
+                زر <strong>«إرسال للتحقق»</strong> يبقى <strong>رمادياً ومعطّلاً</strong>
+                حتى ترفع الوثيقتين. عند رفعهما:
+                <ul>
+                    <li>يتحول الزر إلى <strong>لون ملوّن</strong> وقابل للضغط.</li>
+                    <li>عند الضغط، يظهر <strong>مؤشر تحميل</strong> صغير داخل الزر.</li>
+                    <li>عند النجاح، تظهر رسالة <em>«تم إرسال طلبك للمراجعة»</em>.</li>
+                    <li>حالة حسابك تتحول إلى <strong>قيد المراجعة</strong> — يظهر قسم التحقق
+                        بشكل مختلف (خطوة 7).</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         PART 3 — VERIFICATION STATES
+    ═══════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="driverProfile.part3.title">الجزء الثالث — حالات التحقق</h2>
+
+    <!-- 7 -->
+    <div class="step">
+        <div class="step-number">7</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverProfile.step7.title">الحالة 1 — قيد المراجعة</div>
+            <div class="step-desc" data-i18n-html="driverProfile.step7.body">
+                بعد إرسال طلبك، يستبدل قسم التحقق بطاقتي الرفع ببطاقة واحدة توضح:
+                <ul>
+                    <li>أيقونة ساعة رملية.</li>
+                    <li>عنوان <strong>«طلبك قيد المراجعة»</strong>.</li>
+                    <li>نص <em>«تراجع الإدارة وثائقك وبيانات مركبتك»</em>.</li>
+                    <li>تاريخ الإرسال (مثال: <em>«تاريخ الإرسال: 27/10/2026»</em>).</li>
+                </ul>
+                <strong>لا تظهر أزرار رفع جديدة</strong> في هذه الحالة — لا يمكنك استبدال
+                الوثائق بعد الإرسال. إن احتجت تصحيحاً، تواصل مع الدعم.
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="قسم التحقق في حالة قيد المراجعة — بطاقة مع تاريخ الإرسال"
+                    data-i18n-alt="driverProfile.shot2.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="top: 245px; left: 50%; translate: -50% 0;" aria-hidden="true">👇</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="app-bar">
+                            <span class="title" data-i18n="driverProfile.mock2.bar">أحمد محمد</span>
+                            <span class="action-icon">✏️</span>
+                        </div>
+                        <div class="pf-content">
+                            <div class="pf-email" data-i18n="driverProfile.mock2.emailValue">ahmed@example.com</div>
+
+                            <div class="pf-badge">
+                                <div class="head">
+                                    <span class="bicon">🏆</span>
+                                    <div class="bbody">
+                                        <div class="btitle" data-i18n="driverProfile.mock2.badgeTitle">الشارة: Bronze</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pf-pending-card">
+                                <div class="picon">⏳</div>
+                                <div class="ptitle" data-i18n="driverProfile.mock2.pendingTitle">طلبك قيد المراجعة</div>
+                                <div class="pdesc" data-i18n="driverProfile.mock2.pendingDesc">تراجع الإدارة وثائقك وبيانات مركبتك.</div>
+                                <div class="pdate" data-i18n="driverProfile.mock2.submitted">تاريخ الإرسال: 27/10/2026</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- 8 -->
+    <div class="step">
+        <div class="step-number">8</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverProfile.step8.title">الحالة 2 — تمت الموافقة</div>
+            <div class="step-desc" data-i18n-html="driverProfile.step8.body">
+                بعد موافقة الإدارة، يتحول قسم التحقق إلى <strong>شعار أخضر بسيط</strong>:
+                <ul>
+                    <li>شريط (Chip) أخضر في المنتصف.</li>
+                    <li>أيقونة علامة صح.</li>
+                    <li>نص <strong>«موثَّق»</strong>.</li>
+                </ul>
+                تختفي بطاقات الوثائق وزر الإرسال تماماً. يمكنك الآن استقبال الطلبات فور
+                تفعيل <strong>مفتاح الاستعداد</strong> من الشاشة الرئيسية.
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="قسم التحقق في حالة الموافقة — شعار أخضر موثَّق"
+                    data-i18n-alt="driverProfile.shot3.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="top: 245px; left: 50%; translate: -50% 0;" aria-hidden="true">👇</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="app-bar">
+                            <span class="title" data-i18n="driverProfile.mock3.bar">أحمد محمد</span>
+                            <span class="action-icon">✏️</span>
+                        </div>
+                        <div class="pf-content">
+                            <div class="pf-email" data-i18n="driverProfile.mock3.emailValue">ahmed@example.com</div>
+
+                            <div class="pf-badge gold">
+                                <div class="head">
+                                    <span class="bicon">⭐</span>
+                                    <div class="bbody">
+                                        <div class="btitle" data-i18n="driverProfile.mock3.badgeTitle">الشارة: Gold</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pf-approved-wrap">
+                                <span class="pf-approved-chip">
+                                    <span>✓</span>
+                                    <span data-i18n="driverProfile.mock3.verified">موثَّق</span>
+                                </span>
+                            </div>
+
+                            <div class="pf-info">
+                                <span class="iicon">👤</span>
+                                <div class="ibody">
+                                    <div class="ilabel" data-i18n="driverProfile.mock3.nameLabel">الاسم</div>
+                                    <div class="ivalue" data-i18n="driverProfile.mock3.nameValue">أحمد محمد</div>
+                                </div>
+                                <span class="iedit">✏️</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- 9 -->
+    <div class="step">
+        <div class="step-number">9</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverProfile.step9.title">الحالة 3 — مرفوض (مع إعادة محاولة)</div>
+            <div class="step-desc" data-i18n-html="driverProfile.step9.body">
+                إذا رُفضت وثائقك <strong>ولم تبلغ بعد 3 رفضات</strong>، يظهر:
+                <ul>
+                    <li><strong>بطاقة تنبيه</strong> تحمل أيقونة تحذير، وعنوان <em>«تم رفض طلبك»</em>.</li>
+                    <li><strong>سبب الرفض</strong> كما كتبته الإدارة.</li>
+                    <li><strong>عدد المحاولات المتبقية</strong> (مثال: «المحاولة 1 من 3»).</li>
+                    <li>تعود بطاقتا الرفع للظهور — يمكنك استبدال الوثيقة المرفوضة.</li>
+                    <li>زر <strong>«إعادة الإرسال للمراجعة»</strong> (بلون تحذيري) يظهر أسفل الوثيقتين.</li>
+                </ul>
+                <div class="callout callout-danger">
+                    <div class="callout-icon">🚫</div>
+                    <div class="callout-body" data-i18n-html="driverProfile.step9.callout">
+                        <strong>احذر:</strong> الرفض الثالث يُؤرشف الحساب تلقائياً
+                        (<code>rejection_count >= 3</code>) — راجع الحالة 4.
+                    </div>
+                </div>
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="قسم التحقق في حالة الرفض — بطاقة تنبيه + بطاقتا وثائق + زر إعادة الإرسال"
+                    data-i18n-alt="driverProfile.shot4.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="bottom: 50px; left: 50%; translate: -50% 0;" aria-hidden="true">👇</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="app-bar">
+                            <span class="title" data-i18n="driverProfile.mock4.bar">أحمد محمد</span>
+                            <span class="action-icon">✏️</span>
+                        </div>
+                        <div class="pf-content">
+                            <div class="pf-email" data-i18n="driverProfile.mock4.emailValue">ahmed@example.com</div>
+
+                            <div class="pf-rejected-card">
+                                <div class="ricon">⚠️</div>
+                                <div class="rtitle" data-i18n="driverProfile.mock4.rejectedTitle">تم رفض طلبك</div>
+                                <div class="rdesc" data-i18n="driverProfile.mock4.rejectedDesc">السبب: الوثيقة غير واضحة.</div>
+                                <div class="rattempts" data-i18n="driverProfile.mock4.attempts">المحاولة 1 من 3</div>
+                            </div>
+
+                            <div class="pf-doc-tile">
+                                <span class="dicon">📤</span>
+                                <div class="dbody">
+                                    <div class="dname" data-i18n="driverProfile.mock4.truckPhoto">صورة الشاحنة</div>
+                                    <div class="dstatus uploaded" data-i18n="driverProfile.mock4.uploaded">تم الرفع</div>
+                                </div>
+                                <span class="dbtn" data-i18n="driverProfile.mock4.upload">رفع</span>
+                            </div>
+
+                            <div class="pf-doc-tile">
+                                <span class="dicon">📤</span>
+                                <div class="dbody">
+                                    <div class="dname" data-i18n="driverProfile.mock4.truckPapers">أوراق الشاحنة</div>
+                                    <div class="dstatus uploaded" data-i18n="driverProfile.mock4.uploaded">تم الرفع</div>
+                                </div>
+                                <span class="dbtn" data-i18n="driverProfile.mock4.upload">رفع</span>
+                            </div>
+
+                            <div class="pf-submit-btn" data-i18n="driverProfile.mock4.resubmit">إعادة الإرسال للمراجعة</div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- 10 -->
+    <div class="step">
+        <div class="step-number">10</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverProfile.step10.title">الحالة 4 — مؤرشف (بعد 3 رفضات أو أرشفة يدوية)</div>
+            <div class="step-desc" data-i18n-html="driverProfile.step10.body">
+                يتحول حسابك إلى مؤرشف في حالتين:
+                <ol style="padding-right:22px; margin-top:8px;">
+                    <li><strong>الرفض الثالث</strong> (rejection_count >= 3).</li>
+                    <li><strong>أرشفة يدوية</strong> من الإدارة (is_archived = true).</li>
+                </ol>
+                في هذه الحالة تُستبدل <strong>الصفحة بالكامل</strong> — ليس فقط قسم التحقق:
+                <ul>
+                    <li>صورة رمادية افتراضية (لا يمكن رفع صورة جديدة).</li>
+                    <li>بطاقة حمراء: «تم أرشفة حسابك» + زر «التواصل مع الدعم».</li>
+                    <li>بريدك الإلكتروني بالرمادي.</li>
+                    <li>بطاقات البيانات معطّلة — بلا أيقونة تعديل.</li>
+                    <li>زر تسجيل الخروج يبقى متاحاً.</li>
+                </ul>
+                <strong>لا يمكنك:</strong> رفع وثائق جديدة، تعديل بياناتك، استقبال طلبات.
+                الطريق الوحيد: التواصل مع الدعم.
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="الشاشة الكاملة في حالة الأرشيف — صورة رمادية، بطاقة حمراء بزر الدعم، بيانات معطلة"
+                    data-i18n-alt="driverProfile.shot5.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="top: 195px; left: 50%; translate: -50% 0;" aria-hidden="true">👇</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="app-bar">
+                            <span class="title" data-i18n="driverProfile.mock5.bar">أحمد محمد</span>
+                        </div>
+                        <div class="pf-content">
+                            <div class="pf-avatar grey">👤</div>
+                            <div style="height: 6px;"></div>
+
+                            <div class="pf-archived-card">
+                                <div class="aicon">🚫</div>
+                                <div class="atitle" data-i18n="driverProfile.mock5.archiveTitle">تم أرشفة حسابك</div>
+                                <div class="adesc" data-i18n="driverProfile.mock5.archiveDesc">تواصل مع الدعم لإعادة تفعيل الحساب.</div>
+                                <div class="abtn" data-i18n="driverProfile.mock5.archiveBtn">التواصل مع الدعم</div>
+                            </div>
+
+                            <div class="pf-email grey" data-i18n="driverProfile.mock5.emailValue">ahmed@example.com</div>
+
+                            <div class="pf-info disabled">
+                                <span class="iicon">👤</span>
+                                <div class="ibody">
+                                    <div class="ilabel" data-i18n="driverProfile.mock5.nameLabel">الاسم</div>
+                                    <div class="ivalue" data-i18n="driverProfile.mock5.nameValue">أحمد محمد</div>
+                                </div>
+                            </div>
+                            <div class="pf-info disabled">
+                                <span class="iicon">📞</span>
+                                <div class="ibody">
+                                    <div class="ilabel" data-i18n="driverProfile.mock5.phoneLabel">الهاتف</div>
+                                    <div class="ivalue" data-i18n="driverProfile.mock5.phoneValue">+212 6XX XX XX XX</div>
+                                </div>
+                            </div>
+
+                            <div class="pf-logout" data-i18n="driverProfile.mock5.logout">تسجيل الخروج</div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         PART 4 — EDIT FIELDS
+    ═══════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="driverProfile.part4.title">الجزء الرابع — تعديل البيانات الأساسية</h2>
+
+    <!-- 11 -->
+    <div class="step">
+        <div class="step-number">11</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverProfile.step11.title">حوار التعديل</div>
+            <div class="step-desc" data-i18n-html="driverProfile.step11.body">
+                اضغط على أي بطاقة بيانات (باستثناء مصدر المياه — خطوة 13). يفتح حوار
+                التعديل يحتوي:
+                <ul>
+                    <li><strong>عنواناً</strong> يطابق اسم الحقل (مثل «تعديل الاسم»).</li>
+                    <li><strong>حقل نص</strong> يحمل القيمة الحالية.</li>
+                    <li>نص مساعدة اختياري أسفل الحقل (للبريد والهاتف فقط).</li>
+                    <li>زر <strong>«إلغاء»</strong> لإغلاق الحوار بدون حفظ.</li>
+                    <li>زر <strong>«حفظ»</strong> — يتحقق من الصيغة ثم يرسل التحديث.</li>
+                </ul>
+                إذا فشل التحقق (حقل فارغ، بريد بصيغة خاطئة، هاتف قصير) يظهر تنبيه
+                أحمر أسفل الحقل ولا يُرسَل الطلب.
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="حوار تعديل الاسم — حقل نص + أزرار إلغاء وحفظ"
+                    data-i18n-alt="driverProfile.shot6.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="bottom: 165px; right: 40px;" aria-hidden="true">👉</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="app-bar">
+                            <span class="title" data-i18n="driverProfile.mock6.bar">أحمد محمد</span>
+                            <span class="action-icon">✏️</span>
+                        </div>
+                        <div class="pf-content">
+                            <div class="pf-avatar">📷</div>
+                            <div class="pf-email" data-i18n="driverProfile.mock6.emailValue">ahmed@example.com</div>
+                        </div>
+                        <div class="dialog-backdrop">
+                            <div class="dialog">
+                                <div class="dialog-title" data-i18n="driverProfile.mock6.dialogTitle">تعديل الاسم</div>
+                                <div class="dialog-field" data-i18n="driverProfile.mock6.dialogValue">أحمد محمد</div>
+                                <div class="dialog-actions">
+                                    <span class="dialog-btn cancel" data-i18n="driverProfile.mock6.cancel">إلغاء</span>
+                                    <span class="dialog-btn primary" data-i18n="driverProfile.mock6.save">حفظ</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- 12 -->
+    <div class="step">
+        <div class="step-number">12</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverProfile.step12.title">الحقول وتأثير التعديل</div>
+            <div class="step-desc">
+                <div data-i18n="driverProfile.step12.intro">
+                    كل حقل قابل للتعديل بطريقته الخاصة — بعضها يمرّ بقيد 30 يوماً:
+                </div>
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="driverProfile.step12.table.colField">الحقل</th>
+                            <th data-i18n="driverProfile.step12.table.colEffect">ما يحدث عند الحفظ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n="driverProfile.step12.table.r1c1">الاسم الكامل</td>
+                            <td data-i18n="driverProfile.step12.table.r1c2">تحديث مباشر عبر <code>updateBasicProfile</code>. يخضع لقيد 30 يوماً.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverProfile.step12.table.r2c1">البريد الإلكتروني</td>
+                            <td data-i18n="driverProfile.step12.table.r2c2">تحديث عبر <code>updateEmailAndReverify</code> — يُرسَل تأكيد للبريد الجديد. <strong>لا يخضع لقيد 30 يوماً</strong>.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverProfile.step12.table.r3c1">رقم الهاتف</td>
+                            <td data-i18n="driverProfile.step12.table.r3c2">تحديث مباشر في قاعدة البيانات. <strong>لا يخضع لقيد 30 يوماً</strong>.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverProfile.step12.table.r4c1">المدينة</td>
+                            <td data-i18n="driverProfile.step12.table.r4c2">تحديث عبر <code>updateBasicProfile</code>. يخضع لقيد 30 يوماً.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverProfile.step12.table.r5c1">الدولة</td>
+                            <td data-i18n="driverProfile.step12.table.r5c2">تحديث عبر <code>updateBasicProfile</code>. يخضع لقيد 30 يوماً.</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="callout callout-warn">
+                    <div class="callout-icon">⏱️</div>
+                    <div class="callout-body" data-i18n-html="driverProfile.step12.callout">
+                        <strong>قيد 30 يوماً:</strong> يفرضه الخادم على تعديلات
+                        <code>updateBasicProfile</code>. عند محاولة تعديل قبل انتهاء المدة،
+                        تظهر رسالة خطأ تحمل عدد الأيام المتبقية. البريد والهاتف لا يمرّان
+                        بهذا القيد.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         PART 5 — WATER SOURCE + LOGOUT
+    ═══════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="driverProfile.part5.title">الجزء الخامس — مصدر المياه وتسجيل الخروج</h2>
+
+    <!-- 13 -->
+    <div class="step">
+        <div class="step-number">13</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverProfile.step13.title">مصدر المياه — للعيون فقط</div>
+            <div class="step-desc" data-i18n-html="driverProfile.step13.body">
+                إذا كانت مدينتك <strong>العيون</strong> (أو laayoune بأي حالة أحرف)، تظهر
+                بطاقة إضافية <strong>«مصدر المياه»</strong> أسفل بطاقة الدولة مباشرة:
+                <ul>
+                    <li>تعرض قيمة <code>water_source</code> من حسابك.</li>
+                    <li>إن لم تكن محدَّدة، تعرض <em>«غير محدد»</em>.</li>
+                    <li><strong>للقراءة فقط</strong> — لا تحتوي أيقونة تعديل، والنقر عليها لا يفتح أي حوار.</li>
+                </ul>
+                لتغيير مصدر المياه، تواصل مع الدعم.
+            </div>
+        </div>
+    </div>
+
+    <!-- 14 -->
+    <div class="step">
+        <div class="step-number">14</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverProfile.step14.title">تسجيل الخروج والتحديث التلقائي</div>
+            <div class="step-desc" data-i18n-html="driverProfile.step14.body">
+                <strong>تسجيل الخروج:</strong> زر أحمر في أسفل الصفحة. عند الضغط، يُنهي
+                الجلسة ويعود بك إلى شاشة الدخول.
+                <br><br>
+                <strong>التحديث التلقائي:</strong> الصفحة تستمع لتغييرات حسابك من الخادم.
+                عندما تغيّر الإدارة حالة التحقق (من «قيد المراجعة» إلى «موثَّق» مثلاً)،
+                تتحدّث الصفحة أمامك تلقائياً — دون إعادة فتح.
+                <br><br>
+                <strong>السحب للتحديث:</strong> يمكنك أيضاً سحب الصفحة للأسفل لتحديث يدوي
+                في أي وقت.
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         RULES
+    ═══════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="driverProfile.rulesHeading">قواعد يجب معرفتها</h2>
+
+    <div class="callout callout-warn">
+        <div class="callout-icon">📸</div>
+        <div class="callout-body" data-i18n-html="driverProfile.rules.photoTip">
+            <strong>الرقم التسلسلي يجب أن يكون مقروءاً:</strong>
+            صورة الشاحنة يجب أن تُظهر الرقم التسلسلي (VIN) بوضوح — لا ضبابية، لا انعكاس
+            ضوء يخفي الأرقام، لا قصّ. أوراق الشاحنة يجب أن تُظهر الرقم التسلسلي نفسه.
+            <strong>الرقم في الوثيقتين يجب أن يتطابق</strong> — أي اختلاف = رفض.
+        </div>
+    </div>
+
+    <div class="callout callout-info">
+        <div class="callout-icon">📱</div>
+        <div class="callout-body" data-i18n-html="driverProfile.rules.imageOnly">
+            <strong>الاختيار من المعرض فقط:</strong>
+            رفع الصور يتم من معرض الهاتف — التطبيق لا يفتح الكاميرا مباشرة لهذه الوثائق.
+            إذا كانت وثيقتك ورقية، صوّرها أولاً من تطبيق الكاميرا، ثم ارفعها من المعرض.
+        </div>
+    </div>
+
+    <div class="callout callout-danger">
+        <div class="callout-icon">🚫</div>
+        <div class="callout-body" data-i18n-html="driverProfile.rules.archived">
+            <strong>الرفض الثالث = أرشفة:</strong>
+            إذا رُفضت وثائقك ثلاث مرات، يُؤرشف حسابك تلقائياً
+            (<code>rejection_count >= 3</code>)، وتُستبدل الصفحة بالكامل بعرض الأرشيف.
+            لا يمكنك استرجاع الحساب إلا بالتواصل مع الدعم.
+        </div>
+    </div>
+
+    <div class="callout callout-success">
+        <div class="callout-icon">🔄</div>
+        <div class="callout-body" data-i18n-html="driverProfile.rules.afterApproval">
+            <strong>بعد الموافقة:</strong>
+            لا يمكنك استبدال الوثائق من هذه الصفحة. إن انتهت صلاحية وثيقة أو غيّرت
+            المركبة، تواصل مع الدعم لرفع الوثائق الجديدة.
+        </div>
+    </div>
+
+    <!-- ─── Next / prev ──────────────────────────────────── -->
+    <div class="next-prev">
+        <a class="nav-btn" href="driver-2-login.html" data-i18n="driverProfile.nav.prev">→ السابق: تسجيل الدخول</a>
+        <a class="nav-btn" href="driver-4-wallet.html" data-i18n="driverProfile.nav.next">التالي: محفظة السائق ←</a>
+    </div>
+
+    <div class="footer">
+        <span data-i18n="driverProfile.footer.copyright">© 2026 كوبا العيون – جميع الحقوق محفوظة</span><br>
+        <a href="https://legal.kouba.site/privacy-ar" data-i18n="driverProfile.footer.privacy">سياسة الخصوصية</a>
+        &nbsp;•&nbsp;
+        <a href="https://legal.kouba.site/terms-ar" data-i18n="driverProfile.footer.terms">شروط الخدمة</a>
+    </div>
+</div>
+
+<!-- i18n loader -->
+<script>
+(function () {
+    try {
+        var lang = new URLSearchParams(location.search).get('lang');
+        if (!lang || lang === 'ar') return;
+        fetch('i18n/' + lang + '.json')
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (t) {
+                if (!t) return;
+                document.querySelectorAll('[data-i18n]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n')];
+                    if (v != null) el.textContent = v;
+                });
+                document.querySelectorAll('[data-i18n-html]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n-html')];
+                    if (v != null) el.innerHTML = v;
+                });
+                document.querySelectorAll('[data-i18n-alt]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n-alt')];
+                    if (v == null) return;
+                    if (el.tagName === 'IMG') el.alt = v;
+                    else el.setAttribute('aria-label', v);
+                });
+            })
+            .catch(function () {});
+    } catch (e) {}
+})();
+</script>
+</body>
+</html>

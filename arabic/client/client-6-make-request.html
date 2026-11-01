@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="clientRequest.pageTitle">تقديم طلب توصيل – كوبا</title>
+    <!--
+    ──────────────────────────────────────────────────────────────
+    THEME — grey palette (client). No orange.
+    .callout-warn   → stone grey  (was orange)
+    .chip-matching  → dark slate  (was orange)
+    .chip-active    → medium slate (was blue)
+    .pill-blue      → slate (renamed .pill-a)
+    .mock-stars     → proper gold #ca8a04 (was amber #f59e0b)
+    Semantic green / red kept on success/danger (status colors).
+
+    IMAGES — extension-less src, folder: screenshots/
+        p16  request delivery screen
+        p17  water source dropdown
+        p18  location + landmark fields
+        p19  daily limit message
+        p20  "Request Now" enabled
+        p21  map + bottom panel
+        p22  pill row with multiple deliveries
+        p23  Bluetooth permission alert
+        p24  cancel dialog
+        p25  rating screen 5 stars
+        p26  switch between 3 deliveries
+        p27  request history with multiple deliveries
+    Previous pages: p1–p15.
+
+    LOCALIZATION
+    data-i18n / data-i18n-html / data-i18n-alt
+    Arabic is fallback. i18n/en.json, fr.json, es.json.
+    ──────────────────────────────────────────────────────────────
+    -->
+    <style>
+        :root {
+            --accent:        #4b5563;
+            --accent-dark:   #1f2937;
+            --accent-light:  #6b7280;
+            --accent-muted:  #9ca3af;
+            --bg-page:       #f3f4f6;
+            --bg-subtle:     #f9fafb;
+            --bg-highlight:  #f3f4f6;
+            --border:        #e5e7eb;
+            --border-hover:  #4b5563;
+            --shadow-hover:  rgba(75, 85, 99, 0.12);
+            --warn-bg:       #f5f5f4;
+            --warn-border:   #57534e;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Cairo', 'Inter', -apple-system, 'Segoe UI', sans-serif;
+            background: var(--bg-page);
+            color: #1e293b;
+            line-height: 1.75;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px 45px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--accent);
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        .back-link:hover { text-decoration: underline; }
+        h1 {
+            color: var(--accent-dark);
+            border-bottom: 3px solid var(--accent);
+            padding-bottom: 12px;
+            margin-bottom: 8px;
+            font-size: 1.9rem;
+        }
+        .subtitle {
+            font-size: 1rem;
+            color: var(--accent-light);
+            margin-bottom: 30px;
+        }
+
+        .intro-box {
+            background: var(--bg-highlight);
+            border-right: 4px solid var(--accent);
+            padding: 15px 18px;
+            border-radius: 12px;
+            margin: 0 0 30px 0;
+            font-size: 0.95rem;
+        }
+        .intro-box ul { padding-right: 22px; margin-top: 8px; }
+        .intro-box li { margin-bottom: 4px; }
+
+        /* ─── Steps ─────────────────────────────────────────── */
+        .step {
+            display: flex;
+            gap: 18px;
+            margin-bottom: 28px;
+            align-items: flex-start;
+        }
+        .step-number {
+            flex-shrink: 0;
+            width: 38px;
+            height: 38px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 2px;
+        }
+        .step-body { flex: 1; }
+        .step-title {
+            font-weight: bold;
+            color: var(--accent-dark);
+            font-size: 1.08rem;
+            margin-bottom: 6px;
+        }
+        .step-desc {
+            font-size: 0.95rem;
+            color: #334155;
+        }
+        .step-desc ul {
+            padding-right: 22px;
+            margin-top: 8px;
+        }
+        .step-desc li { margin-bottom: 6px; }
+
+        /* ─── Screenshot slot ───────────────────────────────── */
+        .screenshot-slot {
+            margin: 14px 0 4px;
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            background: var(--bg-subtle);
+            padding: 8px;
+            text-align: center;
+        }
+        .screenshot-slot img {
+            width: 100%;
+            display: block;
+            border-radius: 8px;
+            color: var(--accent-muted);
+            font-size: 0.8rem;
+            min-height: 120px;
+        }
+
+        /* ─── Field table ───────────────────────────────────── */
+        .field-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0 6px;
+            font-size: 0.9rem;
+        }
+        .field-table th,
+        .field-table td {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            text-align: right;
+        }
+        .field-table th {
+            background: #f1f5f9;
+            color: var(--accent-dark);
+            font-weight: bold;
+        }
+        .field-table tr:nth-child(even) td { background: #fafafa; }
+
+        /* ─── Callouts ──────────────────────────────────────── */
+        .callout {
+            display: flex;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            margin: 16px 0;
+            font-size: 0.92rem;
+            align-items: flex-start;
+        }
+        .callout-icon { flex-shrink: 0; font-size: 1.15rem; margin-top: 1px; }
+        .callout-body { flex: 1; }
+        .callout-warn   { background: var(--warn-bg); border-right: 4px solid var(--warn-border); }
+        .callout-danger { background: #fef2f2; border-right: 4px solid #ef4444; }
+        .callout-info   { background: var(--bg-highlight); border-right: 4px solid var(--accent); }
+        .callout-success{ background: #f0fdf4; border-right: 4px solid #22c55e; }
+        .callout strong { color: var(--accent-dark); }
+
+        /* ─── Price card mock ──────────────────────────────── */
+        .mock-price {
+            background: var(--bg-subtle);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin: 10px 0;
+            font-size: 0.92rem;
+        }
+        .mock-price .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+        }
+        .mock-price .row.total {
+            border-top: 1px solid var(--border);
+            margin-top: 6px;
+            padding-top: 8px;
+            font-weight: bold;
+            color: var(--accent-dark);
+            font-size: 1rem;
+        }
+
+        /* ─── Qty mock ─────────────────────────────────────── */
+        .mock-qty {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+            padding: 10px;
+            background: var(--bg-subtle);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin: 8px 0;
+            font-weight: 600;
+        }
+        .mock-qty .btn {
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #e2e8f0;
+            border-radius: 6px;
+            font-weight: bold;
+            color: var(--accent-dark);
+        }
+
+        /* ─── Pill row mock ────────────────────────────────── */
+        .pill-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 8px 0;
+        }
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            border: 1px solid;
+        }
+        .pill-blue   { background: #475569; color: white; border-color: #475569; }  /* slate */
+        .pill-green  { background: #15803d; color: white; border-color: #15803d; }  /* green kept */
+        .pill-gray   { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }  /* grey kept */
+
+        /* ─── Star row mock ────────────────────────────────── */
+        .mock-stars {
+            text-align: center;
+            font-size: 2rem;
+            color: #ca8a04;          /* proper gold, was #f59e0b */
+            letter-spacing: 4px;
+            margin: 8px 0;
+        }
+
+        /* ─── Status chips ────────────────────────────────── */
+        .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+        .chip-active    { background: #64748b; color: white; }  /* slate-500, was blue */
+        .chip-arrived   { background: #22c55e; color: white; }
+        .chip-completed { background: #22c55e; color: white; }
+        .chip-cancelled { background: #ef4444; color: white; }
+        .chip-expired   { background: #94a3b8; color: white; }
+        .chip-matching  { background: #334155; color: white; }  /* slate-700, was orange */
+
+        .section-title {
+            color: var(--accent-dark);
+            font-size: 1.25rem;
+            margin: 34px 0 14px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--accent-muted);
+        }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        .next-prev {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: var(--bg-subtle);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--accent-dark);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .nav-btn:hover {
+            border-color: var(--accent);
+            box-shadow: 0 6px 16px var(--shadow-hover);
+            text-decoration: none;
+        }
+
+        @media (max-width: 700px) {
+            .container { padding: 25px 20px; }
+            h1 { font-size: 1.5rem; }
+            .step { gap: 12px; }
+            .step-number { width: 32px; height: 32px; font-size: 0.9rem; }
+            .field-table { font-size: 0.82rem; }
+            .screenshot-slot { padding: 6px; }
+        }
+
+        /* ─── Localized screenshot-style UI illustrations ───────── */
+        .mock-shot {
+            width: min(100%, 360px);
+            margin: 0 auto;
+            padding: 10px;
+            border: 7px solid #111827;
+            border-radius: 28px;
+            background: #fff;
+            box-shadow: 0 12px 28px rgba(15,23,42,.16);
+            color: #1e293b;
+            direction: rtl;
+            text-align: right;
+            font-family: 'Cairo', 'Inter', sans-serif;
+            overflow: hidden;
+        }
+        .mock-shot * { box-sizing: border-box; }
+        .mock-status {
+            display:flex; justify-content:space-between; align-items:center;
+            padding: 1px 5px 8px; font-size:10px; color:#475569;
+        }
+        .mock-appbar {
+            display:flex; align-items:center; justify-content:space-between;
+            gap:8px; padding:9px 10px; background:#f8fafc;
+            border:1px solid #e2e8f0; border-radius:10px; margin-bottom:10px;
+            font-weight:800; font-size:13px;
+        }
+        .mock-brand { display:flex; gap:6px; align-items:center; }
+        .mock-drop, .mock-field, .mock-card, .mock-alert, .mock-map-panel {
+            border:1px solid #e2e8f0; background:#fff; border-radius:10px;
+            padding:10px; margin:8px 0; font-size:11px;
+        }
+        .mock-muted { color:#64748b; font-size:10px; }
+        .mock-row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+        .mock-stack { display:flex; flex-direction:column; gap:7px; }
+        .mock-dot { width:9px; height:9px; border-radius:50%; display:inline-block; flex:0 0 auto; }
+        .mock-green { background:#16a34a; } .mock-gray { background:#94a3b8; }
+        .mock-red { background:#dc2626; } .mock-blue { background:#475569; }
+        .mock-btn {
+            display:block; width:100%; border:0; border-radius:9px; padding:10px 8px;
+            text-align:center; color:#fff; background:#475569; font-weight:800; font-size:11px;
+            margin-top:8px;
+        }
+        .mock-btn.success { background:#15803d; } .mock-btn.danger { background:#dc2626; }
+        .mock-btn.disabled { background:#cbd5e1; color:#64748b; }
+        .mock-qty-line { display:flex; align-items:center; justify-content:center; gap:18px; padding:9px; }
+        .mock-qty-button { width:27px;height:27px;border-radius:7px;background:#e2e8f0;display:grid;place-items:center;font-size:18px;font-weight:bold; }
+        .mock-price-line { padding:5px 0; display:flex;justify-content:space-between;font-size:11px; }
+        .mock-total { border-top:1px solid #e2e8f0; padding-top:7px; font-weight:900; }
+        .mock-map {
+            height:170px; border-radius:10px; border:1px solid #cbd5e1; overflow:hidden;
+            position:relative; background:
+              linear-gradient(35deg, transparent 42%, #fff 43%, #fff 48%, transparent 49%),
+              linear-gradient(115deg, transparent 35%, #fff 36%, #fff 41%, transparent 42%),
+              repeating-linear-gradient(0deg,#e2e8f0 0 2px,transparent 2px 37px),
+              repeating-linear-gradient(90deg,#e2e8f0 0 2px,#f1f5f9 2px 42px);
+        }
+        .mock-pin { position:absolute; width:28px;height:28px;border:3px solid #fff;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:11px;box-shadow:0 2px 5px #64748b; }
+        .mock-pin.user { right:24%;bottom:22%;background:#475569; }
+        .mock-pin.driver { left:22%;top:24%;background:#16a34a; }
+        .mock-map-label { position:absolute; bottom:8px; right:8px; background:#fff;border-radius:6px;padding:4px 6px;font-size:9px; }
+        .mock-pills { display:flex; gap:5px; flex-wrap:wrap; margin:7px 0; }
+        .mock-pill { border-radius:99px; padding:5px 8px; color:#fff; font-size:9px; font-weight:800; background:#475569; }
+        .mock-pill.green { background:#15803d; } .mock-pill.gray { background:#94a3b8; color:#0f172a; }
+        .mock-stars { color:#ca8a04; font-size:24px; letter-spacing:2px; text-align:center; margin:7px 0; }
+        .mock-progress { height:6px; border-radius:99px; background:#e2e8f0; overflow:hidden; margin-top:7px; }
+        .mock-progress span { display:block;height:100%;width:72%;background:#64748b; }
+        .mock-dialog-backdrop { background:#f1f5f9; padding:14px; border-radius:12px; }
+        .mock-dialog { background:white; border:1px solid #e2e8f0; border-radius:12px; padding:12px; box-shadow:0 5px 15px #cbd5e1; }
+        .mock-history-card { border:1px solid #e2e8f0; border-radius:10px; padding:9px; margin:7px 0; font-size:10px; }
+        .mock-chip { border-radius:99px; padding:3px 7px; font-size:9px; font-weight:800; background:#334155;color:white; }
+        .mock-chip.green { background:#16a34a; } .mock-chip.red { background:#dc2626; } .mock-chip.gray { background:#94a3b8;color:#0f172a; }
+        .mock-shot .mock-field-label { font-size:10px; color:#64748b; margin-bottom:3px; }
+        .mock-shot .mock-input { border:1px solid #cbd5e1; border-radius:7px; padding:7px; font-size:10px; color:#334155; background:#f8fafc; }
+        @media (max-width: 480px) { .mock-shot { width:100%; border-width:5px; } }
+
+    </style>
+</head>
+<body>
+<div class="container">
+    <a class="back-link" href="client.html" data-i18n="clientRequest.back">→ العودة إلى دليل العميل</a>
+
+    <h1 data-i18n="clientRequest.heading">🚰 تقديم طلب توصيل</h1>
+    <p class="subtitle" data-i18n="clientRequest.subtitle">دليل شامل: طلب واحد أو عدة طلبات، من الإنشاء حتى التقييم.</p>
+
+    <div class="intro-box" data-i18n-html="clientRequest.intro">
+        <strong>قبل البدء:</strong> يمكنك إنشاء <strong>عدة طلبات في نفس الوقت</strong> — واحد لكل
+        مصدر مياه متاح لك. النظام مصمم ليخدم هذه الطلبات بشكل مستقل تماماً.
+        <ul>
+            <li>كل طلب له حالته الخاصة وتتبعه الخاص وتقييمه الخاص.</li>
+            <li>لكل مصدر مياه حدوده اليومية الخاصة.</li>
+            <li>تظهر كل الطلبات على نفس الخريطة داخل شاشة التتبع المباشر.</li>
+        </ul>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         PART 1 — CREATE
+    ═══════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="clientRequest.part1.title">الجزء الأول — إنشاء طلب</h2>
+
+    <!-- 1 -->
+    <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientRequest.step1.title">فتح شاشة طلب التوصيل</div>
+            <div class="step-desc" data-i18n-html="clientRequest.step1.body">
+                من الشاشة الرئيسية، اضغط على <strong>«طلب توصيل»</strong>. يعرض التطبيق شاشة
+                إعداد الطلب مع: بطاقة مصدر المياه، حقل الكمية، حقلي الموقع، وبطاقة السعر.
+            </div>
+            <div class="screenshot-slot">
+                <div class="mock-shot" role="img" aria-label="Illustrative Kooba app screen"><div class="mock-status"><span>9:41</span><span>● ● ● ▰</span></div><div class="mock-appbar"><span>☰</span><span><span data-shot-i18n="request">طلب توصيل</span></span><span>💧</span></div>
+        <div class="mock-card"><div class="mock-muted"><span data-shot-i18n="source">مصدر المياه</span></div><div class="mock-row"><strong><span data-shot-i18n="drinking">ماء شروب</span></strong><span>⌄</span></div></div>
+        <div class="mock-card"><div class="mock-muted"><span data-shot-i18n="quantity">الكمية</span></div><div class="mock-qty-line"><span class="mock-qty-button">−</span><strong>0.5 <span data-shot-i18n="ton">طن</span></strong><span class="mock-qty-button">+</span></div></div>
+        <div class="mock-field"><div class="mock-field-label"><span data-shot-i18n="location">الموقع الدقيق</span></div><div class="mock-input"><span data-shot-i18n="exactExample">حي السلام، زنقة 12، منزل 45</span></div><div class="mock-field-label" style="margin-top:7px"><span data-shot-i18n="landmark">علامة مميزة (اختياري)</span></div><div class="mock-input"><span data-shot-i18n="landmarkExample">بجانب مسجد النور</span></div></div>
+        <div class="mock-card"><div class="mock-row"><span><span data-shot-i18n="price">السعر</span></span><strong>6.50 د.م.</strong></div></div><button class="mock-btn"><span data-shot-i18n="requestNow">اطلب الآن</span></button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientRequest.step2.title">التحقق من الموقع الجغرافي</div>
+            <div class="step-desc">
+                <div data-i18n="clientRequest.step2.body">
+                    يجب أن يكون التطبيق قد حصل على موقعك الحالي مسبقاً (يُحفظ في الذاكرة المؤقتة).
+                    إن لم يوجد، يظهر شريط أحمر:
+                </div>
+                <div class="callout callout-danger" style="margin-top:8px;">
+                    <div class="callout-icon">📍</div>
+                    <div class="callout-body" data-i18n-html="clientRequest.step2.callout">
+                        <strong>الموقع غير متاح.</strong> افتح التطبيق مع تفعيل GPS، واسمح بالوصول
+                        إلى الموقع، ثم أعد المحاولة.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientRequest.step3.title">اختيار مصدر المياه</div>
+            <div class="step-desc" data-i18n-html="clientRequest.step3.body">
+                تعرض البطاقة قائمة بمصادر المياه المتاحة في مدينتك. كل مصدر يظهر بجانبه
+                <strong>نقطة ملوّنة</strong>:
+                <ul>
+                    <li><strong>خضراء</strong> — متاح لك الآن.</li>
+                    <li><strong>رمادية</strong> — غير متاح (لديك طلب قائم عليه أو أنشطتك اليومية استُنفدت).</li>
+                </ul>
+                اضغط على القائمة واختر المصدر الذي تريد.
+            </div>
+            <div class="screenshot-slot">
+                <div class="mock-shot" role="img" aria-label="Illustrative Kooba app screen"><div class="mock-status"><span>9:41</span><span>● ● ● ▰</span></div><div class="mock-appbar"><span>‹</span><span><span data-shot-i18n="chooseSource">اختر مصدر المياه</span></span><span>💧</span></div>
+        <div class="mock-drop"><div class="mock-row"><span><i class="mock-dot mock-green"></i> <span data-shot-i18n="drinking">ماء شروب</span></span><b>✓</b></div><div class="mock-muted">5.00 د.م. / طلب</div></div>
+        <div class="mock-drop"><div class="mock-row"><span><i class="mock-dot mock-gray"></i> <span data-shot-i18n="well">ماء بئر</span></span><span>🔒</span></div><div class="mock-muted"><span data-shot-i18n="unavailable">غير متاح</span></div></div>
+        <div class="mock-drop"><div class="mock-row"><span><i class="mock-dot mock-green"></i> <span data-shot-i18n="treated">ماء محلّى</span></span><span>›</span></div><div class="mock-muted"><span data-shot-i18n="available">متاح</span></div></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientRequest.step4.title">تحديد الكمية</div>
+            <div class="step-desc">
+                <div data-i18n-html="clientRequest.step4.intro">
+                    اضبط الكمية بزرّي <strong>−</strong> و <strong>+</strong>:
+                </div>
+                <div class="mock-qty">
+                    <span class="btn">−</span>
+                    <span data-i18n="clientRequest.step4.qtyValue">0.5 طن</span>
+                    <span class="btn">+</span>
+                </div>
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="clientRequest.step4.table.colUnit">الوحدة</th>
+                            <th data-i18n="clientRequest.step4.table.colMin">الحد الأدنى</th>
+                            <th data-i18n="clientRequest.step4.table.colMax">الحد الأقصى</th>
+                            <th data-i18n="clientRequest.step4.table.colStep">الخطوة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n="clientRequest.step4.table.r1c1">طن</td>
+                            <td>0.5</td>
+                            <td>15.0</td>
+                            <td>0.5</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientRequest.step4.table.r2c1">لتر</td>
+                            <td>40</td>
+                            <td>450</td>
+                            <td>10</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div data-i18n-html="clientRequest.step4.footnote">
+                    زر <strong>«طن / لتر»</strong> أسفل العدّاد يحوّل بين الوحدتين تلقائياً
+                    (1 طن = 1000 لتر). عند تغيير الوحدة أو الكمية، يعيد التطبيق فحص توفر السائقين.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="step">
+        <div class="step-number">5</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientRequest.step5.title">وصف الموقع والعلامة المميزة</div>
+            <div class="step-desc">
+                <div data-i18n="clientRequest.step5.intro">املأ حقلين مهمّين:</div>
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="clientRequest.step5.table.colField">الحقل</th>
+                            <th data-i18n="clientRequest.step5.table.colRequired">إلزامي؟</th>
+                            <th data-i18n="clientRequest.step5.table.colNotes">ملاحظات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n="clientRequest.step5.table.r1c1">الموقع الدقيق</td>
+                            <td data-i18n="clientRequest.step5.table.yes">نعم</td>
+                            <td data-i18n="clientRequest.step5.table.r1c3">مثال: «حي السلام، زنقة 12، منزل 45».</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientRequest.step5.table.r2c1">علامة مميزة (اختياري)</td>
+                            <td data-i18n="clientRequest.step5.table.no">لا</td>
+                            <td data-i18n="clientRequest.step5.table.r2c3">مثال: «بجانب مسجد النور».</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div data-i18n="clientRequest.step5.footnote">لا يمكن إرسال الطلب قبل ملء حقل الموقع الدقيق.</div>
+            </div>
+            <div class="screenshot-slot">
+                <div class="mock-shot" role="img" aria-label="Illustrative Kooba app screen"><div class="mock-status"><span>9:41</span><span>● ● ● ▰</span></div><div class="mock-appbar"><span>‹</span><span><span data-shot-i18n="location">الموقع الدقيق</span></span><span>📍</span></div>
+        <div class="mock-field"><div class="mock-field-label"><span data-shot-i18n="location">الموقع الدقيق</span> *</div><div class="mock-input"><span data-shot-i18n="exactExample">حي السلام، زنقة 12، منزل 45</span></div></div>
+        <div class="mock-field"><div class="mock-field-label"><span data-shot-i18n="landmark">علامة مميزة (اختياري)</span></div><div class="mock-input"><span data-shot-i18n="landmarkExample">بجانب مسجد النور</span></div></div>
+        <div class="mock-map"><span class="mock-pin user">💧</span><span class="mock-map-label">📍 <span data-shot-i18n="location">الموقع الدقيق</span></span></div><button class="mock-btn"><span data-shot-i18n="choose">اختيار</span></button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6 -->
+    <div class="step">
+        <div class="step-number">6</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientRequest.step6.title">فحص توفر السائقين</div>
+            <div class="step-desc" data-i18n-html="clientRequest.step6.body">
+                يتحقق التطبيق تلقائياً من وجود سائقين قريبين قادرين على حمل الكمية المطلوبة
+                من مصدر المياه المختار.
+                <ul>
+                    <li>أثناء الفحص: مؤشر تحميل صغير + نص <em>«جارٍ فحص السائقين…»</em>.</li>
+                    <li>يوجد سائقون: لا يظهر شيء، وزر الطلب يبقى مفتوحاً.</li>
+                    <li>لا يوجد سائقون: تنبيه برتقالي <em>«لا يوجد سائقون قريبون»</em>
+                        ويُعطَّل زر الطلب.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7 -->
+    <div class="step">
+        <div class="step-number">7</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientRequest.step7.title">السعر — السعر الأساسي والزيادة (Surge)</div>
+            <div class="step-desc">
+                <div data-i18n-html="clientRequest.step7.intro">
+                    يُحسب السعر من سعر أساسي حسب المدينة، مضروباً في <strong>معامل زيادة</strong>
+                    يعتمد على:
+                    <ul>
+                        <li>عدد السائقين القريبين.</li>
+                        <li>عدد الطلبات المعلّقة في المدينة.</li>
+                        <li>ساعة اليوم (ساعات الذروة).</li>
+                    </ul>
+                </div>
+
+                <div class="mock-price">
+                    <div class="row">
+                        <span data-i18n="clientRequest.step7.baseLabel">السعر الأساسي</span>
+                        <span data-i18n="clientRequest.step7.baseValue">5.00 د.م.</span>
+                    </div>
+                    <div class="row" style="color: var(--warn-border);">
+                        <span data-i18n="clientRequest.step7.surgeLabel">معامل الزيادة</span>
+                        <span data-i18n="clientRequest.step7.surgeValue">1.3×</span>
+                    </div>
+                    <div class="row total">
+                        <span data-i18n="clientRequest.step7.totalLabel">المجموع</span>
+                        <span data-i18n="clientRequest.step7.totalValue">6.50 د.م.</span>
+                    </div>
+                </div>
+
+                <div data-i18n="clientRequest.step7.surgeIntro">عند وجود زيادة يظهر فوق البطاقة شريط أحمر:</div>
+                <div class="callout callout-danger" style="margin-top:8px;">
+                    <div class="callout-icon">📈</div>
+                    <div class="callout-body" data-i18n-html="clientRequest.step7.surgeCallout">
+                        <strong>30% زيادة بسبب الطلب المرتفع.</strong> السعر أعلى من المعتاد،
+                        لكنه مضمون عند تأكيد الطلب.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8 -->
+    <div class="step">
+        <div class="step-number">8</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientRequest.step8.title">الحدود اليومية لكل مصدر</div>
+            <div class="step-desc">
+                <div data-i18n-html="clientRequest.step8.intro">
+                    لكل <strong>مصدر مياه</strong> حدود يومية مستقلة، تُصفَّر عند منتصف الليل (UTC):
+                </div>
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="clientRequest.step8.table.colLimit">الحد</th>
+                            <th data-i18n="clientRequest.step8.table.colNumber">الرقم</th>
+                            <th data-i18n="clientRequest.step8.table.colWhenExceeded">عند التجاوز</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n="clientRequest.step8.table.r1c1">محاولات فاشلة</td>
+                            <td data-i18n="clientRequest.step8.table.r1c2">10 يومياً</td>
+                            <td data-i18n-html="clientRequest.step8.table.r1c3">زر الطلب معطّل، رسالة <em>«تم الوصول إلى الحد اليومي للمحاولات»</em>.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientRequest.step8.table.r2c1">توصيلات ناجحة</td>
+                            <td data-i18n="clientRequest.step8.table.r2c2">2 يومياً</td>
+                            <td data-i18n-html="clientRequest.step8.table.r2c3">زر الطلب معطّل، رسالة <em>«تجاوزت حد التوصيلات اليومي لهذا المصدر»</em>.</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="margin-top:8px;" data-i18n-html="clientRequest.step8.footnote">
+                    هذه الحدود <strong>منفصلة لكل مصدر</strong>: يمكنك توصيلتان من «مصدر أ»،
+                    وتوصيلتان من «مصدر ب» في نفس اليوم.
+                </div>
+            </div>
+            <div class="screenshot-slot">
+                <div class="mock-shot" role="img" aria-label="Illustrative Kooba app screen"><div class="mock-status"><span>9:41</span><span>● ● ● ▰</span></div><div class="mock-appbar"><span>‹</span><span><span data-shot-i18n="request">طلب توصيل</span></span><span>💧</span></div>
+        <div class="mock-alert" style="background:#fef2f2;border-color:#fecaca;color:#991b1b">⚠️ <span data-shot-i18n="limit">تم الوصول إلى الحد اليومي للمحاولات</span></div>
+        <div class="mock-card"><div class="mock-muted"><span data-shot-i18n="source">مصدر المياه</span></div><strong><span data-shot-i18n="drinking">ماء شروب</span></strong></div>
+        <div class="mock-card"><div class="mock-muted"><span data-shot-i18n="quantity">الكمية</span></div><strong>0.5 <span data-shot-i18n="ton">طن</span></strong></div><button class="mock-btn disabled"><span data-shot-i18n="requestNow">اطلب الآن</span></button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9 -->
+    <div class="step">
+        <div class="step-number">9</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientRequest.step9.title">إرسال الطلب</div>
+            <div class="step-desc" data-i18n-html="clientRequest.step9.body">
+                عندما تتحقق كل الشروط، يصبح زر <strong>«اطلب الآن»</strong> أزرق وقابلاً للضغط.
+                عند الضغط عليه:
+                <ul>
+                    <li>يبدأ البحث عن سائق مطابق (يظهر مؤشر دوّار على الزر).</li>
+                    <li>تظهر رسالة خضراء <em>«تم إرسال الطلب»</em>.</li>
+                    <li>ينتقل التطبيق تلقائياً إلى سجل الطلبات، ومنها إلى التتبع المباشر بمجرد قبول السائق.</li>
+                </ul>
+                إذا فشل الإرسال (مثلاً لا يوجد سائقون فعلياً عند الإرسال)، تظهر رسالة حمراء
+                وتبقى الشاشة كما هي.
+            </div>
+            <div class="screenshot-slot">
+                <div class="mock-shot" role="img" aria-label="Illustrative Kooba app screen"><div class="mock-status"><span>9:41</span><span>● ● ● ▰</span></div><div class="mock-appbar"><span>☰</span><span><span data-shot-i18n="request">طلب توصيل</span></span><span>💧</span></div>
+        <div class="mock-card"><div class="mock-row"><span><span data-shot-i18n="source">مصدر المياه</span></span><strong><span data-shot-i18n="drinking">ماء شروب</span></strong></div><div class="mock-row" style="margin-top:8px"><span><span data-shot-i18n="quantity">الكمية</span></span><strong>0.5 <span data-shot-i18n="ton">طن</span></strong></div><div class="mock-row" style="margin-top:8px"><span><span data-shot-i18n="total">المجموع</span></span><strong>6.50 د.م.</strong></div></div>
+        <div class="mock-alert" style="background:#f0fdf4;border-color:#bbf7d0;color:#166534">✓ <span data-shot-i18n="available">متاح</span></div><button class="mock-btn"><span data-shot-i18n="requestNow">اطلب الآن</span></button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         PART 2 — LIVE TRACKING
+    ═══════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="clientRequest.part2.title">الجزء الثاني — التتبع المباشر</h2>
+
+    <!-- 10 -->
+    <div class="step">
+        <div class="step-number">10</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientRequest.step10.title">شاشة التتبع المباشر</div>
+            <div class="step-desc">
+                <div data-i18n-html="clientRequest.step10.body">
+                    بمجرد قبول السائق، تفتح شاشة التتبع المباشر تلقائياً وتحتوي على:
+                    <ul>
+                        <li><strong>خريطة</strong> تعرض موقعك الحالي وموقع السائق.</li>
+                        <li><strong>لوحة سفلية</strong> تعرض: مصدر المياه، اسم السائق، الوقت المتوقع للوصول، والمسافة.</li>
+                        <li><strong>زرّي إجراء</strong>: «تأكيد التوصيل» (يظهر عند الوصول) و«إلغاء الطلب».</li>
+                    </ul>
+                    <p style="margin-top:8px;">
+                        <strong>مؤشر موقعك</strong>: دائرة بيضاء تحتوي قطرة ماء زرقاء.
+                        <strong>مؤشر السائق</strong>: دائرة ملوّنة بلون مصدر المياه مع صورة السائق واسم المصدر.
+                    </p>
+                </div>
+            </div>
+            <div class="screenshot-slot">
+                <div class="mock-shot" role="img" aria-label="Illustrative Kooba app screen"><div class="mock-status"><span>9:41</span><span>● ● ● ▰</span></div><div class="mock-appbar"><span>‹</span><span><span data-shot-i18n="tracking">التتبع المباشر</span></span><span>⋮</span></div>
+        <div class="mock-map"><span class="mock-pin user">💧</span><span class="mock-pin driver">🚚</span><span class="mock-map-label"><span data-shot-i18n="driverOnWay">السائق في الطريق</span></span></div>
+        <div class="mock-map-panel"><div class="mock-row"><strong><span data-shot-i18n="drinking">ماء شروب</span></strong><span class="mock-chip green"><span data-shot-i18n="active">نشط</span></span></div><div class="mock-row" style="margin-top:7px"><span><span data-shot-i18n="driver">السائق</span>: محمد</span><span><span data-shot-i18n="eta">الوصول خلال 8 دقائق</span></span></div><div class="mock-muted" style="margin-top:5px"><span data-shot-i18n="distance">المسافة 2.4 كم</span></div><button class="mock-btn success"><span data-shot-i18n="confirm">تأكيد التوصيل</span></button><button class="mock-btn danger"><span data-shot-i18n="cancel">إلغاء الطلب</span></button></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 11 -->
+    <div class="step">
+        <div class="step-number">11</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientRequest.step11.title">التحديث التلقائي للموقع</div>
+            <div class="step-desc" data-i18n-html="clientRequest.step11.body">
+                يتحرك مؤشر السائق على الخريطة <strong>كل 0.7 ثانية تقريباً</strong> أثناء
+                اقترابه منك. لا تحتاج لأي إجراء — الخريطة تُحدَّث تلقائياً حتى لحظة الوصول.
+                الوقت المتوقع للوصول (ETA) والمسافة بالكيلومتر يظهران في اللوحة السفلية ويتحدثان
+                باستمرار.
+            </div>
+        </div>
+    </div>
+
+    <!-- 12 -->
+    <div class="step">
+        <div class="step-number">12</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientRequest.step12.title">عدة توصيلات على نفس الخريطة</div>
+            <div class="step-desc">
+                <div data-i18n-html="clientRequest.step12.intro">
+                    إذا كان لديك أكثر من توصيل نشط، تظهر <strong>شريط أقراص (Pills)</strong> فوق
+                    اللوحة السفلية، كل قرص بلون مصدر مياهه:
+                </div>
+
+                <div class="pill-row">
+                    <span class="pill pill-blue" data-i18n="clientRequest.step12.pillA">💧 مصدر أ</span>
+                    <span class="pill pill-green" data-i18n="clientRequest.step12.pillB">💧 مصدر ب</span>
+                    <span class="pill pill-gray" data-i18n="clientRequest.step12.pillC">💧 مصدر ج</span>
+                </div>
+
+                <ul>
+                    <li data-i18n="clientRequest.step12.b1">اضغط على قرص لتحديد ذلك التوصيل. يُبرز مؤشره على الخريطة.</li>
+                    <li data-i18n="clientRequest.step12.b2">اللوحة السفلية تعرض معلومات التوصيل المحدد.</li>
+                    <li data-i18n="clientRequest.step12.b3">مؤشر التوصيل المحدد أكبر حجماً بحلقة بيضاء.</li>
+                    <li data-i18n-html="clientRequest.step12.b4">يمكنك أيضاً الضغط مباشرة على <strong>مؤشر أي سائق</strong> على الخريطة لتحديده.</li>
+                </ul>
+            </div>
+            <div class="screenshot-slot">
+                <div class="mock-shot" role="img" aria-label="Illustrative Kooba app screen"><div class="mock-status"><span>9:41</span><span>● ● ● ▰</span></div><div class="mock-appbar"><span>‹</span><span><span data-shot-i18n="tracking">التتبع المباشر</span></span><span>⋮</span></div>
+        <div class="mock-map"><span class="mock-pin user">💧</span><span class="mock-pin driver">🚚</span><span class="mock-map-label"><span data-shot-i18n="tapToSwitch">اضغط للتبديل بين التوصيلات</span></span></div>
+        <div class="mock-pills"><span class="mock-pill">💧 <span data-shot-i18n="drinking">ماء شروب</span></span><span class="mock-pill green">💧 <span data-shot-i18n="well">ماء بئر</span></span><span class="mock-pill gray">💧 <span data-shot-i18n="treated">ماء محلّى</span></span></div>
+        <div class="mock-map-panel"><div class="mock-row"><strong><span data-shot-i18n="drinking">ماء شروب</span></strong><span class="mock-chip green"><span data-shot-i18n="active">نشط</span></span></div><div class="mock-muted"><span data-shot-i18n="driverOnWay">السائق في الطريق</span></div></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 13 -->
+    <div class="step">
+        <div class="step-number">13</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientRequest.step13.title">الوصول — فحص التحقق التلقائي</div>
+            <div class="step-desc" data-i18n-html="clientRequest.step13.body">
+                عندما يصل السائق إلى موقعك، تحدث أشياء عدة تلقائياً:
+                <ul>
+                    <li>يهتز الهاتف (نمط 500-200-500 مللي ثانية).</li>
+                    <li>يتحول شريط الحالة إلى <strong>«وصل»</strong> بلون أخضر.</li>
+                    <li>يبدأ التطبيق محاولة تحقق آمنة عبر <strong>Bluetooth (BLE)</strong>
+                        و/أو <strong>NFC</strong>.</li>
+                </ul>
+                عند أول مرة، يطلب منك التطبيق السماح بالوصول إلى Bluetooth و NFC.
+                إن كان البلوتوث مغلقاً، يظهر تنبيه مع زر <strong>«تفعيل»</strong>.
+            </div>
+            <div class="callout callout-warn">
+                <div class="callout-icon">📶</div>
+                <div class="callout-body" data-i18n-html="clientRequest.step13.callout">
+                    <strong>لأفضل تجربة:</strong> أبقِ Bluetooth و NFC مفعّلين على الهاتف عند
+                    وصول السائق. يظهر مؤشر صغير في شريط العنوان عندما يكون البث (BLE / NFC)
+                    نشطاً.
+                </div>
+            </div>
+            <div class="screenshot-slot">
+                <div class="mock-shot" role="img" aria-label="Illustrative Kooba app screen"><div class="mock-status"><span>9:41</span><span>● ● ● ▰</span></div><div class="mock-appbar"><span>‹</span><span><span data-shot-i18n="tracking">التتبع المباشر</span></span><span>⋮</span></div>
+        <div class="mock-map"><span class="mock-pin user">💧</span><span class="mock-pin driver">🚚</span></div>
+        <div class="mock-alert" style="background:#f5f5f4;border-color:#a8a29e">📶 <span data-shot-i18n="bluetooth">يلزم تفعيل Bluetooth</span><button class="mock-btn"><span data-shot-i18n="enable">تفعيل</span></button></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 14 -->
+    <div class="step">
+        <div class="step-number">14</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientRequest.step14.title">تأكيد التوصيل</div>
+            <div class="step-desc" data-i18n-html="clientRequest.step14.body">
+                عند وصول السائق يظهر زر أخضر <strong>«تأكيد التوصيل»</strong> في اللوحة السفلية.
+                اضغطه لتأكيد استلام المياه. يخصم التطبيق السعر من محفظتك، ويحوّل التوصيل إلى
+                <strong>«مكتمل»</strong>، ثم يفتح مباشرة شاشة التقييم.
+            </div>
+        </div>
+    </div>
+
+    <!-- 15 -->
+    <div class="step">
+        <div class="step-number">15</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientRequest.step15.title">إلغاء الطلب</div>
+            <div class="step-desc" data-i18n-html="clientRequest.step15.body">
+                في أي وقت قبل التأكيد يمكنك الضغط على <strong>«إلغاء الطلب»</strong>
+                (باللون الأحمر). يظهر مربع حوار يطلب <strong>سبب الإلغاء</strong> (إلزامي).
+                <ul>
+                    <li>بعد التأكيد يُعاد توجيهك إلى الصفحة الرئيسية.</li>
+                    <li>قد يُفرض عليك <strong>رسم إلغاء</strong> إذا ألغيت بعد انطلاق السائق.</li>
+                    <li>يُعاد فتح مربع حوار إعادة المحاولة إذا ألغى <em>السائق</em> الطلب.</li>
+                </ul>
+            </div>
+            <div class="screenshot-slot">
+                <div class="mock-shot" role="img" aria-label="Illustrative Kooba app screen"><div class="mock-status"><span>9:41</span><span>● ● ● ▰</span></div><div class="mock-appbar"><span>‹</span><span><span data-shot-i18n="tracking">التتبع المباشر</span></span><span>⋮</span></div>
+        <div class="mock-dialog-backdrop"><div class="mock-dialog"><strong><span data-shot-i18n="cancelTitle">إلغاء الطلب؟</span></strong><div class="mock-field"><div class="mock-field-label"><span data-shot-i18n="cancelReason">سبب الإلغاء</span> *</div><div class="mock-input">…</div></div><div class="mock-row"><button class="mock-btn disabled" style="margin:0"><span data-shot-i18n="cancel">إلغاء الطلب</span></button><button class="mock-btn danger" style="margin:0"><span data-shot-i18n="confirmCancel">تأكيد الإلغاء</span></button></div></div></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         PART 3 — RATING
+    ═══════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="clientRequest.part3.title">الجزء الثالث — التقييم</h2>
+
+    <!-- 16 -->
+    <div class="step">
+        <div class="step-number">16</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientRequest.step16.title">شاشة التقييم</div>
+            <div class="step-desc">
+                <div data-i18n-html="clientRequest.step16.intro">
+                    بعد تأكيد التوصيل تفتح شاشة التقييم تلقائياً. تحتوي على:
+                    <ul>
+                        <li>سؤال <strong>«كيف كانت تجربة التوصيل؟»</strong>.</li>
+                        <li>خمس نجوم — اضغط النجمة التي تريدها (1 إلى 5).</li>
+                        <li>حقل تعليق اختياري (حتى 100 حرف).</li>
+                        <li>زر <strong>«إرسال التقييم»</strong> (لا يعمل قبل اختيار عدد النجوم).</li>
+                        <li>زر <strong>«تخطي»</strong> أسفل الشاشة.</li>
+                    </ul>
+                </div>
+                <div class="mock-stars">★ ★ ★ ★ ☆</div>
+            </div>
+            <div class="screenshot-slot">
+                <div class="mock-shot" role="img" aria-label="Illustrative Kooba app screen"><div class="mock-status"><span>9:41</span><span>● ● ● ▰</span></div><div class="mock-appbar"><span>‹</span><span><span data-shot-i18n="rating">كيف كانت تجربة التوصيل؟</span></span><span>★</span></div>
+        <div class="mock-card" style="text-align:center;padding:18px 10px"><div class="mock-stars">★ ★ ★ ★ ★</div><strong><span data-shot-i18n="delivered">تم استلام المياه</span></strong></div>
+        <div class="mock-field"><div class="mock-field-label"><span data-shot-i18n="comment">أضف تعليقاً (اختياري)</span></div><div class="mock-input" style="height:44px">…</div></div><button class="mock-btn"><span data-shot-i18n="sendRating">إرسال التقييم</span></button><button class="mock-btn disabled"><span data-shot-i18n="skip">تخطي</span></button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 17 -->
+    <div class="step">
+        <div class="step-number">17</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientRequest.step17.title">بعد التقييم — إلى أين تذهب؟</div>
+            <div class="step-desc">
+                <div data-i18n="clientRequest.step17.intro">
+                    سلوك التطبيق بعد الإرسال (أو التخطي) يعتمد على وجود توصيلات أخرى نشطة:
+                </div>
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="clientRequest.step17.table.colHasOther">لديك توصيلات أخرى؟</th>
+                            <th data-i18n="clientRequest.step17.table.colWhere">أين تذهب؟</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n="clientRequest.step17.table.r1c1">نعم — توصيل آخر ما زال «نشط» أو «وصل»</td>
+                            <td data-i18n="clientRequest.step17.table.r1c2">يعود بك تلقائياً إلى شاشة التتبع المباشر للتوصيل الآخر.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientRequest.step17.table.r2c1">لا — لا توصيلات أخرى نشطة</td>
+                            <td data-i18n-html="clientRequest.step17.table.r2c2">يعود بك إلى <strong>سجل الطلبات</strong>.</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div data-i18n="clientRequest.step17.footnote">
+                    بهذه الطريقة لا تفقد رؤية بقية طلباتك عندما تقيّم توصيلاً واحداً.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 18 -->
+    <div class="step">
+        <div class="step-number">18</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientRequest.step18.title">ماذا لو قيّمت مسبقاً؟</div>
+            <div class="step-desc" data-i18n-html="clientRequest.step18.body">
+                إذا حاولت فتح شاشة التقييم لتوصيل سبق تقييمه، تظهر شاشة بديلة:
+                <ul>
+                    <li>أيقونة صح خضراء.</li>
+                    <li>رسالة <em>«لقد قيّمت هذا التوصيل مسبقاً»</em>.</li>
+                    <li>زر <strong>«عرض الكل»</strong> — يقودك إما إلى التتبع المباشر
+                        (إن وُجد توصيل نشط) أو إلى سجل الطلبات.</li>
+                </ul>
+                لن تتمكن من إرسال تقييم ثانٍ لنفس التوصيل.
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         PART 4 — MULTIPLE REQUESTS A-Z
+    ═══════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="clientRequest.part4.title">الجزء الرابع — الطلبات المتعددة من الألف إلى الياء</h2>
+
+    <!-- 19 -->
+    <div class="step">
+        <div class="step-number">19</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientRequest.step19.title">ما معنى «عدة طلبات» في كوبا؟</div>
+            <div class="step-desc">
+                <div data-i18n-html="clientRequest.step19.intro">
+                    يمكنك أن يكون لديك <strong>طلب قائم واحد لكل مصدر مياه</strong> في نفس الوقت.
+                    كل مصدر من مصادر المياه المتاحة في مدينتك يُدير حالته بشكل مستقل تماماً.
+                </div>
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="clientRequest.step19.table.colExample">المثال</th>
+                            <th data-i18n="clientRequest.step19.table.colStatus">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n="clientRequest.step19.table.r1c1">مصدر أ (مثلاً: ماء شروب)</td>
+                            <td data-i18n="clientRequest.step19.table.r1c2">طلب نشط — السائق في الطريق</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientRequest.step19.table.r2c1">مصدر ب (مثلاً: ماء بئر)</td>
+                            <td data-i18n="clientRequest.step19.table.r2c2">بحث عن سائق (matching)</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="clientRequest.step19.table.r3c1">مصدر ج (مثلاً: ماء محلّى)</td>
+                            <td data-i18n="clientRequest.step19.table.r3c2">لم تُطلب بعد — متاح</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="margin-top:8px;" data-i18n-html="clientRequest.step19.footnote">
+                    كل صفٍّ من هذه الصفوف هو <strong>مطابقة (match) منفصلة</strong>، لها:
+                    حالتها، سعرها، سائقها، تقييمها، وحسابها اليومي الخاص.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 20 -->
+    <div class="step">
+        <div class="step-number">20</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientRequest.step20.title">كيف تُنشئ طلباً ثانياً؟</div>
+            <div class="step-desc">
+                <div data-i18n-html="clientRequest.step20.intro">
+                    بعد إنشاء طلبك الأول، ارجع إلى <strong>شاشة طلب التوصيل</strong> من جديد:
+                    <ul>
+                        <li>ستجد أن المصدر المستخدم حالياً <strong>مقفل</strong> (نقطة رمادية).</li>
+                        <li>يمكنك اختيار <strong>مصدر آخر</strong> (نقطة خضراء) من القائمة.</li>
+                        <li>اتبع نفس الخطوات: الكمية، الموقع، الإرسال.</li>
+                        <li>الآن لديك طلبان مستقلان في نفس الوقت.</li>
+                    </ul>
+                </div>
+                <div style="margin-top:8px;" data-i18n-html="clientRequest.step20.footnote">
+                    <strong>لا يوجد حد أقصى لعدد المصادر</strong> التي يمكنك الطلب منها في نفس
+                    الوقت — إنما تُحددها المصادر المتاحة في مدينتك (عادةً 2 إلى 4).
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 21 -->
+    <div class="step">
+        <div class="step-number">21</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientRequest.step21.title">حالات الطلبات — كل طلب مستقل</div>
+            <div class="step-desc">
+                <div data-i18n="clientRequest.step21.intro">
+                    في سجل الطلبات وشاشة التتبع المباشر، يظهر لكل طلب شارة حالته:
+                </div>
+                <div class="chip-row">
+                    <span class="chip chip-matching" data-i18n="clientRequest.step21.chipMatching">⏳ قيد المطابقة</span>
+                    <span class="chip chip-active" data-i18n="clientRequest.step21.chipActive">🚗 نشط</span>
+                    <span class="chip chip-arrived" data-i18n="clientRequest.step21.chipArrived">📍 وصل</span>
+                    <span class="chip chip-completed" data-i18n="clientRequest.step21.chipCompleted">✓ مكتمل</span>
+                    <span class="chip chip-cancelled" data-i18n="clientRequest.step21.chipCancelled">✕ ملغى</span>
+                    <span class="chip chip-expired" data-i18n="clientRequest.step21.chipExpired">⏱ منتهي</span>
+                </div>
+                <ul>
+                    <li data-i18n-html="clientRequest.step21.b1"><strong>قيد المطابقة</strong> — يبحث النظام عن سائق.</li>
+                    <li data-i18n-html="clientRequest.step21.b2"><strong>نشط</strong> — السائق قبل الطلب وهو في الطريق إليك.</li>
+                    <li data-i18n-html="clientRequest.step21.b3"><strong>وصل</strong> — السائق عند موقعك، بانتظار تأكيدك.</li>
+                    <li data-i18n-html="clientRequest.step21.b4"><strong>مكتمل</strong> — تم استلام المياه، وخصم السعر.</li>
+                    <li data-i18n-html="clientRequest.step21.b5"><strong>ملغى</strong> — ألغيته أنت أو السائق.</li>
+                    <li data-i18n-html="clientRequest.step21.b6"><strong>منتهي</strong> — لم يقبل أحد الطلب خلال نافذة المطابقة.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 22 -->
+    <div class="step">
+        <div class="step-number">22</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientRequest.step22.title">التبديل بين التوصيلات في التتبع المباشر</div>
+            <div class="step-desc">
+                <div data-i18n-html="clientRequest.step22.intro">
+                    عندما يصل السائق الأول ويبدأ التتبع المباشر، ستجد أقراص كل التوصيلات النشطة
+                    فوق اللوحة السفلية. للتنقل:
+                    <ul>
+                        <li>اضغط <strong>قرصاً</strong> لتحديد مصدره.</li>
+                        <li>أو اضغط <strong>مؤشر السائق</strong> مباشرة على الخريطة.</li>
+                        <li>الخريطة تُعيد ضبط حدودها لتُظهر السائق والعميل معاً بعد كل تحديد.</li>
+                        <li>أزرار التأكيد والإلغاء تخص التوصيل المحدد فقط.</li>
+                    </ul>
+                </div>
+                <div style="margin-top:8px;" data-i18n-html="clientRequest.step22.footnote">
+                    <strong>بالإضافة:</strong> إذا لم تُحدد مصدراً، يعرض التطبيق تلقائياً التوصيل
+                    الذي لا يزال «نشط» أو «وصل» — لن يتركك على توصيل مكتمل أو ملغى.
+                </div>
+            </div>
+            <div class="screenshot-slot">
+                <div class="mock-shot" role="img" aria-label="Illustrative Kooba app screen"><div class="mock-status"><span>9:41</span><span>● ● ● ▰</span></div><div class="mock-appbar"><span>‹</span><span><span data-shot-i18n="tracking">التتبع المباشر</span></span><span>⋮</span></div>
+        <div class="mock-pills"><span class="mock-pill">💧 <span data-shot-i18n="drinking">ماء شروب</span></span><span class="mock-pill green">💧 <span data-shot-i18n="well">ماء بئر</span></span><span class="mock-pill gray">💧 <span data-shot-i18n="treated">ماء محلّى</span></span></div>
+        <div class="mock-map"><span class="mock-pin user">💧</span><span class="mock-pin driver">🚚</span><span class="mock-map-label"><span data-shot-i18n="tapToSwitch">اضغط للتبديل بين التوصيلات</span></span></div>
+        <div class="mock-map-panel"><div class="mock-row"><strong><span data-shot-i18n="well">ماء بئر</span></strong><span class="mock-chip green"><span data-shot-i18n="arrived">وصل</span></span></div><div class="mock-muted"><span data-shot-i18n="driver">السائق</span>: يوسف · <span data-shot-i18n="eta">الوصول خلال 8 دقائق</span></div><button class="mock-btn success"><span data-shot-i18n="confirm">تأكيد التوصيل</span></button></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 23 -->
+    <div class="step">
+        <div class="step-number">23</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientRequest.step23.title">التقييم مع وجود عدة طلبات</div>
+            <div class="step-desc" data-i18n-html="clientRequest.step23.body">
+                بعد تقييم التوصيل الأول، لا يقودك التطبيق إلى الصفحة الرئيسية مباشرة —
+                بل يفحص إذا ما زال لديك توصيل آخر نشط:
+                <ul>
+                    <li><strong>يوجد توصيل آخر نشط:</strong> يعيدك إلى شاشة التتبع المباشر
+                        للتوصيل الآخر، جاهزاً للتأكيد أو الانتظار.</li>
+                    <li><strong>لا يوجد:</strong> يذهب بك إلى <strong>سجل الطلبات</strong>.</li>
+                </ul>
+                بهذا السلوك، تقييم توصيل واحد لا يُخفي بقية طلباتك النشطة عنك.
+            </div>
+        </div>
+    </div>
+
+    <!-- 24 -->
+    <div class="step">
+        <div class="step-number">24</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="clientRequest.step24.title">سجل الطلبات كمرجع موحّد</div>
+            <div class="step-desc" data-i18n-html="clientRequest.step24.intro">
+                سجل الطلبات (القسم 7) يجمع <strong>كل توصيلاتك</strong> في قائمة واحدة.
+                كل توصيل يظهر ببطاقة مستقلة تحتوي:
+                <ul>
+                    <li>شارة الحالة (نشط / مكتمل / ملغى …).</li>
+                    <li>مصدر المياه والكمية بالطن.</li>
+                    <li>السعر المدفوع.</li>
+                    <li>وقت التوصيل الفعلي (للمكتمل)، اسم السائق.</li>
+                    <li>تقييمك وتعليقك إن كان مكتملاً.</li>
+                    <li>زر <strong>«تتبع مباشر»</strong> (للنشط/الوصل) أو <strong>«إلغاء»</strong> (للمطابقة).</li>
+                </ul>
+                اسحب للأسفل للتحديث، أو استخدم أيقونة التحديث في شريط العنوان.
+            </div>
+            <div class="screenshot-slot">
+                <div class="mock-shot" role="img" aria-label="Illustrative Kooba app screen"><div class="mock-status"><span>9:41</span><span>● ● ● ▰</span></div><div class="mock-appbar"><span>‹</span><span><span data-shot-i18n="history">سجل الطلبات</span></span><span>⟳</span></div>
+        <div class="mock-history-card"><div class="mock-row"><strong><span data-shot-i18n="drinking">ماء شروب</span> · 0.5 <span data-shot-i18n="ton">طن</span></strong><span class="mock-chip green"><span data-shot-i18n="active">نشط</span></span></div><div class="mock-muted" style="margin-top:5px"><span data-shot-i18n="driverOnWay">السائق في الطريق</span></div><button class="mock-btn"><span data-shot-i18n="tracking">التتبع المباشر</span></button></div>
+        <div class="mock-history-card"><div class="mock-row"><strong><span data-shot-i18n="well">ماء بئر</span> · 1.0 <span data-shot-i18n="ton">طن</span></strong><span class="mock-chip green"><span data-shot-i18n="completed">مكتمل</span></span></div><div class="mock-muted" style="margin-top:5px">★★★★★</div></div>
+        <div class="mock-history-card"><div class="mock-row"><strong><span data-shot-i18n="treated">ماء محلّى</span> · 0.5 <span data-shot-i18n="ton">طن</span></strong><span class="mock-chip red"><span data-shot-i18n="cancelled">ملغى</span></span></div><div class="mock-muted" style="margin-top:5px"><span data-shot-i18n="cancel">إلغاء الطلب</span></div></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         RULES
+    ═══════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="clientRequest.rulesHeading">قواعد يجب معرفتها</h2>
+
+    <div class="callout callout-warn">
+        <div class="callout-icon">⏱️</div>
+        <div class="callout-body" data-i18n-html="clientRequest.rules.dailyLimits">
+            <strong>حدود يومية مستقلة:</strong>
+            الحدود اليومية (10 محاولات فاشلة، 2 توصيلات ناجحة) تُحتسب <strong>لكل مصدر على
+            حدة</strong>، وتُصفَّر عند منتصف الليل UTC.
+        </div>
+    </div>
+
+    <div class="callout callout-info">
+        <div class="callout-icon">🚗</div>
+        <div class="callout-body" data-i18n-html="clientRequest.rules.priceLocked">
+            <strong>السعر مضمون عند الإرسال:</strong>
+            السعر النهائي الذي تراه هو ما سيُخصم من محفظتك عند التأكيد، حتى لو تغيّر معامل
+            الزيادة بعد إرسال الطلب.
+        </div>
+    </div>
+
+    <div class="callout callout-success">
+        <div class="callout-icon">🔒</div>
+        <div class="callout-body" data-i18n-html="clientRequest.rules.handshake">
+            <strong>التحقق عبر Bluetooth / NFC:</strong>
+            يستخدمه التطبيق لتأكيد وصول السائق بأمان. لا تحتاج لتشغيله يدوياً — فقط احرص على
+            تفعيل Bluetooth و NFC على هاتفك.
+        </div>
+    </div>
+
+    <div class="callout callout-danger">
+        <div class="callout-icon">⚠️</div>
+        <div class="callout-body" data-i18n-html="clientRequest.rules.cancelFee">
+            <strong>إلغاء متأخر = رسم:</strong>
+            الإلغاء بعد انطلاق السائق قد يفرض عليك رسم إلغاء يُخصم من محفظتك. ألغِ فقط عندما
+            تكون مضطراً، واذكر سبباً واضحاً.
+        </div>
+    </div>
+
+    <!-- ─── Next / prev ──────────────────────────────────── -->
+    <div class="next-prev">
+        <a class="nav-btn" href="client-5-support.html" data-i18n="clientRequest.nav.prev">→ السابق: التواصل مع الدعم</a>
+        <a class="nav-btn" href="client-7-history.html" data-i18n="clientRequest.nav.next">التالي: سجل الطلبات ←</a>
+    </div>
+
+    <div class="footer">
+        <span data-i18n="clientRequest.footer.copyright">© 2026 كوبا العيون – جميع الحقوق محفوظة</span><br>
+        <a href="https://legal.kouba.site/privacy-ar" data-i18n="clientRequest.footer.privacy">سياسة الخصوصية</a>
+        &nbsp;•&nbsp;
+        <a href="https://legal.kouba.site/terms-ar" data-i18n="clientRequest.footer.terms">شروط الخدمة</a>
+    </div>
+</div>
+
+<!--
+    OPTIONAL I18N LOADER
+    Reads ?lang=fr|en|es from the URL, fetches i18n/<lang>.json,
+    and swaps [data-i18n], [data-i18n-html], [data-i18n-alt].
+-->
+<script>
+(function () {
+    var screenshotTranslations = {"ar": {"request": "طلب توصيل", "source": "مصدر المياه", "chooseSource": "اختر مصدر المياه", "drinking": "ماء شروب", "well": "ماء بئر", "treated": "ماء محلّى", "quantity": "الكمية", "location": "الموقع الدقيق", "landmark": "علامة مميزة (اختياري)", "price": "السعر", "base": "السعر الأساسي", "surge": "معامل الزيادة", "total": "المجموع", "requestNow": "اطلب الآن", "limit": "تم الوصول إلى الحد اليومي للمحاولات", "limit2": "تجاوزت حد التوصيلات اليومي لهذا المصدر", "tracking": "التتبع المباشر", "driver": "السائق", "eta": "الوصول خلال 8 دقائق", "distance": "المسافة 2.4 كم", "confirm": "تأكيد التوصيل", "cancel": "إلغاء الطلب", "active": "نشط", "arrived": "وصل", "completed": "مكتمل", "matching": "قيد المطابقة", "cancelled": "ملغى", "history": "سجل الطلبات", "bluetooth": "يلزم تفعيل Bluetooth", "enable": "تفعيل", "cancelTitle": "إلغاء الطلب؟", "cancelReason": "سبب الإلغاء", "confirmCancel": "تأكيد الإلغاء", "rating": "كيف كانت تجربة التوصيل؟", "comment": "أضف تعليقاً (اختياري)", "sendRating": "إرسال التقييم", "skip": "تخطي", "choose": "اختيار", "available": "متاح", "unavailable": "غير متاح", "tapToSwitch": "اضغط للتبديل بين التوصيلات", "delivered": "تم استلام المياه", "driverOnWay": "السائق في الطريق", "exactExample": "حي السلام، زنقة 12، منزل 45", "landmarkExample": "بجانب مسجد النور", "notAvailable": "لا يوجد سائقون قريبون", "ton": "طن"}, "en": {"request": "Delivery request", "source": "Water source", "chooseSource": "Choose a water source", "drinking": "Drinking water", "well": "Well water", "treated": "Desalinated water", "quantity": "Quantity", "location": "Exact location", "landmark": "Landmark (optional)", "price": "Price", "base": "Base price", "surge": "Surge multiplier", "total": "Total", "requestNow": "Request now", "limit": "Daily failed-attempt limit reached", "limit2": "Daily delivery limit reached for this source", "tracking": "Live tracking", "driver": "Driver", "eta": "Arriving in 8 min", "distance": "Distance 2.4 km", "confirm": "Confirm delivery", "cancel": "Cancel request", "active": "Active", "arrived": "Arrived", "completed": "Completed", "matching": "Matching", "cancelled": "Cancelled", "history": "Request history", "bluetooth": "Bluetooth needs to be enabled", "enable": "Enable", "cancelTitle": "Cancel this request?", "cancelReason": "Cancellation reason", "confirmCancel": "Confirm cancellation", "rating": "How was your delivery?", "comment": "Add a comment (optional)", "sendRating": "Submit rating", "skip": "Skip", "choose": "Select", "available": "Available", "unavailable": "Unavailable", "tapToSwitch": "Tap to switch deliveries", "delivered": "Water received", "driverOnWay": "Driver on the way", "exactExample": "Al Salam district, Street 12, House 45", "landmarkExample": "Near Al Noor Mosque", "notAvailable": "No nearby drivers", "ton": "ton"}, "fr": {"request": "Demande de livraison", "source": "Source d’eau", "chooseSource": "Choisir une source d’eau", "drinking": "Eau potable", "well": "Eau de puits", "treated": "Eau dessalée", "quantity": "Quantité", "location": "Emplacement exact", "landmark": "Repère (facultatif)", "price": "Prix", "base": "Prix de base", "surge": "Coefficient de majoration", "total": "Total", "requestNow": "Commander maintenant", "limit": "Limite quotidienne de tentatives atteinte", "limit2": "Limite quotidienne atteinte pour cette source", "tracking": "Suivi en direct", "driver": "Chauffeur", "eta": "Arrivée dans 8 min", "distance": "Distance : 2,4 km", "confirm": "Confirmer la livraison", "cancel": "Annuler la demande", "active": "En cours", "arrived": "Arrivé", "completed": "Terminée", "matching": "Recherche", "cancelled": "Annulée", "history": "Historique des demandes", "bluetooth": "Bluetooth doit être activé", "enable": "Activer", "cancelTitle": "Annuler cette demande ?", "cancelReason": "Motif de l’annulation", "confirmCancel": "Confirmer l’annulation", "rating": "Comment s’est passée la livraison ?", "comment": "Ajouter un commentaire (facultatif)", "sendRating": "Envoyer l’évaluation", "skip": "Ignorer", "choose": "Choisir", "available": "Disponible", "unavailable": "Indisponible", "tapToSwitch": "Touchez pour changer de livraison", "delivered": "Eau reçue", "driverOnWay": "Chauffeur en route", "exactExample": "Quartier Al Salam, rue 12, maison 45", "landmarkExample": "Près de la mosquée Al Noor", "notAvailable": "Aucun chauffeur à proximité", "ton": "tonne"}, "es": {"request": "Solicitud de entrega", "source": "Fuente de agua", "chooseSource": "Elegir una fuente de agua", "drinking": "Agua potable", "well": "Agua de pozo", "treated": "Agua desalinizada", "quantity": "Cantidad", "location": "Ubicación exacta", "landmark": "Punto de referencia (opcional)", "price": "Precio", "base": "Precio base", "surge": "Multiplicador de demanda", "total": "Total", "requestNow": "Solicitar ahora", "limit": "Se alcanzó el límite diario de intentos fallidos", "limit2": "Se alcanzó el límite diario para esta fuente", "tracking": "Seguimiento en directo", "driver": "Conductor", "eta": "Llega en 8 min", "distance": "Distancia: 2,4 km", "confirm": "Confirmar entrega", "cancel": "Cancelar solicitud", "active": "Activa", "arrived": "Llegó", "completed": "Completada", "matching": "Buscando conductor", "cancelled": "Cancelada", "history": "Historial de solicitudes", "bluetooth": "Debes activar Bluetooth", "enable": "Activar", "cancelTitle": "¿Cancelar esta solicitud?", "cancelReason": "Motivo de cancelación", "confirmCancel": "Confirmar cancelación", "rating": "¿Cómo fue la entrega?", "comment": "Añadir comentario (opcional)", "sendRating": "Enviar valoración", "skip": "Omitir", "choose": "Elegir", "available": "Disponible", "unavailable": "No disponible", "tapToSwitch": "Toca para cambiar de entrega", "delivered": "Agua recibida", "driverOnWay": "Conductor en camino", "exactExample": "Barrio Al Salam, calle 12, casa 45", "landmarkExample": "Cerca de la mezquita Al Noor", "notAvailable": "No hay conductores cercanos", "ton": "tonelada"}};
+    function applyShotTranslations(lang) {
+        var dict = screenshotTranslations[lang] || screenshotTranslations.ar;
+        document.querySelectorAll('[data-shot-i18n]').forEach(function (el) {
+            var key = el.getAttribute('data-shot-i18n');
+            if (dict[key] != null) el.textContent = dict[key];
+        });
+        document.querySelectorAll('.mock-shot').forEach(function (el) {
+            el.setAttribute('aria-label', (dict.request || 'Kooba app') + ' — illustrative app screen');
+        });
+    }
+    try {
+        var lang = new URLSearchParams(location.search).get('lang') || 'ar';
+        applyShotTranslations(lang);
+        if (lang === 'ar' || !['en', 'fr', 'es'].includes(lang)) return;
+        fetch('i18n/' + lang + '.json')
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (t) {
+                if (!t) return;
+                document.querySelectorAll('[data-i18n]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n')];
+                    if (v != null) el.textContent = v;
+                });
+                document.querySelectorAll('[data-i18n-html]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n-html')];
+                    if (v != null) el.innerHTML = v;
+                });
+                document.querySelectorAll('[data-i18n-alt]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n-alt')];
+                    if (v != null) el.alt = v;
+                });
+                applyShotTranslations(lang);
+            })
+            .catch(function () {});
+    } catch (e) {}
+})();
+</script>
+</body>
+</html>

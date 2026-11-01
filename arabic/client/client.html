@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="clientGuide.pageTitle">دليل العميل – كوبا</title>
+    <!--
+    ──────────────────────────────────────────────────────────────
+    THEME
+    Client pages use the GREY palette (--accent).
+    Driver pages will use ROSS (dusty rose) by switching the same
+    variables in a driver-scoped stylesheet. No orange anywhere.
+
+    IMAGES
+    All screenshots across the guide live in one folder:
+        screenshots/p1, screenshots/p2, screenshots/p3, …
+    Extension is resolved by the server; HTML references the base
+    name only. Example: <img src="screenshots/p1" alt="…">
+
+    LOCALIZATION
+    Every text element has data-i18n="<key>". The Arabic text inside
+    the element is the fallback. Translations for FR / EN / ES go
+    into a flat JSON per language:
+        i18n/en.json  → { "clientGuide.heading": "🛒 Client Guide", … }
+        i18n/fr.json  → { "clientGuide.heading": "🛒 Guide Client", … }
+        i18n/es.json  → { "clientGuide.heading": "🛒 Guía del Cliente", … }
+    A small loader swaps textContent when ?lang= is present.
+    ──────────────────────────────────────────────────────────────
+    -->
+    <style>
+        :root {
+            /* Client theme — grey */
+            --accent:        #4b5563;   /* main grey */
+            --accent-dark:   #1f2937;   /* headings */
+            --accent-light:  #6b7280;   /* secondary */
+            --accent-muted:  #9ca3af;   /* footer / subtle */
+            --bg-page:       #f3f4f6;   /* page background */
+            --bg-subtle:     #f9fafb;   /* card background */
+            --bg-highlight:  #f3f4f6;   /* intro box */
+            --border:        #e5e7eb;   /* card / divider border */
+            --border-hover:  #4b5563;   /* card hover border */
+            --shadow-hover:  rgba(75, 85, 99, 0.12);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Cairo', 'Inter', -apple-system, 'Segoe UI', sans-serif;
+            background: var(--bg-page);
+            color: #1e293b;
+            line-height: 1.75;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px 45px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--accent);
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        .back-link:hover { text-decoration: underline; }
+        h1 {
+            color: var(--accent-dark);
+            border-bottom: 3px solid var(--accent);
+            padding-bottom: 12px;
+            margin-bottom: 8px;
+            font-size: 1.9rem;
+        }
+        .subtitle {
+            font-size: 1rem;
+            color: var(--accent-light);
+            margin-bottom: 30px;
+        }
+
+        .intro-box {
+            background: var(--bg-highlight);
+            border-right: 4px solid var(--accent);
+            padding: 15px 18px;
+            border-radius: 12px;
+            margin: 0 0 30px 0;
+            font-size: 0.95rem;
+        }
+
+        /* ─── Section index ─────────────────────────────────── */
+        .section-index {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        .section-card {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 18px 22px;
+            background: var(--bg-subtle);
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+        }
+        .section-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--border-hover);
+            box-shadow: 0 10px 24px var(--shadow-hover);
+        }
+        .section-number {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.05rem;
+        }
+        .section-body {
+            flex: 1;
+        }
+        .section-title {
+            font-weight: bold;
+            color: var(--accent-dark);
+            font-size: 1.02rem;
+            margin-bottom: 2px;
+        }
+        .section-desc {
+            font-size: 0.88rem;
+            color: var(--accent-light);
+        }
+        .section-arrow {
+            flex-shrink: 0;
+            color: var(--accent);
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--accent-muted);
+        }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        @media (max-width: 700px) {
+            .container { padding: 25px 20px; }
+            h1 { font-size: 1.5rem; }
+            .section-card { padding: 14px 16px; gap: 12px; }
+            .section-number { width: 34px; height: 34px; font-size: 0.95rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a class="back-link" href="../index.html" data-i18n="clientGuide.back">→ العودة إلى جميع الأدلة</a>
+
+    <h1 data-i18n="clientGuide.heading">🛒 دليل العميل</h1>
+    <p class="subtitle" data-i18n="clientGuide.subtitle">كل ما تحتاج إلى معرفته لاستخدام تطبيق كوبا كعميل — اختر القسم الذي تريد قراءته.</p>
+
+    <div class="intro-box" data-i18n="clientGuide.intro">
+        <strong>قبل البدء:</strong> ثبّت تطبيق كوبا (APK) على هاتفك الذي يعمل بنظام أندرويد.
+        رابط التثبيت يُوزع خلال المرحلة التجريبية. ابدأ بالقسم الأول إن كنت تستخدم التطبيق لأول مرة.
+    </div>
+
+    <div class="section-index">
+
+        <a class="section-card" href="client-1-signup.html">
+            <div class="section-number">1</div>
+            <div class="section-body">
+                <div class="section-title" data-i18n="clientGuide.s1.title">إنشاء حساب مع تأكيد البريد الإلكتروني</div>
+                <div class="section-desc" data-i18n="clientGuide.s1.desc">التسجيل خطوة بخطوة، وكيفية تفعيل الحساب عبر رسالة البريد.</div>
+            </div>
+            <div class="section-arrow">←</div>
+        </a>
+
+        <a class="section-card" href="client-2-login.html">
+            <div class="section-number">2</div>
+            <div class="section-body">
+                <div class="section-title" data-i18n="clientGuide.s2.title">تسجيل الدخول</div>
+                <div class="section-desc" data-i18n="clientGuide.s2.desc">الدخول بالبريد وكلمة المرور، البقاء مسجّلاً، واستعادة كلمة المرور.</div>
+            </div>
+            <div class="section-arrow">←</div>
+        </a>
+
+        <a class="section-card" href="client-3-edit-profile.html">
+            <div class="section-number">3</div>
+            <div class="section-body">
+                <div class="section-title" data-i18n="clientGuide.s3.title">تعديل الملف الشخصي</div>
+                <div class="section-desc" data-i18n="clientGuide.s3.desc">تغيير الاسم، البريد، المدينة، الصورة الشخصية، وكلمة المرور.</div>
+            </div>
+            <div class="section-arrow">←</div>
+        </a>
+
+        <a class="section-card" href="client-4-add-credit.html">
+            <div class="section-number">4</div>
+            <div class="section-body">
+                <div class="section-title" data-i18n="clientGuide.s4.title">إضافة الرصيد إلى المحفظة</div>
+                <div class="section-desc" data-i18n="clientGuide.s4.desc">شراء رصيد، استخدام قسيمة، والاطلاع على الرصيد الحالي.</div>
+            </div>
+            <div class="section-arrow">←</div>
+        </a>
+
+        <a class="section-card" href="client-5-support.html">
+            <div class="section-number">5</div>
+            <div class="section-body">
+                <div class="section-title" data-i18n="clientGuide.s5.title">التواصل مع الدعم</div>
+                <div class="section-desc" data-i18n="clientGuide.s5.desc">فتح تذكرة دعم ومتابعة الردود حتى إغلاقها.</div>
+            </div>
+            <div class="section-arrow">←</div>
+        </a>
+
+        <a class="section-card" href="client-6-make-request.html">
+            <div class="section-number">6</div>
+            <div class="section-body">
+                <div class="section-title" data-i18n="clientGuide.s6.title">تقديم طلب توصيل</div>
+                <div class="section-desc" data-i18n="clientGuide.s6.desc">
+                    اختيار مصدر المياه، الكمية، الموقع الدقيق، وتأكيد الطلب — من الإنشاء حتى
+                    التتبع والتقييم، مع دعم عدة طلبات في وقت واحد.
+                </div>
+            </div>
+            <div class="section-arrow">←</div>
+        </a>
+
+        <a class="section-card" href="client-7-history.html">
+            <div class="section-number">7</div>
+            <div class="section-body">
+                <div class="section-title" data-i18n="clientGuide.s7.title">سجل الطلبات والشاشة الرئيسية</div>
+                <div class="section-desc" data-i18n="clientGuide.s7.desc">
+                    مراجعة الطلبات السابقة، حالة كل طلب، تقييم الطلبات المكتملة،
+                    بالإضافة إلى شرح الشاشة الرئيسية وحالاتها.
+                </div>
+            </div>
+            <div class="section-arrow">←</div>
+        </a>
+
+    </div>
+
+    <div class="footer">
+        <span data-i18n="clientGuide.footer.copyright">© 2026 كوبا العيون – جميع الحقوق محفوظة</span><br>
+        <a href="https://legal.kouba.site/privacy-ar" data-i18n="clientGuide.footer.privacy">سياسة الخصوصية</a>
+        &nbsp;•&nbsp;
+        <a href="https://legal.kouba.site/terms-ar" data-i18n="clientGuide.footer.terms">شروط الخدمة</a>
+    </div>
+</div>
+
+<!--
+    OPTIONAL I18N LOADER
+    Reads ?lang=fr|en|es from the URL, fetches i18n/<lang>.json,
+    and swaps textContent on every [data-i18n] element. If the file
+    is missing or the fetch fails, the Arabic fallback stays visible.
+    Safe under file:// — errors are swallowed.
+-->
+<script>
+(function () {
+    try {
+        var lang = new URLSearchParams(location.search).get('lang');
+        if (!lang || lang === 'ar') return;
+        fetch('i18n/' + lang + '.json')
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (t) {
+                if (!t) return;
+                document.querySelectorAll('[data-i18n]').forEach(function (el) {
+                    var k = el.getAttribute('data-i18n');
+                    if (t[k] != null) el.textContent = t[k];
+                });
+            })
+            .catch(function () {});
+    } catch (e) {}
+})();
+</script>
+</body>
+</html>

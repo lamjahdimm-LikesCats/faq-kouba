@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="driverWallet.pageTitle">محفظة السائق – الرصيد والإضافة – دليل السائق</title>
+    <!--
+    ──────────────────────────────────────────────────────────────
+    THEME — ROSS palette (driver). No orange, no blue in page chrome.
+    Semantic colors kept: green = money in, red = money out.
+
+    WRITING STYLE
+    - Written for drivers, not developers.
+    - No code identifiers, function names, or English strings.
+    - Steps describe what the driver sees and does, not how it is
+      implemented.
+    - Descriptions that appear in the app are shown in Arabic only.
+
+    SOURCE OF TRUTH
+    - driver_balance_analytics_screen.dart  (view only)
+    - add_credit_screen.dart                (voucher redemption)
+
+    SCREENS — p47–p50 are inline HTML+CSS mockups:
+
+        p47  my balance and transactions (default)
+        p48  no transactions yet (empty)
+        p49  add credit (voucher field)
+        p50  add credit with a security warning
+
+    Screenshot numbering:
+        p1–p46   → client + driver signup/login/profile
+        p47–p50  → this file
+        p51      → next available (driver-5-support)
+    ──────────────────────────────────────────────────────────────
+    -->
+    <style>
+        :root {
+            --accent:        #b76e79;
+            --accent-dark:   #5c3438;
+            --accent-light:  #a6747c;
+            --accent-muted:  #c9a5ab;
+            --bg-page:       #f9f4f5;
+            --bg-subtle:     #fdf8f9;
+            --bg-highlight:  #faeeee;
+            --border:        #ecdde0;
+            --border-hover:  #b76e79;
+            --shadow-hover:  rgba(183, 110, 121, 0.15);
+            --warn-bg:       #f5eef0;
+            --warn-border:   #5c3438;
+            --action:        #b76e79;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Cairo', 'Inter', -apple-system, 'Segoe UI', sans-serif;
+            background: var(--bg-page);
+            color: #1e293b;
+            line-height: 1.8;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px 45px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        }
+        .back-link {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 0.85rem; color: var(--accent);
+            text-decoration: none; margin-bottom: 20px;
+        }
+        .back-link:hover { text-decoration: underline; }
+        h1 {
+            color: var(--accent-dark);
+            border-bottom: 3px solid var(--accent);
+            padding-bottom: 12px; margin-bottom: 8px; font-size: 1.9rem;
+        }
+        .subtitle { font-size: 1rem; color: var(--accent-light); margin-bottom: 30px; }
+
+        .intro-box {
+            background: var(--bg-highlight);
+            border-right: 4px solid var(--accent);
+            padding: 15px 18px; border-radius: 12px;
+            margin: 0 0 30px 0; font-size: 0.95rem;
+        }
+        .intro-box ul { padding-right: 22px; margin-top: 8px; }
+        .intro-box li { margin-bottom: 4px; }
+
+        .section-title {
+            color: var(--accent-dark); font-size: 1.25rem;
+            margin: 34px 0 14px; padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .step { display: flex; gap: 18px; margin-bottom: 28px; align-items: flex-start; }
+        .step-number {
+            flex-shrink: 0; width: 38px; height: 38px;
+            background: var(--accent); color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 1rem; margin-top: 2px;
+        }
+        .step-body { flex: 1; }
+        .step-title {
+            font-weight: bold; color: var(--accent-dark);
+            font-size: 1.08rem; margin-bottom: 6px;
+        }
+        .step-desc { font-size: 0.95rem; color: #334155; }
+        .step-desc ul, .step-desc ol { padding-right: 22px; margin-top: 8px; }
+        .step-desc li { margin-bottom: 6px; }
+
+        .field-table {
+            width: 100%; border-collapse: collapse;
+            margin: 12px 0 6px; font-size: 0.9rem;
+        }
+        .field-table th, .field-table td {
+            padding: 10px 12px; border: 1px solid var(--border); text-align: right;
+        }
+        .field-table th {
+            background: #f1f5f9; color: var(--accent-dark); font-weight: bold;
+        }
+        .field-table tr:nth-child(even) td { background: #fafafa; }
+
+        .callout {
+            display: flex; gap: 12px; padding: 14px 16px;
+            border-radius: 12px; margin: 16px 0; font-size: 0.92rem;
+            align-items: flex-start;
+        }
+        .callout-icon { flex-shrink: 0; font-size: 1.15rem; margin-top: 1px; }
+        .callout-body { flex: 1; }
+        .callout-warn    { background: var(--warn-bg); border-right: 4px solid var(--warn-border); }
+        .callout-danger  { background: #fef2f2; border-right: 4px solid #ef4444; }
+        .callout-info    { background: var(--bg-highlight); border-right: 4px solid var(--accent); }
+        .callout-success { background: #f0fdf4; border-right: 4px solid #22c55e; }
+        .callout strong { color: var(--accent-dark); }
+
+        /* ─── Phone frame ──────────────────────────────────── */
+        .screen-mock { display: flex; justify-content: center; margin: 18px 0 6px; }
+        .phone {
+            width: 290px; max-width: 100%;
+            border: 1.5px solid var(--border); border-radius: 22px;
+            padding: 5px; background: #fff;
+            box-shadow: 0 3px 14px rgba(0,0,0,0.05);
+        }
+        .phone-screen {
+            position: relative; border-radius: 17px; overflow: hidden;
+            background: #fff; border: 1px solid var(--border);
+            min-height: 500px; display: flex; flex-direction: column;
+        }
+        .status-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 16px 6px; font-size: 0.65rem;
+            color: var(--accent-light); background: var(--bg-subtle);
+            border-bottom: 1px solid var(--border);
+            direction: ltr; font-weight: 600;
+        }
+        .status-bar .icons { display: flex; gap: 4px; font-size: 0.6rem; }
+        .app-bar {
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 14px; border-bottom: 1px solid var(--border);
+            background: var(--bg-subtle);
+        }
+        .app-bar .title {
+            font-size: 0.85rem; font-weight: 700;
+            color: var(--accent-dark); flex: 1;
+        }
+
+        /* ─── Balance analytics content ────────────────────── */
+        .wal-content {
+            flex: 1; padding: 12px 14px;
+            display: flex; flex-direction: column; gap: 8px;
+            overflow-y: auto;
+        }
+        .wal-balance-card {
+            background: linear-gradient(135deg, #5c3438, #b76e79);
+            color: white;
+            border-radius: 12px;
+            padding: 16px 12px;
+            text-align: center;
+        }
+        .wal-balance-card .label {
+            font-size: 0.58rem; letter-spacing: 1.1px;
+            color: rgba(255,255,255,0.82);
+        }
+        .wal-balance-card .amount {
+            font-size: 1.35rem; font-weight: 800; margin-top: 4px;
+            letter-spacing: 0.2px;
+        }
+        .wal-section-title {
+            font-size: 0.78rem; font-weight: 800;
+            color: var(--accent-dark); margin-top: 6px;
+        }
+
+        /* Transaction list inside phone */
+        .wal-tx-list {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+        }
+        .wal-tx-row {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.6rem;
+        }
+        .wal-tx-row:last-child { border-bottom: none; }
+        .wal-tx-icon {
+            width: 20px; height: 20px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 900; font-size: 0.62rem;
+            flex-shrink: 0;
+        }
+        .wal-tx-row.credit .wal-tx-icon { background: #22c55e; }
+        .wal-tx-row.debit  .wal-tx-icon { background: #ef4444; }
+        .wal-tx-body { flex: 1; min-width: 0; }
+        .wal-tx-desc {
+            font-weight: 700; color: var(--accent-dark);
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .wal-tx-date {
+            font-size: 0.5rem; color: var(--accent-muted); margin-top: 1px;
+        }
+        .wal-tx-amount {
+            font-weight: 800; font-size: 0.62rem; flex-shrink: 0;
+            white-space: nowrap;
+        }
+        .wal-tx-row.credit .wal-tx-amount { color: #16a34a; }
+        .wal-tx-row.debit  .wal-tx-amount { color: #dc2626; }
+
+        /* Empty state inside phone */
+        .wal-empty {
+            text-align: center;
+            padding: 30px 12px;
+            color: var(--accent-muted);
+        }
+        .wal-empty .icon { font-size: 2.2rem; opacity: 0.45; }
+        .wal-empty .msg { font-size: 0.6rem; margin-top: 8px; }
+
+        /* ─── Add credit screen content ───────────────────── */
+        .ac-content {
+            flex: 1; padding: 12px 14px;
+            display: flex; flex-direction: column; gap: 10px;
+            overflow-y: auto;
+        }
+        .ac-security-banner {
+            background: #fef2f2;
+            border: 1px solid #fca5a5;
+            border-radius: 6px;
+            padding: 7px 9px;
+            display: flex; align-items: flex-start; gap: 6px;
+            font-size: 0.55rem; color: #991b1b;
+            line-height: 1.5;
+        }
+        .ac-security-banner .icon {
+            color: #dc2626; font-size: 0.9rem;
+            flex-shrink: 0; margin-top: 1px;
+        }
+        .ac-heading {
+            font-size: 0.72rem; font-weight: 800;
+            color: var(--accent-dark); margin-top: 4px;
+        }
+        .ac-field {
+            display: flex; align-items: center; gap: 6px;
+            border: 1.2px solid var(--border); border-radius: 7px;
+            padding: 7px 9px; background: #fff; min-height: 34px;
+        }
+        .ac-field .icon {
+            color: var(--accent-light); font-size: 0.85rem; flex-shrink: 0;
+        }
+        .ac-field .value {
+            flex: 1; font-size: 0.62rem; color: var(--accent-muted);
+            font-family: ui-monospace, 'Courier New', monospace;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .ac-btn {
+            padding: 9px; border-radius: 8px;
+            background: var(--action); color: white;
+            font-weight: 800; font-size: 0.7rem;
+            text-align: center; margin-top: 4px;
+            display: flex; align-items: center; justify-content: center;
+            gap: 5px;
+        }
+        .ac-btn.disabled { background: #d1d5db; color: #9ca3af; }
+        .ac-error-hint {
+            font-size: 0.52rem; color: #dc2626;
+            text-align: center; margin-top: 3px;
+        }
+
+        /* Fingers */
+        .phone-screen .hand {
+            position: absolute; font-size: 1.1rem; z-index: 12;
+            pointer-events: none;
+            animation: hand-bob 1.6s ease-in-out infinite;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.28));
+            line-height: 1;
+        }
+        @keyframes hand-bob {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .footer {
+            margin-top: 40px; padding-top: 20px;
+            border-top: 1px solid var(--border);
+            text-align: center; font-size: 0.75rem; color: var(--accent-muted);
+        }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .next-prev {
+            display: flex; justify-content: space-between;
+            gap: 12px; margin-top: 40px; flex-wrap: wrap;
+        }
+        .nav-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 18px; background: var(--bg-subtle);
+            border: 2px solid var(--border); border-radius: 12px;
+            color: var(--accent-dark); font-weight: 600; font-size: 0.9rem;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .nav-btn:hover {
+            border-color: var(--accent);
+            box-shadow: 0 6px 16px var(--shadow-hover);
+            text-decoration: none;
+        }
+        @media (max-width: 700px) {
+            .container { padding: 25px 20px; }
+            h1 { font-size: 1.5rem; }
+            .step { gap: 12px; }
+            .step-number { width: 32px; height: 32px; font-size: 0.9rem; }
+            .field-table { font-size: 0.82rem; }
+            .phone { width: 260px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a class="back-link" href="driver.html" data-i18n="driverWallet.back">→ العودة إلى دليل السائق</a>
+
+    <h1 data-i18n="driverWallet.heading">💰 رصيدي وأرباحي</h1>
+    <p class="subtitle" data-i18n="driverWallet.subtitle">كل ما تحتاج معرفته عن أموالك في كوبا: أين تجدها، وكيف تقرأها، وكيف تشحنها بقسيمة.</p>
+
+    <div class="intro-box" data-i18n-html="driverWallet.intro">
+        <strong>قبل البدء — شيئان منفصلان في التطبيق:</strong>
+        <ul>
+            <li><strong>«رصيدي»</strong> — صفحة تعرض لك أموالك الحالية، وقائمة بكل ما دخل وخَرَج من محفظتك. <em>للقراءة فقط</em>.</li>
+            <li><strong>«إضافة رصيد»</strong> — صفحة منفصلة تفتحها عندما يكون لديك كود قسيمة لشحن محفظتك.</li>
+        </ul>
+        هاتان الصفحتان لا تحتويان أي زر لسحب الأموال نقداً — للتحويل البنكي، تواصل مع فريق الدعم.
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         PART 1 — MY BALANCE
+    ═══════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="driverWallet.part1.title">الجزء الأول — صفحة «رصيدي»</h2>
+
+    <!-- 1 -->
+    <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverWallet.step1.title">ماذا تجد في الصفحة؟</div>
+            <div class="step-desc" data-i18n-html="driverWallet.step1.body">
+                عند فتح الصفحة، تلاحظ من الأعلى إلى الأسفل:
+                <ul>
+                    <li><strong>اسم الصفحة</strong> في الأعلى.</li>
+                    <li><strong>بطاقة كبيرة</strong> تحمل رصيدك الحالي.</li>
+                    <li><strong>عنوان «سجل المعاملات»</strong> تحتها.</li>
+                    <li><strong>قائمة طويلة</strong> بكل حركات الأموال — من الأحدث إلى الأقدم.</li>
+                </ul>
+                لا يوجد أي زر لتعديل شيء هنا. الصفحة للعرض والمراجعة فقط.
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="صفحة الرصيد: بطاقة رصيد + قائمة معاملات"
+                    data-i18n-alt="driverWallet.shot1.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="top: 115px; right: 20px;" aria-hidden="true">👉</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="app-bar">
+                            <span class="title" data-i18n="driverWallet.mock1.bar">الرصيد والتحليلات</span>
+                        </div>
+                        <div class="wal-content">
+                            <div class="wal-balance-card">
+                                <div class="label" data-i18n="driverWallet.mock1.balanceLabel">الرصيد الحالي</div>
+                                <div class="amount" data-i18n="driverWallet.mock1.balanceAmount">165.50 د.م.</div>
+                            </div>
+
+                            <div class="wal-section-title" data-i18n="driverWallet.mock1.txTitle">سجل المعاملات</div>
+
+                            <div class="wal-tx-list">
+                                <div class="wal-tx-row credit">
+                                    <span class="wal-tx-icon">↓</span>
+                                    <div class="wal-tx-body">
+                                        <div class="wal-tx-desc" data-i18n="driverWallet.mock1.tx1.desc">دفعة توصيل مكتمل</div>
+                                        <div class="wal-tx-date" data-i18n="driverWallet.mock1.tx1.date">27 أكتوبر 2026، 14:32</div>
+                                    </div>
+                                    <div class="wal-tx-amount" data-i18n="driverWallet.mock1.tx1.amount">+6.50 د.م.</div>
+                                </div>
+                                <div class="wal-tx-row debit">
+                                    <span class="wal-tx-icon">↑</span>
+                                    <div class="wal-tx-body">
+                                        <div class="wal-tx-desc" data-i18n="driverWallet.mock1.tx2.desc">رسم خدمة</div>
+                                        <div class="wal-tx-date" data-i18n="driverWallet.mock1.tx2.date">27 أكتوبر 2026، 14:32</div>
+                                    </div>
+                                    <div class="wal-tx-amount" data-i18n="driverWallet.mock1.tx2.amount">-1.50 د.م.</div>
+                                </div>
+                                <div class="wal-tx-row credit">
+                                    <span class="wal-tx-icon">↓</span>
+                                    <div class="wal-tx-body">
+                                        <div class="wal-tx-desc" data-i18n="driverWallet.mock1.tx3.desc">تعويض إلغاء</div>
+                                        <div class="wal-tx-date" data-i18n="driverWallet.mock1.tx3.date">26 أكتوبر 2026، 18:11</div>
+                                    </div>
+                                    <div class="wal-tx-amount" data-i18n="driverWallet.mock1.tx3.amount">+2.00 د.م.</div>
+                                </div>
+                                <div class="wal-tx-row credit">
+                                    <span class="wal-tx-icon">↓</span>
+                                    <div class="wal-tx-body">
+                                        <div class="wal-tx-desc" data-i18n="driverWallet.mock1.tx4.desc">شحن المحفظة الرقمية</div>
+                                        <div class="wal-tx-date" data-i18n="driverWallet.mock1.tx4.date">26 أكتوبر 2026، 09:41</div>
+                                    </div>
+                                    <div class="wal-tx-amount" data-i18n="driverWallet.mock1.tx4.amount">+50.00 د.م.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverWallet.step2.title">كم أملك الآن؟</div>
+            <div class="step-desc" data-i18n-html="driverWallet.step2.body">
+                بطاقة الرصيد تعرض شيئين فقط:
+                <ul>
+                    <li><strong>كلمة صغيرة</strong>: «الرصيد الحالي».</li>
+                    <li><strong>رقم كبير</strong>: مثلاً <em>165.50 د.م.</em></li>
+                </ul>
+                هذا هو المبلغ المتاح لك في هذه اللحظة. يُحدَّث تلقائياً كلما دخل أو خرج
+                مال من محفظتك. إذا كنت في اللحظة التي تُفتح فيها الصفحة للمرة الأولى،
+                قد ترى <strong>دائرة تحميل صغيرة</strong> بدل الرقم — هذا يعني أن التطبيق
+                يجلب رصيدك من الخادم. إذا فشل الاتصال، يظهر لك خطأ بسيط.
+            </div>
+        </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverWallet.step3.title">كيف تقرأ قائمة المعاملات؟</div>
+            <div class="step-desc" data-i18n-html="driverWallet.step3.body">
+                كل صف يمثل حركة مالية واحدة، ويعرض أربع معلومات:
+                <ul>
+                    <li><strong>سهم ملوّن</strong>:
+                        <br>— <strong>سهم أخضر للأسفل ↓</strong> = مال <strong>دخل</strong> إلى محفظتك.
+                        <br>— <strong>سهم أحمر للأعلى ↑</strong> = مال <strong>خَرَج</strong> من محفظتك.</li>
+                    <li><strong>وصف قصير</strong>: ماذا كانت هذه الحركة (توصيل، رسم، شحن، إلخ).</li>
+                    <li><strong>التاريخ والوقت</strong>: بلغة التطبيق (عربي/فرنسي/إنجليزي).</li>
+                    <li><strong>المبلغ</strong>: بجانبه علامة + أو − — بلون أخضر أو أحمر حسب الاتجاه.</li>
+                </ul>
+                القائمة تعرض <strong>آخر 20 حركة فقط</strong> — الأحدث في الأعلى.
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverWallet.step4.title">ماذا تعني الأوصاف التي تراها؟</div>
+            <div class="step-desc">
+                <div data-i18n="driverWallet.step4.intro">
+                    الأوصاف التي تظهر في القائمة محدودة ومعروفة. هذه هي:
+                </div>
+
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="driverWallet.step4.table.colDesc">الوصف</th>
+                            <th data-i18n="driverWallet.step4.table.colMeaning">ماذا يعني</th>
+                            <th data-i18n="driverWallet.step4.table.colDir">الاتجاه</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n="driverWallet.step4.table.r1c1">دفعة توصيل مكتمل</td>
+                            <td data-i18n="driverWallet.step4.table.r1c2">أجرة توصيل أوصلته للعميل.</td>
+                            <td data-i18n="driverWallet.step4.table.credit">إضافة (+)</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverWallet.step4.table.r2c1">رسم خدمة</td>
+                            <td data-i18n="driverWallet.step4.table.r2c2">نسبة كوبا من التوصيل.</td>
+                            <td data-i18n="driverWallet.step4.table.debit">خصم (−)</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverWallet.step4.table.r3c1">رسم التفعيل</td>
+                            <td data-i18n="driverWallet.step4.table.r3c2">رسم لمرة واحدة عند تفعيل حسابك.</td>
+                            <td data-i18n="driverWallet.step4.table.debit">خصم (−)</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverWallet.step4.table.r4c1">شحن المحفظة الرقمية</td>
+                            <td data-i18n="driverWallet.step4.table.r4c2">مبلغ أضفته باستخدام قسيمة.</td>
+                            <td data-i18n="driverWallet.step4.table.credit">إضافة (+)</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverWallet.step4.table.r5c1">تعويض إلغاء</td>
+                            <td data-i18n="driverWallet.step4.table.r5c2">مبلغ يُعطى لك عندما يُلغي العميل بعد قبولك.</td>
+                            <td data-i18n="driverWallet.step4.table.credit">إضافة (+)</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverWallet.step4.table.r6c1">رسم إلغاء</td>
+                            <td data-i18n="driverWallet.step4.table.r6c2">مبلغ يُخصم منك عند إلغاء طلب قبِلته.</td>
+                            <td data-i18n="driverWallet.step4.table.debit">خصم (−)</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverWallet.step4.table.r7c1">استرجاع رسم الإلغاء</td>
+                            <td data-i18n="driverWallet.step4.table.r7c2">إعادة مبلغ الإلغاء إليك بعد المراجعة.</td>
+                            <td data-i18n="driverWallet.step4.table.credit">إضافة (+)</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverWallet.step4.table.r8c1">وصف آخر</td>
+                            <td data-i18n="driverWallet.step4.table.r8c2">يُعرض كما ورد.</td>
+                            <td>—</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="callout callout-info">
+                    <div class="callout-icon">💡</div>
+                    <div class="callout-body" data-i18n-html="driverWallet.step4.callout">
+                        <strong>لماذا أرى المبلغ مرتين أحياناً؟</strong>
+                        في حركات الإلغاء الثلاث (تعويض / رسم / استرجاع)، نص الوصف
+                        <strong>يتضمن المبلغ نفسه</strong>. لذلك ترى الرقم داخل الوصف،
+                        ومرة أخرى في عمود المبلغ على الطرف. هذا طبيعي — وليس خطأً.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="step">
+        <div class="step-number">5</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverWallet.step5.title">ماذا لو لم يكن لدي أي حركة بعد؟</div>
+            <div class="step-desc" data-i18n-html="driverWallet.step5.body">
+                إذا كان حسابك جديداً ولم تُكمل أي توصيل ولم تشحن محفظتك بعد:
+                <ul>
+                    <li>تختفي القائمة.</li>
+                    <li>تظهر <strong>أيقونة ساعة رمادية</strong> في المنتصف.</li>
+                    <li>تحتها رسالة واحدة: <em>«لا توجد معاملات بعد»</em>.</li>
+                </ul>
+                هذا ليس خطأً — بمجرد أول توصيل أو أول شحن، تظهر القائمة تلقائياً.
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="حالة فارغة: أيقونة ساعة + رسالة لا توجد معاملات بعد"
+                    data-i18n-alt="driverWallet.shot2.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="top: 285px; left: 50%; translate: -50% 0;" aria-hidden="true">👇</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="app-bar">
+                            <span class="title" data-i18n="driverWallet.mock2.bar">الرصيد والتحليلات</span>
+                        </div>
+                        <div class="wal-content">
+                            <div class="wal-balance-card">
+                                <div class="label" data-i18n="driverWallet.mock2.balanceLabel">الرصيد الحالي</div>
+                                <div class="amount" data-i18n="driverWallet.mock2.balanceAmount">0.00 د.م.</div>
+                            </div>
+
+                            <div class="wal-section-title" data-i18n="driverWallet.mock2.txTitle">سجل المعاملات</div>
+
+                            <div class="wal-empty">
+                                <div class="icon">🕐</div>
+                                <div class="msg" data-i18n="driverWallet.mock2.emptyMsg">لا توجد معاملات بعد</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- 6 -->
+    <div class="step">
+        <div class="step-number">6</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverWallet.step6.title">كيف أحدّث المعلومات؟</div>
+            <div class="step-desc" data-i18n-html="driverWallet.step6.body">
+                ببساطة: <strong>اسحب الصفحة للأسفل</strong> من أعلى الشاشة.
+                <ul>
+                    <li>يظهر مؤشر دائري صغير في الأعلى.</li>
+                    <li>يُعاد جلب رصيدك وقائمة معاملاتك من جديد.</li>
+                    <li>لا داعي لإغلاق الصفحة وفتحها مرة أخرى.</li>
+                </ul>
+                هذه الطريقة مفيدة إذا كنت تتوقع وصول دفعة جديدة أو شحناً حديثاً.
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         PART 2 — ADD CREDIT
+    ═══════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="driverWallet.part2.title">الجزء الثاني — صفحة «إضافة رصيد»</h2>
+
+    <!-- 7 -->
+    <div class="step">
+        <div class="step-number">7</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverWallet.step7.title">ماذا تجد في الصفحة؟</div>
+            <div class="step-desc" data-i18n-html="driverWallet.step7.body">
+                صفحة منفصلة تماماً عن صفحة «رصيدي». من الأعلى إلى الأسفل:
+                <ul>
+                    <li><strong>اسم الصفحة</strong>: «إضافة رصيد».</li>
+                    <li><strong>بطاقة الرصيد</strong> الحالي (للذكرى فقط — لا يمكن تعديله من هنا).</li>
+                    <li><strong>عنوان</strong>: «أدخل كود القسيمة».</li>
+                    <li><strong>حقل نص</strong> بأيقونة هدية 🎁 — هنا تكتب الكود.</li>
+                    <li><strong>زر كبير</strong>: «🎟️ استخدام القسيمة».</li>
+                </ul>
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="صفحة إضافة رصيد: بطاقة رصيد + حقل كود + زر استخدام"
+                    data-i18n-alt="driverWallet.shot3.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="bottom: 130px; left: 50%; translate: -50% 0;" aria-hidden="true">👇</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="app-bar">
+                            <span class="title" data-i18n="driverWallet.mock3.bar">إضافة رصيد</span>
+                        </div>
+                        <div class="ac-content">
+                            <div class="wal-balance-card">
+                                <div class="label" data-i18n="driverWallet.mock3.balanceLabel">رصيد المحفظة</div>
+                                <div class="amount" data-i18n="driverWallet.mock3.balanceAmount">165.50 د.م.</div>
+                            </div>
+
+                            <div class="ac-heading" data-i18n="driverWallet.mock3.heading">أدخل كود القسيمة</div>
+
+                            <div class="ac-field">
+                                <span class="icon">🎁</span>
+                                <span class="value" data-i18n="driverWallet.mock3.fieldPlaceholder">KOUBA-2026-XY12</span>
+                            </div>
+
+                            <div class="ac-btn">
+                                <span>🎟️</span>
+                                <span data-i18n="driverWallet.mock3.btnLabel">استخدام القسيمة</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- 8 -->
+    <div class="step">
+        <div class="step-number">8</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverWallet.step8.title">لماذا يظهر تحذير أحياناً؟</div>
+            <div class="step-desc" data-i18n-html="driverWallet.step8.body">
+                قبل قبول أي قسيمة، يتحقق التطبيق من <strong>سلامة هاتفك</strong> — للتأكد من
+                أنه ليس معدّلاً بشكل خطير (روت أو كسر حماية)، لأن ذلك قد يعرّض محفظتك للخطر.
+                <br><br>
+                إذا فشل الفحص:
+                <ul>
+                    <li>تظهر <strong>لافتة حمراء</strong> أعلى الصفحة بأيقونة درع 🛡️.</li>
+                    <li>يتحول الزر إلى <strong>رمادي معطّل</strong> — لا يمكن ضغطه.</li>
+                    <li>تظهر رسالة صغيرة تحته: <em>«فشل فحص الأمان»</em>.</li>
+                </ul>
+                <strong>لماذا؟</strong> حماية أموالك من أي تطبيق خارجي يحاول التلاعب بها.
+                إذا حدث هذا، استخدم هاتفاً آمناً (بدون روت) وأعد المحاولة.
+            </div>
+
+            <figure class="screen-mock" role="img"
+                    aria-label="صفحة إضافة رصيد مع تحذير أمني: لافتة حمراء + زر معطّل"
+                    data-i18n-alt="driverWallet.shot4.alt">
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="hand" style="top: 175px; right: 20px;" aria-hidden="true">👉</span>
+                        <div class="status-bar"><span>9:41</span><span class="icons">📶 🔋</span></div>
+                        <div class="app-bar">
+                            <span class="title" data-i18n="driverWallet.mock4.bar">إضافة رصيد</span>
+                        </div>
+                        <div class="ac-content">
+                            <div class="wal-balance-card">
+                                <div class="label" data-i18n="driverWallet.mock4.balanceLabel">رصيد المحفظة</div>
+                                <div class="amount" data-i18n="driverWallet.mock4.balanceAmount">165.50 د.م.</div>
+                            </div>
+
+                            <div class="ac-security-banner">
+                                <span class="icon">🛡️</span>
+                                <span data-i18n="driverWallet.mock4.securityMsg">فشل فحص أمان الجهاز — قد يكون هناك روت أو كسر حماية. استخدم جهازاً آمناً.</span>
+                            </div>
+
+                            <div class="ac-heading" data-i18n="driverWallet.mock4.heading">أدخل كود القسيمة</div>
+
+                            <div class="ac-field">
+                                <span class="icon">🎁</span>
+                                <span class="value" data-i18n="driverWallet.mock4.fieldPlaceholder">KOUBA-2026-XY12</span>
+                            </div>
+
+                            <div class="ac-btn disabled">
+                                <span>🎟️</span>
+                                <span data-i18n="driverWallet.mock4.btnLabel">استخدام القسيمة</span>
+                            </div>
+
+                            <div class="ac-error-hint" data-i18n="driverWallet.mock4.errorHint">فشل فحص الأمان</div>
+                        </div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+    </div>
+
+    <!-- 9 -->
+    <div class="step">
+        <div class="step-number">9</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverWallet.step9.title">كيف أستخدم القسيمة؟</div>
+            <div class="step-desc" data-i18n-html="driverWallet.step9.body">
+                بعد التأكد من أن هاتفك آمن:
+                <ol style="padding-right: 22px; margin-top: 8px;">
+                    <li>اكتب كود القسيمة في الحقل. لا تهم الأحرف الكبيرة أو الصغيرة.</li>
+                    <li>اضغط زر <strong>«استخدام القسيمة»</strong>.</li>
+                    <li>يتحول الزر إلى <strong>دائرة تحميل صغيرة</strong> — هذا يعني أن
+                        التطبيق يتحقق من الكود مع الخادم.</li>
+                    <li>انتظر بضع ثوانٍ. لا تضغط الزر مرة أخرى (لن يقبل التطبيق أي ضغطة
+                        أثناء المعالجة).</li>
+                </ol>
+                إذا نسيت كتابة أي كود وضغطت الزر فارغاً، تظهر رسالة قصيرة
+                <em>«قسيمة غير صالحة»</em> — ولن يُرسَل أي طلب للخادم.
+            </div>
+        </div>
+    </div>
+
+    <!-- 10 -->
+    <div class="step">
+        <div class="step-number">10</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverWallet.step10.title">ماذا يحدث إذا نجح الكود؟</div>
+            <div class="step-desc" data-i18n-html="driverWallet.step10.body">
+                عند قبول الخادم للقسيمة:
+                <ul>
+                    <li>يظهر <strong>شريط أخضر</strong> أسفل الشاشة: «X د.م. أُضيفت إلى
+                        محفظتك».</li>
+                    <li>يظهر <strong>شريط أزرق</strong> مباشرة بعده: «تم تنزيل الإيصال».</li>
+                    <li>يُمسح الحقل تلقائياً — جاهز لقسيمة أخرى إن أردت.</li>
+                    <li>يتحدث الرصيد المعروض في الأعلى فوراً.</li>
+                    <li>يظهر صف جديد «شحن المحفظة الرقمية» في سجل معاملاتك.</li>
+                    <li>يُفتح لك <strong>إيصال PDF</strong> جاهز للمشاركة أو الحفظ (الخطوة التالية).</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 11 -->
+    <div class="step">
+        <div class="step-number">11</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverWallet.step11.title">الإيصال الذي يظهر تلقائياً</div>
+            <div class="step-desc" data-i18n-html="driverWallet.step11.body">
+                بعد كل شحن ناجح، ينشئ التطبيق <strong>ملف PDF</strong> يفتحه ويشاركه تلقائياً
+                عبر نظام المشاركة في هاتفك. الإيصال يحتوي على:
+                <ul>
+                    <li><strong>شعار كوبا</strong> واسم الشركة.</li>
+                    <li>شريط أخضر كبير مكتوب عليه: <strong>«شراء ناجح»</strong>.</li>
+                    <li><strong>رقم القسيمة</strong> — محفوظ بخط مختلف لتمييزه.</li>
+                    <li><strong>المبلغ المضاف</strong> — مظلّل لسهولة قراءته.</li>
+                    <li><strong>نوع المحفظة</strong>: «سائق» أو «عميل».</li>
+                    <li><strong>الرصيد الجديد</strong> بعد الإضافة.</li>
+                    <li><strong>التاريخ والوقت</strong> بالتفصيل.</li>
+                    <li><strong>معلوماتك</strong>: اسمك، بريدك، ورقم هاتفك.</li>
+                    <li><strong>توقيع رقمي</strong> باسم المؤسس «محمد مصطفى لمجاهدي» مع تاريخ.</li>
+                    <li>أسفل الصفحة: <strong>كوبا – العيون، المغرب</strong> + إخلاء مسؤولية.</li>
+                </ul>
+                الإيصال باللغة العربية إذا كان تطبيقك عربياً، وبالإنجليزية لأي لغة أخرى.
+                يمكنك حفظه في ملفات هاتفك أو إرساله بالبريد إن احتجت.
+            </div>
+        </div>
+    </div>
+
+    <!-- 12 -->
+    <div class="step">
+        <div class="step-number">12</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverWallet.step12.title">ماذا لو ظهرت رسالة خطأ؟</div>
+            <div class="step-desc">
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="driverWallet.step12.table.colSituation">المشكلة</th>
+                            <th data-i18n="driverWallet.step12.table.colMsg">الرسالة التي تراها</th>
+                            <th data-i18n="driverWallet.step12.table.colWhat">ماذا تفعل</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n="driverWallet.step12.table.r1c1">الكود غير صحيح</td>
+                            <td data-i18n="driverWallet.step12.table.r1c2"><em>«قسيمة غير صالحة»</em></td>
+                            <td data-i18n="driverWallet.step12.table.r1c3">راجع الكود وأعد كتابته بعناية.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverWallet.step12.table.r2c1">الكود استُخدم من قبل</td>
+                            <td data-i18n="driverWallet.step12.table.r2c2">نفس الرسالة: <em>«قسيمة غير صالحة»</em></td>
+                            <td data-i18n="driverWallet.step12.table.r2c3">التطبيق لا يخبرك أن الكود مستخدم — اتصل بالدعم للتأكد.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverWallet.step12.table.r3c1">انتهت صلاحية الكود</td>
+                            <td data-i18n="driverWallet.step12.table.r3c2"><em>«انتهت صلاحية القسيمة»</em></td>
+                            <td data-i18n="driverWallet.step12.table.r3c3">اطلب كوداً جديداً من مصدره.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverWallet.step12.table.r4c1">مشكلة في الإنترنت</td>
+                            <td data-i18n="driverWallet.step12.table.r4c2"><em>«حدث خطأ ما»</em></td>
+                            <td data-i18n="driverWallet.step12.table.r4c3">تحقق من اتصالك وأعد المحاولة.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverWallet.step12.table.r5c1">الهاتف غير آمن</td>
+                            <td data-i18n="driverWallet.step12.table.r5c2">لافتة حمراء + زر معطّل</td>
+                            <td data-i18n="driverWallet.step12.table.r5c3">استخدم هاتفاً بدون روت / كسر حماية.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 13 -->
+    <div class="step">
+        <div class="step-number">13</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverWallet.step13.title">كيف ترتبط الصفحتان؟</div>
+            <div class="step-desc" data-i18n-html="driverWallet.step13.body">
+                بسيط جداً:
+                <ul>
+                    <li>«رصيدي» = <strong>تعرض</strong> ما تملكه وتاريخ الحركات.</li>
+                    <li>«إضافة رصيد» = <strong>تُضيف</strong> مبلغاً جديداً عبر قسيمة.</li>
+                    <li>بعد كل شحن ناجح، تُحدَّث صفحة «رصيدي» تلقائياً — وسترى الرصيد
+                        الجديد وصف «شحن المحفظة الرقمية» في القائمة.</li>
+                    <li>لا يمكنك سحب الأموال أو تحويلها من أي من الصفحتين — فقط عرض
+                        وإضافة.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         RULES
+    ═══════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="driverWallet.rulesHeading">قواعد يجب معرفتها</h2>
+
+    <div class="callout callout-info">
+        <div class="callout-icon">🔐</div>
+        <div class="callout-body" data-i18n-html="driverWallet.rules.security">
+            <strong>لماذا يفحص التطبيق هاتفي؟</strong>
+            الهواتف المعدّلة (روت أو كسر حماية) قد تسمح لتطبيقات أخرى بسرقة كود القسيمة
+            أو التلاعب بالمحفظة. لذلك يمنع التطبيق استخدام القسائم على هاتف غير آمن.
+            استخدم هاتفاً عادياً — الفحص يحدث في ثانية واحدة فقط.
+        </div>
+    </div>
+
+    <div class="callout callout-warn">
+        <div class="callout-icon">⚠️</div>
+        <div class="callout-body" data-i18n-html="driverWallet.rules.duplicateMsg">
+            <strong>لماذا لا يخبرني التطبيق أن الكود مستخدم من قبل؟</strong>
+            لأسباب أمنية، يعرض التطبيق نفس الرسالة «قسيمة غير صالحة» في حالات كثيرة
+            (كود خاطئ، كود مستخدم، كود غير موجود). إذا كنت متأكداً أن الكود صحيح ولم
+            يعمل، تواصل مع الدعم لمراجعة الحالة.
+        </div>
+    </div>
+
+    <div class="callout callout-success">
+        <div class="callout-icon">📄</div>
+        <div class="callout-body" data-i18n-html="driverWallet.rules.receipt">
+            <strong>احفظ إيصالك:</strong>
+            الإيصال يُفتح تلقائياً بعد كل شحن، لكنه يُحفظ في مجلد مؤقت. إذا احتجته
+            للمحاسبة أو للأرشيف، احفظ نسخة في ملفات هاتفك أو أرسله إلى بريدك.
+        </div>
+    </div>
+
+    <div class="callout callout-danger">
+        <div class="callout-icon">🚫</div>
+        <div class="callout-body" data-i18n-html="driverWallet.rules.noWithdrawal">
+            <strong>لا يوجد زر «سحب»:</strong>
+            لن تجد في هذه الصفحات أي خيار لسحب أموالك نقداً. لتحويل رصيدك إلى حسابك
+            البنكي، تواصل مع فريق الدعم — هذه التفاصيل خارج الصفحتين.
+        </div>
+    </div>
+
+    <!-- ─── Next / prev ──────────────────────────────────── -->
+    <div class="next-prev">
+        <a class="nav-btn" href="driver-3-edit-profile.html" data-i18n="driverWallet.nav.prev">→ السابق: الملف الشخصي</a>
+        <a class="nav-btn" href="driver-5-support.html" data-i18n="driverWallet.nav.next">التالي: التواصل مع الدعم ←</a>
+    </div>
+
+    <div class="footer">
+        <span data-i18n="driverWallet.footer.copyright">© 2026 كوبا العيون – جميع الحقوق محفوظة</span><br>
+        <a href="https://legal.kouba.site/privacy-ar" data-i18n="driverWallet.footer.privacy">سياسة الخصوصية</a>
+        &nbsp;•&nbsp;
+        <a href="https://legal.kouba.site/terms-ar" data-i18n="driverWallet.footer.terms">شروط الخدمة</a>
+    </div>
+</div>
+
+<!-- i18n loader -->
+<script>
+(function () {
+    try {
+        var lang = new URLSearchParams(location.search).get('lang');
+        if (!lang || lang === 'ar') return;
+        fetch('i18n/' + lang + '.json')
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (t) {
+                if (!t) return;
+                document.querySelectorAll('[data-i18n]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n')];
+                    if (v != null) el.textContent = v;
+                });
+                document.querySelectorAll('[data-i18n-html]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n-html')];
+                    if (v != null) el.innerHTML = v;
+                });
+                document.querySelectorAll('[data-i18n-alt]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n-alt')];
+                    if (v == null) return;
+                    if (el.tagName === 'IMG') el.alt = v;
+                    else el.setAttribute('aria-label', v);
+                });
+            })
+            .catch(function () {});
+    } catch (e) {}
+})();
+</script>
+</body>
+</html>

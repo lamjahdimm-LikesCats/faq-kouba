@@ -1,0 +1,1720 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="driverDeliver.pageTitle">استقبال الطلبات والتوصيل – دليل السائق</title>
+    <!--
+    ──────────────────────────────────────────────────────────────
+    THEME — ROSS palette (driver). Dusty rose, no orange.
+    .alert-header       → rose tint (was amber)
+    .alert-countdown    → rose tint (was blue)
+    .panel-mock         → rose border/pill (was orange)
+    .delivery-pill      → rose when selected (was orange)
+    .callout-warn       → rose warning (was orange)
+    .callout-info       → rose tint (was light blue)
+    .field-table th     → neutral #f1f5f9 (was amber)
+    SVG map markers:
+        driver marker → #b76e79 (rose, was blue)
+        client marker → #5c3438 (deep rose-brown, was orange)
+    Semantic colors KEPT:
+        accept button (green), deny button (red)
+        allowed driver in geofence (green)
+        not-allowed driver in geofence (red)
+        accepted request C in 1.6km diagram (green)
+        rejected request D in 1.6km diagram (red)
+        scenario.do (green), scenario.dont (red)
+
+    LOCALIZATION
+    data-i18n / data-i18n-html / data-i18n-alt
+    Arabic is fallback. i18n/en.json, fr.json, es.json.
+    ──────────────────────────────────────────────────────────────
+    -->
+    <style>
+        :root {
+            --accent:        #b76e79;
+            --accent-dark:   #5c3438;
+            --accent-light:  #a6747c;
+            --accent-muted:  #c9a5ab;
+            --bg-page:       #f9f4f5;
+            --bg-subtle:     #fdf8f9;
+            --bg-highlight:  #faeeee;
+            --border:        #ecdde0;
+            --border-hover:  #b76e79;
+            --shadow-hover:  rgba(183, 110, 121, 0.15);
+            --warn-bg:       #f5eef0;
+            --warn-border:   #5c3438;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Cairo', 'Inter', -apple-system, 'Segoe UI', sans-serif;
+            background: var(--bg-page);
+            color: #1e293b;
+            line-height: 1.75;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px 45px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--accent);
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        .back-link:hover { text-decoration: underline; }
+        h1 {
+            color: var(--accent-dark);
+            border-bottom: 3px solid var(--accent);
+            padding-bottom: 12px;
+            margin-bottom: 8px;
+            font-size: 1.9rem;
+        }
+        .subtitle {
+            font-size: 1rem;
+            color: var(--accent-light);
+            margin-bottom: 30px;
+        }
+
+        .intro-box {
+            background: var(--bg-highlight);
+            border-right: 4px solid var(--accent);
+            padding: 15px 18px;
+            border-radius: 12px;
+            margin: 0 0 30px 0;
+            font-size: 0.95rem;
+        }
+        .intro-box ul { padding-right: 22px; margin-top: 8px; }
+        .intro-box li { margin-bottom: 4px; }
+
+        /* ─── Steps ─────────────────────────────────────────── */
+        .step {
+            display: flex;
+            gap: 18px;
+            margin-bottom: 28px;
+            align-items: flex-start;
+        }
+        .step-number {
+            flex-shrink: 0;
+            width: 38px;
+            height: 38px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 2px;
+        }
+        .step-body { flex: 1; }
+        .step-title {
+            font-weight: bold;
+            color: var(--accent-dark);
+            font-size: 1.08rem;
+            margin-bottom: 6px;
+        }
+        .step-desc {
+            font-size: 0.95rem;
+            color: #334155;
+        }
+        .step-desc ul {
+            padding-right: 22px;
+            margin-top: 8px;
+        }
+        .step-desc li { margin-bottom: 6px; }
+
+        /* ─── Tables ──────────────────────────────────────── */
+        .field-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0 6px;
+            font-size: 0.9rem;
+        }
+        .field-table th,
+        .field-table td {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            text-align: right;
+        }
+        .field-table th {
+            background: #f1f5f9;
+            color: var(--accent-dark);
+            font-weight: bold;
+        }
+        .field-table tr:nth-child(even) td { background: #fafafa; }
+
+        /* ─── Callouts ────────────────────────────────────── */
+        .callout {
+            display: flex;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            margin: 16px 0;
+            font-size: 0.92rem;
+            align-items: flex-start;
+        }
+        .callout-icon { flex-shrink: 0; font-size: 1.15rem; margin-top: 1px; }
+        .callout-body { flex: 1; }
+        .callout-warn   { background: var(--warn-bg); border-right: 4px solid var(--warn-border); }
+        .callout-danger { background: #fef2f2; border-right: 4px solid #ef4444; }
+        .callout-info   { background: var(--bg-highlight); border-right: 4px solid var(--accent); }
+        .callout-success{ background: #f0fdf4; border-right: 4px solid #22c55e; }
+        .callout strong { color: var(--accent-dark); }
+
+        /* ─── Alert overlay mock ─────────────────────────── */
+        .alert-mock {
+            background: rgba(0,0,0,0.85);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 14px 0;
+        }
+        .alert-card {
+            background: white;
+            border-radius: 14px;
+            overflow: hidden;
+            max-width: 380px;
+            margin: 0 auto;
+        }
+        .alert-header {
+            background: var(--bg-highlight);
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .alert-header .bell { font-size: 1.4rem; }
+        .alert-header .title {
+            font-weight: bold;
+            color: var(--accent-dark);
+            font-size: 1rem;
+        }
+        .alert-body { padding: 16px; }
+        .alert-price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .alert-price-row .label { color: var(--accent-light); font-size: 0.82rem; }
+        .alert-price-row .price {
+            color: #16a34a;
+            font-weight: bold;
+            font-size: 1.15rem;
+        }
+        .alert-row {
+            display: flex;
+            gap: 8px;
+            padding: 4px 0;
+            font-size: 0.82rem;
+        }
+        .alert-row .k { color: var(--accent-muted); min-width: 75px; }
+        .alert-row .v { color: var(--accent-dark); font-weight: 500; flex: 1; }
+        .alert-countdown {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-highlight);
+            border-radius: 8px;
+            padding: 8px 10px;
+            margin: 10px 0;
+            font-size: 0.85rem;
+            color: var(--accent-dark);
+            font-weight: 600;
+        }
+        .alert-countdown.urgent {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+        .alert-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .alert-actions .btn {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.88rem;
+        }
+        .alert-actions .deny {
+            border: 1.5px solid #ef4444;
+            color: #ef4444;
+        }
+        .alert-actions .accept {
+            background: #22c55e;
+            color: white;
+        }
+
+        /* ─── Map mock (SVG-based) ────────────────────────── */
+        .map-mock {
+            background: #e8eef5;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            margin: 12px 0;
+            padding: 0;
+        }
+        .map-mock svg {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        /* ─── Bottom panel mock ───────────────────────────── */
+        .panel-mock {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            margin: 10px 0;
+            border-top: 3px solid var(--accent);
+            font-size: 0.85rem;
+        }
+        .panel-mock .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .panel-mock .pill {
+            background: var(--bg-highlight);
+            color: var(--accent-dark);
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            border: 1px solid var(--accent);
+        }
+        .panel-mock .status-pill {
+            background: var(--accent);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        .panel-mock .info-row {
+            display: flex;
+            gap: 8px;
+            padding: 3px 0;
+            color: #475569;
+        }
+        .panel-mock .info-row .k { color: var(--accent-muted); }
+        .panel-mock .btn-disabled {
+            background: var(--accent-muted);
+            color: white;
+            padding: 8px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.85rem;
+            margin-top: 8px;
+        }
+
+        /* ─── Pill row (multi delivery) ──────────────────── */
+        .pill-row {
+            display: flex;
+            gap: 8px;
+            margin: 8px 0;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .delivery-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            border: 1px solid;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .delivery-pill.selected {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+        .delivery-pill.unselected {
+            background: var(--bg-subtle);
+            color: var(--accent-light);
+            border-color: var(--border);
+        }
+        .delivery-pill .order {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            font-size: 0.68rem;
+            font-weight: bold;
+        }
+        .delivery-pill.selected .order {
+            background: white;
+            color: var(--accent);
+        }
+        .delivery-pill.unselected .order {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* ─── Diagrams (geofence, 1.6km) ─────────────────── */
+        .diagram {
+            background: var(--bg-subtle);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            margin: 14px 0;
+            text-align: center;
+        }
+        .diagram svg {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        .diagram-legend {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            font-size: 0.8rem;
+        }
+        .diagram-legend .item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .diagram-legend .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        /* ─── Scenario cards — semantic colors kept ──────── */
+        .scenario {
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            margin: 12px 0;
+            background: var(--bg-subtle);
+        }
+        .scenario.do {
+            border-color: #86efac;
+            background: #f0fdf4;
+        }
+        .scenario.dont {
+            border-color: #fca5a5;
+            background: #fef2f2;
+        }
+        .scenario-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .scenario.do .scenario-title { color: #15803d; }
+        .scenario.dont .scenario-title { color: #991b1b; }
+
+        .section-title {
+            color: var(--accent-dark);
+            font-size: 1.25rem;
+            margin: 34px 0 14px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--accent-muted);
+        }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        .next-prev {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: var(--bg-subtle);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--accent-dark);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .nav-btn:hover {
+            border-color: var(--accent);
+            box-shadow: 0 6px 16px var(--shadow-hover);
+            text-decoration: none;
+        }
+
+        @media (max-width: 700px) {
+            .container { padding: 25px 20px; }
+            h1 { font-size: 1.5rem; }
+            .step { gap: 12px; }
+            .step-number { width: 32px; height: 32px; font-size: 0.9rem; }
+            .field-table { font-size: 0.82rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a class="back-link" href="driver.html" data-i18n="driverDeliver.back">→ العودة إلى دليل السائق</a>
+
+    <h1 data-i18n="driverDeliver.heading">🚚 استقبال الطلبات والتوصيل</h1>
+    <p class="subtitle" data-i18n="driverDeliver.subtitle">من التنبيه بصوت عالٍ حتى تأكيد التسليم — مع أو بدون عميل آخر في الخلفية.</p>
+
+    <div class="intro-box" data-i18n-html="driverDeliver.intro">
+        <strong>قبل البدء:</strong> هذا هو قلب عمل السائق. الصفحة تغطي:
+        <ul>
+            <li><strong>التنبيه</strong> الذي يظهر فجأة على الشاشة عند وصول طلب.</li>
+            <li><strong>شاشة التتبع المباشر</strong> بعد قبول الطلب.</li>
+            <li><strong>التوصيل الواحد</strong> مقابل <strong>عدة توصيلات</strong> في نفس الوقت.</li>
+            <li><strong>المسافات والنطاقات الأربعة</strong> — ديناميكية، 200 م، 1.6 كم، ونطاق البحث.</li>
+        </ul>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         PART 1 — THE ALERT
+    ═══════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="driverDeliver.part1.title">الجزء الأول — التنبيه عند وصول طلب</h2>
+
+    <!-- 1 -->
+    <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step1.title">كيف يظهر التنبيه؟</div>
+            <div class="step-desc" data-i18n-html="driverDeliver.step1.body">
+                عندما يُرسل لك طلب، يظهر تنبيه على الشاشة <strong>فوق أي شيء آخر</strong> —
+                حتى لو كنت تستخدم شاشة أخرى في التطبيق. في نفس اللحظة:
+                <ul>
+                    <li>يُشغَّل <strong>صوت تنبيه</strong>.</li>
+                    <li>يهتز الهاتف بنمط <strong>اهتزاز-توقف-اهتزاز</strong>.</li>
+                    <li>يظهر عدّاد تنازلي <strong>من 60 ثانية</strong>.</li>
+                </ul>
+            </div>
+            <div class="alert-mock">
+                <div class="alert-card">
+                    <div class="alert-header">
+                        <span class="bell">🔔</span>
+                        <span class="title" data-i18n="driverDeliver.step2.alert.title">طلب كوبا جديد</span>
+                    </div>
+                    <div class="alert-body">
+                        <div class="alert-price-row">
+                            <span class="label" data-i18n="driverDeliver.step2.alert.priceLabel">السعر</span>
+                            <span class="price">6.50 د.م.</span>
+                        </div>
+                        <div class="alert-row">
+                            <span class="k" data-i18n="driverDeliver.step2.alert.sourceLabel">مصدر المياه</span>
+                            <span class="v" data-i18n="driverDeliver.step2.alert.sourceValue">ماء شروب</span>
+                        </div>
+                        <div class="alert-row">
+                            <span class="k" data-i18n="driverDeliver.step2.alert.qtyLabel">الكمية</span>
+                            <span class="v" data-i18n="driverDeliver.step2.alert.qtyValue">0.5 طن</span>
+                        </div>
+                        <div class="alert-row">
+                            <span class="k" data-i18n="driverDeliver.step2.alert.locLabel">الموقع</span>
+                            <span class="v" data-i18n="driverDeliver.step2.alert.locValue">حي السلام، زنقة 12</span>
+                        </div>
+                        <div class="alert-row">
+                            <span class="k" data-i18n="driverDeliver.step2.alert.markLabel">علامة</span>
+                            <span class="v" data-i18n="driverDeliver.step2.alert.markValue">بجانب مسجد النور</span>
+                        </div>
+                        <div class="alert-row">
+                            <span class="k" data-i18n="driverDeliver.step2.alert.customerLabel">العميل</span>
+                            <span class="v" data-i18n="driverDeliver.step2.alert.customerValue">فاطمة ب.</span>
+                        </div>
+                        <div class="alert-countdown urgent">
+                            <span>⏱️</span>
+                            <span data-i18n="driverDeliver.step2.alert.countdown">8 ثوانٍ متبقية للتأكيد</span>
+                        </div>
+                        <div class="alert-actions">
+                            <div class="btn deny" data-i18n="driverDeliver.step2.alert.deny">رفض</div>
+                            <div class="btn accept" data-i18n="driverDeliver.step2.alert.accept">قبول</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step2.title">ماذا تعرض البطاقة؟</div>
+            <div class="step-desc">
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="driverDeliver.step2.table.colElement">العنصر</th>
+                            <th data-i18n="driverDeliver.step2.table.colShows">ماذا يعرض</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td data-i18n="driverDeliver.step2.table.r1c1">السعر</td><td data-i18n="driverDeliver.step2.table.r1c2">المبلغ الكلي الذي سيدفعه العميل (سعر أساسي + زيادة إن وُجدت).</td></tr>
+                        <tr><td data-i18n="driverDeliver.step2.table.r2c1">مصدر المياه</td><td data-i18n="driverDeliver.step2.table.r2c2">اسم المصدر (ماء شروب / بئر / محلّى …).</td></tr>
+                        <tr><td data-i18n="driverDeliver.step2.table.r3c1">الكمية</td><td data-i18n="driverDeliver.step2.table.r3c2">بالطن (قد يكون 0.5، 1، 1.5 …).</td></tr>
+                        <tr><td data-i18n="driverDeliver.step2.table.r4c1">الموقع الدقيق</td><td data-i18n="driverDeliver.step2.table.r4c2">عنوان العميل الذي كتبه بنفسه.</td></tr>
+                        <tr><td data-i18n="driverDeliver.step2.table.r5c1">العلامة المميزة</td><td data-i18n="driverDeliver.step2.table.r5c2">نقطة استدلال للوصول (إن وُجدت).</td></tr>
+                        <tr><td data-i18n="driverDeliver.step2.table.r6c1">اسم العميل</td><td data-i18n="driverDeliver.step2.table.r6c2">الاسم الأول للتعرف.</td></tr>
+                        <tr><td data-i18n="driverDeliver.step2.table.r7c1">رقم الهاتف</td><td data-i18n="driverDeliver.step2.table.r7c2">يظهر إن كان العميل قد أضافه (اختياري).</td></tr>
+                        <tr><td data-i18n="driverDeliver.step2.table.r8c1">العدّاد</td><td data-i18n="driverDeliver.step2.table.r8c2">يبدأ من 60 ثانية، يتحول للأحمر عند 10.</td></tr>
+                        <tr><td data-i18n="driverDeliver.step2.table.r9c1">ترتيبك في القائمة</td><td data-i18n="driverDeliver.step2.table.r9c2">مثال: «2 من 4 سائقين» — أي أنك السائق الثاني.</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="callout callout-info">
+                    <div class="callout-icon">💡</div>
+                    <div class="callout-body" data-i18n-html="driverDeliver.step2.callout">
+                        <strong>الأسعار واقعية:</strong>
+                        السعر الأساسي في كوبا <strong>5 د.م.</strong> لكل توصيل. تزداد الزيادة
+                        فقط عند الطلب المرتفع (ساعات الذروة). مثال السعر 6.50 د.م. أعلاه
+                        يشمل زيادة 30%.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step3.title">القبول أو الرفض</div>
+            <div class="step-desc" data-i18n-html="driverDeliver.step3.body">
+                أمامك قراران:
+                <ul>
+                    <li><strong>قبول (Accept):</strong> الزر الأخضر. يُرسل طلبك للخادم لقبول المطابقة.</li>
+                    <li><strong>رفض (Deny):</strong> الزر الأحمر. يُعلم النظام أنك غير متاح للطلب.</li>
+                    <li>إذا انتهت الـ60 ثانية دون إجراء، <strong>يُرفض الطلب تلقائياً</strong>.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step4.title">ماذا لو سبقك سائق آخر؟</div>
+            <div class="step-desc" data-i18n-html="driverDeliver.step4.body">
+                الطلب يُرسَل لعدة سائقين في نفس الوقت. أول من يقبل يفوز. إذا سبقك أحدهم:
+                <ul>
+                    <li>يختفي التنبيه <strong>تلقائياً</strong>.</li>
+                    <li>لا تحتاج لفعل أي شيء.</li>
+                    <li>تظهر رسالة قصيرة أن السائق الآخر قبل الطلب.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="step">
+        <div class="step-number">5</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step5.title">متى لا يمكنك قبول الطلب؟</div>
+            <div class="step-desc">
+                <div data-i18n="driverDeliver.step5.intro">
+                    بعض الأخطاء المحتملة عند الضغط على «قبول»:
+                </div>
+
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="driverDeliver.step5.table.colError">الخطأ</th>
+                            <th data-i18n="driverDeliver.step5.table.colMeaning">ما معناه</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n="driverDeliver.step5.table.r1c1">رصيد غير كافٍ</td>
+                            <td data-i18n="driverDeliver.step5.table.r1c2">محفظتك لا تكفي لتغطية رسم المنصة. اشحنها.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverDeliver.step5.table.r2c1">سعة غير كافية</td>
+                            <td data-i18n="driverDeliver.step5.table.r2c2">الكمية المطلوبة أكبر من سعة خزانك المتبقية.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverDeliver.step5.table.r3c1">انتهت صلاحية المطابقة</td>
+                            <td data-i18n="driverDeliver.step5.table.r3c2">مرت الـ60 ثانية قبل وصول الضغطة للخادم.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6 -->
+    <div class="step">
+        <div class="step-number">6</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step6.title">ماذا يحدث بعد القبول؟</div>
+            <div class="step-desc">
+                <div data-i18n="driverDeliver.step6.intro">عند النجاح:</div>
+                <ul>
+                    <li data-i18n="driverDeliver.step6.b1">يختفي التنبيه فوراً.</li>
+                    <li data-i18n-html="driverDeliver.step6.b2">تُفتح شاشة <strong>التتبع المباشر</strong> تلقائياً.</li>
+                    <li data-i18n="driverDeliver.step6.b3">يبدأ التطبيق بإرسال موقعك إلى العميل.</li>
+                </ul>
+                <div class="callout callout-info">
+                    <div class="callout-icon">📌</div>
+                    <div class="callout-body" data-i18n-html="driverDeliver.step6.callout">
+                        <strong>التنبيه لا يظهر مرتين لنفس الطلب:</strong>
+                        بعد قبولك، لا يمكن أن يعاود التنبيه الظهور لنفس المطابقة — حتى لو
+                        تأخر تحديث الخادم. نظام الحماية يمنع ذلك لمدة 15 ثانية.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         PART 2 — LIVE TRACKING (SINGLE DELIVERY)
+    ═══════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="driverDeliver.part2.title">الجزء الثاني — شاشة التتبع المباشر (توصيل واحد)</h2>
+
+    <!-- 7 -->
+    <div class="step">
+        <div class="step-number">7</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step7.title">نظرة عامة على الشاشة</div>
+            <div class="step-desc" data-i18n-html="driverDeliver.step7.body">
+                بعد قبول الطلب، تفتح شاشة التتبع. تحتوي على:
+                <ul>
+                    <li><strong>خريطة</strong> تعرض موقعك وموقع العميل والطريق بينهما.</li>
+                    <li><strong>لوحة سفلية</strong> بمعلومات العميل والأزرار.</li>
+                    <li><strong>شريط عنوان</strong> فيه زر الرجوع + زر تحديث المسار.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8 -->
+    <div class="step">
+        <div class="step-number">8</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step8.title">ما على الخريطة؟</div>
+            <div class="step-desc">
+                <div data-i18n="driverDeliver.step8.intro">ترى ثلاثة عناصر فقط:</div>
+
+                <div class="map-mock">
+                    <svg viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+                        <rect width="400" height="240" fill="#eef2f7"/>
+                        <g stroke="#d0d9e5" stroke-width="1" opacity="0.85">
+                            <line x1="0" y1="40" x2="400" y2="40"/>
+                            <line x1="0" y1="80" x2="400" y2="80"/>
+                            <line x1="0" y1="120" x2="400" y2="120"/>
+                            <line x1="0" y1="160" x2="400" y2="160"/>
+                            <line x1="0" y1="200" x2="400" y2="200"/>
+                            <line x1="40" y1="0" x2="40" y2="240"/>
+                            <line x1="80" y1="0" x2="80" y2="240"/>
+                            <line x1="120" y1="0" x2="120" y2="240"/>
+                            <line x1="160" y1="0" x2="160" y2="240"/>
+                            <line x1="200" y1="0" x2="200" y2="240"/>
+                            <line x1="240" y1="0" x2="240" y2="240"/>
+                            <line x1="280" y1="0" x2="280" y2="240"/>
+                            <line x1="320" y1="0" x2="320" y2="240"/>
+                            <line x1="360" y1="0" x2="360" y2="240"/>
+                        </g>
+                        <path d="M 60 180 Q 140 140, 220 120 T 340 60"
+                              stroke="#b76e79" stroke-width="5" fill="none"
+                              stroke-linecap="round" opacity="0.9"/>
+                        <circle cx="60" cy="180" r="17" fill="#b76e79"
+                                stroke="white" stroke-width="3"/>
+                        <text x="60" y="187" fill="white" font-size="14"
+                              text-anchor="middle" font-weight="bold">🚚</text>
+                        <circle cx="340" cy="60" r="17" fill="#5c3438"
+                                stroke="white" stroke-width="3"/>
+                        <text x="340" y="66" fill="white" font-size="12"
+                              text-anchor="middle" font-weight="bold">1</text>
+                    </svg>
+                </div>
+
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="driverDeliver.step8.table.colElement">العنصر</th>
+                            <th data-i18n="driverDeliver.step8.table.colMeaning">ماذا يمثل</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n-html="driverDeliver.step8.table.r1c1"><strong>الدائرة الوردية</strong> (🚚)</td>
+                            <td data-i18n="driverDeliver.step8.table.r1c2">موقعك الحالي — يتحرك معك أثناء القيادة.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n-html="driverDeliver.step8.table.r2c1"><strong>الدائرة العميقة</strong> (1)</td>
+                            <td data-i18n="driverDeliver.step8.table.r2c2">موقع العميل. الرقم = ترتيب التوصيل.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n-html="driverDeliver.step8.table.r3c1"><strong>الخط الوردي</strong></td>
+                            <td data-i18n="driverDeliver.step8.table.r3c2">المسار المقترح من موقعك إلى العميل (عبر شوارع فعلية).</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9 -->
+    <div class="step">
+        <div class="step-number">9</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step9.title">اللوحة السفلية — المعلومات</div>
+            <div class="step-desc">
+                <div class="panel-mock">
+                    <div class="header-row">
+                        <span class="pill" data-i18n="driverDeliver.step9.panel.pill">👤 العميل 1/1 • فاطمة ب.</span>
+                        <span class="status-pill" data-i18n="driverDeliver.step9.panel.statusActive">نشط</span>
+                    </div>
+                    <div class="info-row">
+                        <span>👤</span>
+                        <span class="k" data-i18n="driverDeliver.step9.panel.customerLabel">العميل:</span>
+                        <span data-i18n="driverDeliver.step9.panel.customerValue">فاطمة ب.</span>
+                    </div>
+                    <div class="info-row">
+                        <span>📍</span>
+                        <span class="k" data-i18n="driverDeliver.step9.panel.locLabel">الموقع:</span>
+                        <span data-i18n="driverDeliver.step9.panel.locValue">حي السلام، زنقة 12</span>
+                    </div>
+                    <div class="info-row">
+                        <span>🗺️</span>
+                        <span class="k" data-i18n="driverDeliver.step9.panel.markLabel">علامة:</span>
+                        <span data-i18n="driverDeliver.step9.panel.markValue">بجانب مسجد النور</span>
+                    </div>
+                    <div class="info-row">
+                        <span>🚗</span>
+                        <span class="k" data-i18n="driverDeliver.step9.panel.distLabel">المسافة:</span>
+                        <span data-i18n="driverDeliver.step9.panel.distValue">2.3 كم</span>
+                    </div>
+                    <div class="btn-disabled" data-i18n="driverDeliver.step9.panel.btnArrived">📍 وصلت — اقترب أكثر</div>
+                </div>
+
+                <p style="margin-top:10px; font-size:0.88rem;" data-i18n-html="driverDeliver.step9.footnote">
+                    <strong>ملاحظة:</strong> المسافة هنا <strong>تتحدّث تلقائياً</strong> كل
+                    ثانيتين مع تحركك. لا تحتاج لأي إجراء. التفاصيل الكاملة في الجزء الرابع.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 10 -->
+    <div class="step">
+        <div class="step-number">10</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step10.title">زر «وصلت»</div>
+            <div class="step-desc">
+                <div data-i18n-html="driverDeliver.step10.intro">
+                    الزر الأزرق <strong>«وصلت»</strong> لا يعمل دائماً — يعمل فقط عندما تكون
+                    <strong>قريباً من العميل</strong>. القاعدة الكاملة مشروحة في
+                    <strong>الجزء الرابع</strong> (المسافات والنطاقات).
+                </div>
+
+                <div class="callout callout-info">
+                    <div class="callout-icon">📍</div>
+                    <div class="callout-body" data-i18n-html="driverDeliver.step10.callout">
+                        <strong>باختصار:</strong>
+                        الزر يفتح تلقائياً عندما تكون على بعد <strong>200 متر</strong>
+                        أو أقل من موقع العميل. تحته يظهر النص: <em>«اقترب — أنت على بعد X متر»</em>
+                        عندما لا تزال بعيداً.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 11 -->
+    <div class="step">
+        <div class="step-number">11</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step11.title">التحقق الآمن (Handshake)</div>
+            <div class="step-desc">
+                <div data-i18n-html="driverDeliver.step11.intro">
+                    بمجرد وصولك، يحاول التطبيق <strong>تلقائياً</strong> الاتصال بهاتف العميل
+                    عبر Bluetooth أو NFC. هذا يضمن أنك فعلاً عند العميل الصحيح، وليس مجرد
+                    شخص يدّعي الوصول.
+                </div>
+                <ul>
+                    <li data-i18n="driverDeliver.step11.b1">يطلب منك التطبيق السماح بالوصول إلى Bluetooth و NFC في المرة الأولى.</li>
+                    <li data-i18n-html="driverDeliver.step11.b2">يبدأ البحث تلقائياً لمدة <strong>20 ثانية</strong>.</li>
+                    <li data-i18n="driverDeliver.step11.b3">خلال هذا الوقت يظهر مؤشر «جارٍ الفحص…» في شريط العنوان.</li>
+                </ul>
+
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="driverDeliver.step11.table.colResult">النتيجة</th>
+                            <th data-i18n="driverDeliver.step11.table.colWhat">ما يحدث</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n="driverDeliver.step11.table.r1c1">✅ عُثر على العميل</td>
+                            <td data-i18n-html="driverDeliver.step11.table.r1c2">يُكمل التطبيق التسليم <strong>تلقائياً</strong> وتظهر رسالة نجاح خضراء.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverDeliver.step11.table.r2c1">❌ لم يُعثر عليه</td>
+                            <td data-i18n="driverDeliver.step11.table.r2c2">يظهر مربع حوار: «لم نتمكن من الاتصال. اطلب من العميل التأكيد؟»</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="callout callout-warn">
+                    <div class="callout-icon">📶</div>
+                    <div class="callout-body" data-i18n-html="driverDeliver.step11.callout">
+                        <strong>لأفضل تجربة:</strong>
+                        أبقِ Bluetooth و NFC مفعّلين على هاتفك. إذا كنت تستخدم سماعة
+                        بلوتوث، لا مشكلة — التطبيق يميّز بين الأجهزة.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 12 -->
+    <div class="step">
+        <div class="step-number">12</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step12.title">تأكيد التسليم يدوياً</div>
+            <div class="step-desc">
+                <div data-i18n="driverDeliver.step12.intro">
+                    إذا لم ينجح التحقق التلقائي، يمكنك التأكيد يدوياً:
+                </div>
+                <ul>
+                    <li data-i18n-html="driverDeliver.step12.b1">اضغط زر <strong>«تأكيد التسليم»</strong> الأخضر.</li>
+                    <li data-i18n-html="driverDeliver.step12.b2">يظهر مربع حوار لتأكيد أنك فعلاً سلّمت المياه.</li>
+                    <li data-i18n="driverDeliver.step12.b3">وافق، وتنتهي المطابقة.</li>
+                </ul>
+                <div data-i18n="driverDeliver.step12.after">بعد التأكيد:</div>
+                <ul>
+                    <li data-i18n="driverDeliver.step12.c1">تُخصم رسوم المنصة (معفاة خلال الفترة التجريبية).</li>
+                    <li data-i18n="driverDeliver.step12.c2">يُضاف صافي الأرباح إلى محفظتك.</li>
+                    <li data-i18n="driverDeliver.step12.c3">يعود بك التطبيق إلى الشاشة الرئيسية.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 13 -->
+    <div class="step">
+        <div class="step-number">13</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step13.title">إلغاء الطلب</div>
+            <div class="step-desc">
+                <div data-i18n="driverDeliver.step13.intro">
+                    في أي لحظة قبل التأكيد، يمكنك إلغاء الطلب:
+                </div>
+                <ul>
+                    <li data-i18n-html="driverDeliver.step13.b1">اضغط زر <strong>«إلغاء الطلب»</strong> الأحمر.</li>
+                    <li data-i18n-html="driverDeliver.step13.b2">يظهر مربع حوار يطلب <strong>سبب الإلغاء</strong> (إلزامي).</li>
+                    <li data-i18n="driverDeliver.step13.b3">أكّد الإلغاء.</li>
+                </ul>
+                <div class="callout callout-danger">
+                    <div class="callout-icon">⚠️</div>
+                    <div class="callout-body" data-i18n-html="driverDeliver.step13.callout">
+                        <strong>رسم الإلغاء:</strong>
+                        الإلغاء بعد القبول قد يفرض عليك رسوماً. تكرار الإلغاء يؤثر
+                        على شارتك. ألغِ فقط عند الضرورة القصوى.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         PART 3 — MULTIPLE DELIVERIES
+    ═══════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="driverDeliver.part3.title">الجزء الثالث — عدة توصيلات في نفس الوقت</h2>
+
+    <!-- 14 -->
+    <div class="step">
+        <div class="step-number">14</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step14.title">ما الذي يتغير؟</div>
+            <div class="step-desc">
+                <div data-i18n="driverDeliver.step14.intro">
+                    يمكنك استقبال عدة طلبات متتالية دون إكمال الأول (بشرط أن تكون سعتك
+                    كافية وأن الطلب الجديد ضمن النطاق المسموح — انظر الجزء الرابع).
+                    الشاشة تتكيف تلقائياً:
+                </div>
+                <ul>
+                    <li data-i18n-html="driverDeliver.step14.b1">تظهر <strong>أقراص ملونة</strong> فوق اللوحة السفلية — قرص لكل عميل.</li>
+                    <li data-i18n-html="driverDeliver.step14.b2">تظهر <strong>عدة دوائر عميقة</strong> على الخريطة (واحدة لكل عميل).</li>
+                    <li data-i18n-html="driverDeliver.step14.b3">الخريطة واللوحة السفلية تُظهران <strong>العميل المحدد فقط</strong>.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 15 -->
+    <div class="step">
+        <div class="step-number">15</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step15.title">شريط الأقراص</div>
+            <div class="step-desc">
+                <div data-i18n="driverDeliver.step15.intro">
+                    فوق اللوحة السفلية، تظهر أقراص أفقية — واحد لكل توصيل:
+                </div>
+
+                <div class="pill-row">
+                    <div class="delivery-pill selected">
+                        <span class="order">1</span>
+                        <span data-i18n="driverDeliver.step15.pill1">فاطمة ب.</span>
+                    </div>
+                    <div class="delivery-pill unselected">
+                        <span class="order">2</span>
+                        <span data-i18n="driverDeliver.step15.pill2">محمد ع.</span>
+                    </div>
+                    <div class="delivery-pill unselected">
+                        <span class="order">3</span>
+                        <span data-i18n="driverDeliver.step15.pill3">ياسين ل.</span>
+                    </div>
+                </div>
+
+                <ul>
+                    <li data-i18n-html="driverDeliver.step15.b1"><strong>القرص المملوء (وردي):</strong> العميل المحدد حالياً.</li>
+                    <li data-i18n-html="driverDeliver.step15.b2"><strong>الأقراص الرمادية:</strong> عملاء آخرون في القائمة.</li>
+                    <li data-i18n="driverDeliver.step15.b3">الرقم داخل الدائرة = ترتيب التوصيل.</li>
+                    <li data-i18n="driverDeliver.step15.b4">اضغط على أي قرص للتبديل بين العملاء.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 16 -->
+    <div class="step">
+        <div class="step-number">16</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step16.title">كيف تتنقل بين التوصيلات؟</div>
+            <div class="step-desc">
+                <div data-i18n="driverDeliver.step16.intro">هناك طريقتان:</div>
+                <ul>
+                    <li data-i18n-html="driverDeliver.step16.b1"><strong>من شريط الأقراص:</strong> اضغط على قرص العميل الذي تريد.</li>
+                    <li data-i18n-html="driverDeliver.step16.b2"><strong>من الخريطة:</strong> اضغط مباشرة على دائرة العميل على الخريطة.</li>
+                </ul>
+                <div data-i18n="driverDeliver.step16.whenSwitch">عند التبديل:</div>
+                <ul>
+                    <li data-i18n="driverDeliver.step16.sw1">تتغير اللوحة السفلية لتعرض بيانات العميل الجديد.</li>
+                    <li data-i18n="driverDeliver.step16.sw2">يتحول الخط الوردي على الخريطة ليربط بينك وبين العميل الجديد.</li>
+                    <li data-i18n="driverDeliver.step16.sw3">الدائرة المحددة تأخذ إطاراً أخضر وحجماً أكبر قليلاً.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 17 -->
+    <div class="step">
+        <div class="step-number">17</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step17.title">مفهوم «التوصيل الجاري» مقابل «التوصيل المحدد»</div>
+            <div class="step-desc">
+                <div data-i18n="driverDeliver.step17.intro">فرق مهم جداً:</div>
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="driverDeliver.step17.table.colConcept">المفهوم</th>
+                            <th data-i18n="driverDeliver.step17.table.colMeaning">معناه</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n-html="driverDeliver.step17.table.r1c1"><strong>التوصيل الجاري</strong></td>
+                            <td data-i18n="driverDeliver.step17.table.r1c2">هو أول توصيل حالته «نشط» أو «وصل». أنت تتجه إليه الآن. دائرة الخريطة الوردية.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n-html="driverDeliver.step17.table.r2c1"><strong>التوصيل المحدد</strong></td>
+                            <td data-i18n="driverDeliver.step17.table.r2c2">هو التوصيل الذي تعرضه اللوحة السفلية. قد يكون الجاري أو منتظراً. الخريطة ترسم الخط له.</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p style="margin-top:10px;" data-i18n-html="driverDeliver.step17.example">
+                    <strong>مثال:</strong> لديك 3 توصيلات. الأول «نشط» (أنت في الطريق إليه).
+                    إذا لم تلمس شيئاً، فالتوصيل المحدد = التوصيل الجاري = الأول.
+                    لكن إذا ضغطت على قرص العميل الثالث، فالتوصيل المحدد يصبح الثالث، بينما
+                    التوصيل الجاري يبقى الأول. الخريطة ترسم لك الخط نحو الثالث، لكنك
+                    لا تزال في رحلة الأول.
+                </p>
+
+                <div class="callout callout-info">
+                    <div class="callout-icon">💡</div>
+                    <div class="callout-body" data-i18n-html="driverDeliver.step17.callout">
+                        <strong>قاعدة عملية:</strong>
+                        الأزرار (وصلت / تأكيد التسليم / إلغاء) تعمل على
+                        <strong>التوصيل المحدد فقط</strong>. إذا كنت تريد تأكيد التسليم
+                        للعميل الأول، حدده أولاً من القرص.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 18 -->
+    <div class="step">
+        <div class="step-number">18</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step18.title">ماذا يحدث بعد إكمال توصيل من بين عدة؟</div>
+            <div class="step-desc">
+                <div data-i18n="driverDeliver.step18.intro">بعد تأكيد التسليم للعميل الأول:</div>
+                <ul>
+                    <li data-i18n="driverDeliver.step18.b1">يختفي قرصه من شريط الأقراص.</li>
+                    <li data-i18n="driverDeliver.step18.b2">تختفي دائرته من الخريطة.</li>
+                    <li data-i18n="driverDeliver.step18.b3">يُعاد ترقيم الباقين (2 ← 1، 3 ← 2).</li>
+                    <li data-i18n="driverDeliver.step18.b4">التوصيل التالي في القائمة يصبح «الجاري» تلقائياً.</li>
+                    <li data-i18n-html="driverDeliver.step18.b5">إذا لم يتبقَّ أي توصيل نشط، <strong>يعود التطبيق تلقائياً إلى الشاشة الرئيسية</strong>.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 19 -->
+    <div class="step">
+        <div class="step-number">19</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step19.title">التحقق الآمن لكل توصيل</div>
+            <div class="step-desc">
+                <div data-i18n-html="driverDeliver.step19.intro">
+                    التحقق الآمن يعمل <strong>لكل توصيل على حدة</strong> — ليس مرة واحدة.
+                </div>
+                <ul>
+                    <li data-i18n="driverDeliver.step19.b1">عندما تصل إلى العميل الأول، يجري التحقق معه.</li>
+                    <li data-i18n="driverDeliver.step19.b2">بعد إكماله، عندما تصل إلى العميل الثاني، يجري التحقق مع الثاني.</li>
+                    <li data-i18n="driverDeliver.step19.b3">وهكذا لكل توصيل جديد.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 20 -->
+    <div class="step">
+        <div class="step-number">20</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step20.title">الترتيب ليس إجبارياً</div>
+            <div class="step-desc">
+                <div data-i18n-html="driverDeliver.step20.intro">
+                    رغم أن التطبيق يرتب العملاء برقم (1، 2، 3)، إلا أن الترتيب
+                    <strong>ليس إجبارياً</strong>:
+                </div>
+                <ul>
+                    <li data-i18n="driverDeliver.step20.b1">يمكنك تسليم العميل الثالث أولاً إذا كان أقرب.</li>
+                    <li data-i18n="driverDeliver.step20.b2">اضغط على قرصه، تأكد أنك قريب منه، اضغط «وصلت».</li>
+                    <li data-i18n="driverDeliver.step20.b3">بعد التأكيد، ينتقل التطبيق للعميل التالي.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         PART 4 — ALL DISTANCES AND RANGES
+    ═══════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="driverDeliver.part4.title">الجزء الرابع — المسافات والنطاقات (كلها في مكان واحد)</h2>
+
+    <!-- 21 -->
+    <div class="step">
+        <div class="step-number">21</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step21.title">النطاقات الأربعة في نظرة واحدة</div>
+            <div class="step-desc">
+                <div data-i18n-html="driverDeliver.step21.intro">
+                    أثناء عملك كسائق، تتحكم فيك <strong>أربعة نطاقات مختلفة</strong>. كل واحد
+                    له غرضه الخاص:
+                </div>
+
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th data-i18n="driverDeliver.step21.table.colRange">النطاق</th>
+                            <th data-i18n="driverDeliver.step21.table.colValue">القيمة</th>
+                            <th data-i18n="driverDeliver.step21.table.colPurpose">الغرض</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td data-i18n="driverDeliver.step21.table.r1c2">المسافة الديناميكية</td>
+                            <td data-i18n="driverDeliver.step21.table.r1c3">يتغير</td>
+                            <td data-i18n="driverDeliver.step21.table.r1c4">المسافة الحالية إلى العميل المحدد — تُعرض في اللوحة.</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td data-i18n="driverDeliver.step21.table.r2c2">قاعدة الوصول (Geofence)</td>
+                            <td data-i18n-html="driverDeliver.step21.table.r2c3"><strong>200 متر</strong></td>
+                            <td data-i18n="driverDeliver.step21.table.r2c4">لتفعيل زر «وصلت».</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td data-i18n="driverDeliver.step21.table.r3c2">قاعدة الطلب الإضافي</td>
+                            <td data-i18n-html="driverDeliver.step21.table.r3c3"><strong>1.6 كم</strong></td>
+                            <td data-i18n="driverDeliver.step21.table.r3c4">لا يصلك طلب جديد إذا كنت بعيداً عن مسارك الحالي.</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td data-i18n="driverDeliver.step21.table.r4c2">نطاق البحث</td>
+                            <td data-i18n-html="driverDeliver.step21.table.r4c3"><strong>5 / 10 / 15 كم</strong></td>
+                            <td data-i18n="driverDeliver.step21.table.r4c4">يحدده العميل — يحدد أي السائقين يستلمون الطلب.</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="callout callout-info">
+                    <div class="callout-icon">💡</div>
+                    <div class="callout-body" data-i18n-html="driverDeliver.step21.callout">
+                        <strong>الفكرة العامة:</strong>
+                        كلما ابتعدت عن عميلك الحالي، تضيق فرصك في استقبال طلبات جديدة.
+                        هذا يضمن أن كل توصيل جديد لا يبعدك كثيراً عن مسارك الحالي.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 22 -->
+    <div class="step">
+        <div class="step-number">22</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step22.title">النطاق 1 — المسافة الديناميكية</div>
+            <div class="step-desc">
+                <div data-i18n-html="driverDeliver.step22.intro">
+                    هذه هي المسافة التي تراها في اللوحة السفلية تحت «المسافة». إنها
+                    <strong>المسافة المباشرة</strong> (خط مستقيم) من موقعك الحالي إلى
+                    موقع العميل المحدد.
+                </div>
+
+                <ul>
+                    <li data-i18n-html="driverDeliver.step22.b1"><strong>تُحدَّث تلقائياً</strong> كل ثانيتين مع تحركك.</li>
+                    <li data-i18n="driverDeliver.step22.b2">تظهر بالمتر إذا كانت أقل من كيلومتر، وبالكيلومتر إذا كانت أكثر.</li>
+                    <li data-i18n="driverDeliver.step22.b3">تُستخدم أيضاً لتفعيل زر «وصلت» (النطاق 2).</li>
+                </ul>
+
+                <p style="margin-top:8px;" data-i18n-html="driverDeliver.step22.example">
+                    <strong>مثال:</strong> تبدأ على بعد 2.3 كم، وبعد دقيقة تصبح 1.8 كم،
+                    ثم 0.9 كم، ثم 150 م — وهنا يفتح الزر.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 23 -->
+    <div class="step">
+        <div class="step-number">23</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step23.title">النطاق 2 — قاعدة الوصول (200 متر)</div>
+            <div class="step-desc">
+                <div data-i18n-html="driverDeliver.step23.intro">
+                    لا يمكنك تفعيل زر <strong>«وصلت»</strong> إلا إذا كانت المسافة
+                    الديناميكية <strong>200 متر أو أقل</strong>.
+                </div>
+
+                <div class="diagram">
+                    <svg viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+                        <circle cx="200" cy="130" r="100"
+                                fill="rgba(34, 197, 94, 0.08)"
+                                stroke="#22c55e" stroke-width="2"
+                                stroke-dasharray="6 4"/>
+                        <circle cx="200" cy="130" r="14" fill="#5c3438"
+                                stroke="white" stroke-width="3"/>
+                        <text x="200" y="135" text-anchor="middle"
+                              font-size="12" fill="white" font-weight="bold">عميل</text>
+                        <circle cx="60" cy="60" r="12" fill="#ef4444"
+                                stroke="white" stroke-width="2"/>
+                        <text x="60" y="64" text-anchor="middle"
+                              font-size="10" fill="white" font-weight="bold">🚚</text>
+                        <line x1="60" y1="60" x2="200" y2="130"
+                              stroke="#ef4444" stroke-width="1"
+                              stroke-dasharray="3 3" opacity="0.6"/>
+                        <text x="115" y="105" font-size="11" fill="#ef4444"
+                              text-anchor="middle" font-weight="bold">450 م — لا تستطيع</text>
+                        <circle cx="290" cy="170" r="12" fill="#b76e79"
+                                stroke="white" stroke-width="2"/>
+                        <text x="290" y="174" text-anchor="middle"
+                              font-size="10" fill="white" font-weight="bold">🚚</text>
+                        <line x1="290" y1="170" x2="200" y2="130"
+                              stroke="#22c55e" stroke-width="1.5"
+                              stroke-dasharray="3 3" opacity="0.7"/>
+                        <text x="255" y="145" font-size="11" fill="#22c55e"
+                              text-anchor="middle" font-weight="bold">80 م — تستطيع ✓</text>
+                        <text x="200" y="245" font-size="11" fill="#a6747c"
+                              text-anchor="middle">نصف القطر = 200 متر</text>
+                    </svg>
+
+                    <div class="diagram-legend">
+                        <div class="item">
+                            <span class="dot" style="background:#5c3438;"></span>
+                            <span data-i18n="driverDeliver.step23.legend.client">موقع العميل</span>
+                        </div>
+                        <div class="item">
+                            <span class="dot" style="background:#22c55e;"></span>
+                            <span data-i18n="driverDeliver.step23.legend.allowed">منطقة 200 م — مسموح</span>
+                        </div>
+                        <div class="item">
+                            <span class="dot" style="background:#ef4444;"></span>
+                            <span data-i18n="driverDeliver.step23.legend.far">بعيد — غير مسموح</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="callout callout-info">
+                    <div class="callout-icon">📏</div>
+                    <div class="callout-body" data-i18n-html="driverDeliver.step23.callout">
+                        <strong>ببساطة:</strong> تخيّل دائرة نصف قطرها 200 متر حول العميل
+                        (ملعبا كرة قدم تقريباً). بمجرد دخولك داخل الدائرة، يفتح الزر.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 24 -->
+    <div class="step">
+        <div class="step-number">24</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step24.title">النطاق 3 — قاعدة الطلب الإضافي (1.6 كم)</div>
+            <div class="step-desc">
+                <div data-i18n-html="driverDeliver.step24.intro">
+                    عندما يكون لديك <strong>توصيل نشط بالفعل</strong>، لا يصلك طلب جديد إلا
+                    إذا كان موقع العميل الجديد داخل
+                    <strong>1.6 كم من محطتك التالية أو السابقة</strong>.
+                </div>
+
+                <div class="diagram">
+                    <svg viewBox="0 0 500 340" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+                        <circle cx="180" cy="90" r="85"
+                                fill="rgba(34, 197, 94, 0.08)"
+                                stroke="#22c55e" stroke-width="2"
+                                stroke-dasharray="6 4"/>
+                        <circle cx="180" cy="250" r="85"
+                                fill="rgba(34, 197, 94, 0.08)"
+                                stroke="#22c55e" stroke-width="2"
+                                stroke-dasharray="6 4"/>
+                        <circle cx="180" cy="170" r="16" fill="#b76e79"
+                                stroke="white" stroke-width="3"/>
+                        <text x="180" y="176" fill="white" font-size="14"
+                              text-anchor="middle" font-weight="bold">🚚</text>
+                        <circle cx="180" cy="90" r="16" fill="#5c3438"
+                                stroke="white" stroke-width="3"/>
+                        <text x="180" y="96" fill="white" font-size="12"
+                              text-anchor="middle" font-weight="bold">A</text>
+                        <circle cx="180" cy="250" r="16" fill="#5c3438"
+                                stroke="white" stroke-width="3"/>
+                        <text x="180" y="256" fill="white" font-size="12"
+                              text-anchor="middle" font-weight="bold">B</text>
+                        <circle cx="245" cy="110" r="16" fill="#22c55e"
+                                stroke="white" stroke-width="3"/>
+                        <text x="245" y="116" fill="white" font-size="12"
+                              text-anchor="middle" font-weight="bold">C</text>
+                        <text x="290" y="115" font-size="12" fill="#16a34a"
+                              font-weight="bold">✓ مقبول</text>
+                        <circle cx="420" cy="170" r="16" fill="#ef4444"
+                                stroke="white" stroke-width="3"/>
+                        <text x="420" y="176" fill="white" font-size="12"
+                              text-anchor="middle" font-weight="bold">D</text>
+                        <text x="450" y="175" font-size="12" fill="#dc2626"
+                              font-weight="bold" text-anchor="end">✗ مرفوض</text>
+                        <text x="180" y="330" font-size="11" fill="#a6747c"
+                              text-anchor="middle">نصف قطر كل دائرة = 1.6 كم</text>
+                    </svg>
+
+                    <div class="diagram-legend">
+                        <div class="item">
+                            <span class="dot" style="background:#5c3438;"></span>
+                            <span data-i18n="driverDeliver.step24.legend.stops">محطاتك الحالية</span>
+                        </div>
+                        <div class="item">
+                            <span class="dot" style="background:#22c55e;"></span>
+                            <span data-i18n="driverDeliver.step24.legend.accepted">طلب مقبول</span>
+                        </div>
+                        <div class="item">
+                            <span class="dot" style="background:#ef4444;"></span>
+                            <span data-i18n="driverDeliver.step24.legend.rejected">طلب مرفوض</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div data-i18n-html="driverDeliver.step24.idea"><strong>الفكرة بكلمات بسيطة:</strong></div>
+                <ul>
+                    <li data-i18n="driverDeliver.step24.b1">لديك توصيل نشط (من نقطة إلى نقطة).</li>
+                    <li data-i18n-html="driverDeliver.step24.b2">لتستلم طلباً جديداً، يجب أن يكون موقع العميل الجديد قريباً من <strong>محطتك التالية</strong> أو <strong>محطتك السابقة</strong>.</li>
+                    <li data-i18n-html="driverDeliver.step24.b3">«قريب» تعني <strong>1.6 كم أو أقل</strong>.</li>
+                    <li data-i18n="driverDeliver.step24.b4">بهذا الشكل، الطلب الجديد لا يُبعدك عن مسارك — بل يكون على طريقك.</li>
+                </ul>
+
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="driverDeliver.step24.table.colCase">الحالة</th>
+                            <th data-i18n="driverDeliver.step24.table.colWhat">ما يحدث</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n="driverDeliver.step24.table.r1c1">لا يوجد توصيل نشط</td>
+                            <td data-i18n-html="driverDeliver.step24.table.r1c2">تصلك طلبات حسب <strong>نطاق البحث</strong> (5/10/15 كم).</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverDeliver.step24.table.r2c1">لديك توصيل نشط واحد</td>
+                            <td data-i18n-html="driverDeliver.step24.table.r2c2">تصلك طلبات إضافية فقط إذا كان العميل الجديد ضمن <strong>1.6 كم من محطة A أو B</strong>.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverDeliver.step24.table.r3c1">لديك توصيلان نشطان</td>
+                            <td data-i18n-html="driverDeliver.step24.table.r3c2">تصلك طلبات إضافية فقط إذا كان العميل الجديد ضمن <strong>1.6 كم من المحطة التالية أو السابقة</strong> على مسارك.</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="callout callout-success">
+                    <div class="callout-icon">✓</div>
+                    <div class="callout-body" data-i18n-html="driverDeliver.step24.callout">
+                        <strong>الفائدة:</strong>
+                        هذه القاعدة تمنع أن يرسل لك النظام طلباً في منطقة بعيدة أثناء
+                        توصيلك الحالي. كل طلب جديد يكون دائماً على طريقك — لا انحرافات.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 25 -->
+    <div class="step">
+        <div class="step-number">25</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step25.title">النطاق 4 — نطاق البحث (5/10/15 كم)</div>
+            <div class="step-desc">
+                <div data-i18n-html="driverDeliver.step25.intro">
+                    هذا النطاق يحدده <strong>العميل</strong> وليس أنت. عند طلب توصيل، يختار
+                    العميل نطاق البحث:
+                </div>
+
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="driverDeliver.step25.table.colRange">النطاق</th>
+                            <th data-i18n="driverDeliver.step25.table.colWho">من يستلم الطلب</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n="driverDeliver.step25.table.r1c1">5 كم</td>
+                            <td data-i18n="driverDeliver.step25.table.r1c2">السائقون ضمن 5 كم فقط.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverDeliver.step25.table.r2c1">10 كم</td>
+                            <td data-i18n="driverDeliver.step25.table.r2c2">السائقون ضمن 10 كم.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverDeliver.step25.table.r3c1">15 كم</td>
+                            <td data-i18n="driverDeliver.step25.table.r3c2">السائقون ضمن 15 كم.</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p style="margin-top:8px;" data-i18n-html="driverDeliver.step25.whatMeans">
+                    <strong>ماذا يعني هذا لك؟</strong>
+                </p>
+                <ul>
+                    <li data-i18n="driverDeliver.step25.b1">أنت لا تتحكم في هذا النطاق — العميل يختاره.</li>
+                    <li data-i18n="driverDeliver.step25.b2">كلما كبر النطاق، زاد عدد السائقين الذين يستلمون نفس الطلب = منافسة أكبر لكن فرص أكثر.</li>
+                    <li data-i18n="driverDeliver.step25.b3">كلما صغر النطاق، قلّ عدد المنافسين لكنك تحتاج أن تكون قريباً جداً.</li>
+                </ul>
+
+                <div class="callout callout-info">
+                    <div class="callout-icon">📍</div>
+                    <div class="callout-body" data-i18n-html="driverDeliver.step25.callout">
+                        <strong>نصيحة:</strong>
+                        ابقَ قريباً من المناطق السكنية الكثيفة (وسط المدينة، الأحياء
+                        الجامعية…). هذا يزيد فرصك في استقبال الطلبات ذات النطاق الصغير
+                        (5 كم) — أي منافسة أقل.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 26 -->
+    <div class="step">
+        <div class="step-number">26</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step26.title">مقارنة النطاقات الأربعة</div>
+            <div class="step-desc">
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="driverDeliver.step26.table.colRange">النطاق</th>
+                            <th data-i18n="driverDeliver.step26.table.colValue">القيمة</th>
+                            <th data-i18n="driverDeliver.step26.table.colWhoSets">من يحدده</th>
+                            <th data-i18n="driverDeliver.step26.table.colWhen">متى يُطبَّق</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n="driverDeliver.step26.table.r1c1">المسافة الديناميكية</td>
+                            <td data-i18n="driverDeliver.step26.table.r1c2">متغيرة</td>
+                            <td data-i18n="driverDeliver.step26.table.r1c3">GPS</td>
+                            <td data-i18n="driverDeliver.step26.table.r1c4">دائماً (تُعرض في اللوحة)</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverDeliver.step26.table.r2c1">قاعدة الوصول</td>
+                            <td data-i18n="driverDeliver.step26.table.r2c2">200 م</td>
+                            <td data-i18n="driverDeliver.step26.table.r2c3">النظام</td>
+                            <td data-i18n="driverDeliver.step26.table.r2c4">عند محاولة الضغط على «وصلت»</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverDeliver.step26.table.r3c1">قاعدة الطلب الإضافي</td>
+                            <td data-i18n="driverDeliver.step26.table.r3c2">1.6 كم</td>
+                            <td data-i18n="driverDeliver.step26.table.r3c3">النظام</td>
+                            <td data-i18n="driverDeliver.step26.table.r3c4">عندما يكون لديك توصيل نشط</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverDeliver.step26.table.r4c1">نطاق البحث</td>
+                            <td data-i18n="driverDeliver.step26.table.r4c2">5 / 10 / 15 كم</td>
+                            <td data-i18n="driverDeliver.step26.table.r4c3">العميل</td>
+                            <td data-i18n="driverDeliver.step26.table.r4c4">عند إنشاء كل طلب جديد</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 27 -->
+    <div class="step">
+        <div class="step-number">27</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step27.title">أمثلة عملية</div>
+            <div class="step-desc">
+
+                <div class="scenario do">
+                    <div class="scenario-title" data-i18n="driverDeliver.step27.s1.title">✅ صحيح — وصول عادي</div>
+                    <span data-i18n-html="driverDeliver.step27.s1.body">أنت على بعد <strong>150 متراً</strong> من العميل. زر «وصلت» أزرق. تضغط، يتلقى العميل تنبيهاً، تكمل التحقق الآمن.</span>
+                </div>
+
+                <div class="scenario dont">
+                    <div class="scenario-title" data-i18n="driverDeliver.step27.s2.title">❌ خطأ — الوصول المبكر</div>
+                    <span data-i18n-html="driverDeliver.step27.s2.body">أنت لا تزال في <strong>600 متر</strong> خارج الحي. زر «وصلت» رمادي. لا تستطيع الضغط. تحرّك أقرب، وعندما تصل إلى 200م يصبح الزر مفتوحاً.</span>
+                </div>
+
+                <div class="scenario do">
+                    <div class="scenario-title" data-i18n="driverDeliver.step27.s3.title">✅ صحيح — طلب إضافي على المسار</div>
+                    <span data-i18n-html="driverDeliver.step27.s3.body">لديك توصيل نشط من نقطة A إلى نقطة B. أثناء طريقك، يصلك طلب جديد C على بعد <strong>1.2 كم من A</strong> — أي على مسارك تقريباً. الطلب <strong>مقبول</strong> تلقائياً، وتستلم التنبيه.</span>
+                </div>
+
+                <div class="scenario dont">
+                    <div class="scenario-title" data-i18n="driverDeliver.step27.s4.title">❌ خطأ — طلب إضافي بعيد</div>
+                    <span data-i18n-html="driverDeliver.step27.s4.body">لديك توصيل نشط من A إلى B. يصلك طلب D على بعد <strong>4 كم خارج المسار</strong>. الطلب <strong>لا يصلك</strong> — لأنك خارج نطاق 1.6 كم. هذا لصالحك: لا انحرافات طويلة.</span>
+                </div>
+
+                <div class="scenario do">
+                    <div class="scenario-title" data-i18n="driverDeliver.step27.s5.title">✅ صحيح — نطاق بحث واسع</div>
+                    <span data-i18n-html="driverDeliver.step27.s5.body">عميل ينشئ طلباً بنطاق 15 كم. أنت على بعد 8 كم. تستلم التنبيه، تقبل، وتتوجه إليه.</span>
+                </div>
+
+                <div class="scenario dont">
+                    <div class="scenario-title" data-i18n="driverDeliver.step27.s6.title">❌ خطأ — تغيير GPS</div>
+                    <span data-i18n-html="driverDeliver.step27.s6.body">لا تحاول إيقاف تشغيل GPS أو استخدام تطبيق محاكاة الموقع. النظام يكتشف ذلك ويعتبره سلوكاً مشبوهاً — قد يؤدي إلى تعليق الحساب.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 28 -->
+    <div class="step">
+        <div class="step-number">28</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step28.title">ماذا لو كان GPS غير دقيق؟</div>
+            <div class="step-desc">
+                <div data-i18n-html="driverDeliver.step28.intro">
+                    في حالات نادرة، قد يظهر خطأ طفيف في المسافة. إذا كنت واثقاً من أنك
+                    عند العميل لكن الزر لا يفتح:
+                </div>
+                <ul>
+                    <li data-i18n-html="driverDeliver.step28.b1">تأكد من تفعيل <strong>GPS بدقة عالية</strong> في إعدادات الهاتف.</li>
+                    <li data-i18n="driverDeliver.step28.b2">اخرج من المكان المظلل (بناية، نفق) وانتظر 30 ثانية.</li>
+                    <li data-i18n-html="driverDeliver.step28.b3">اضغط زر <strong>تحديث المسار</strong> في شريط العنوان.</li>
+                    <li data-i18n="driverDeliver.step28.b4">إذا استمر الخطأ، تواصل مع الدعم — سجل حالتك.</li>
+                </ul>
+                <div class="callout callout-info">
+                    <div class="callout-icon">🛰️</div>
+                    <div class="callout-body" data-i18n-html="driverDeliver.step28.callout">
+                        <strong>نطاق الخطأ المتوقع:</strong>
+                        GPS عادةً دقيق حتى ±10 متراً في الأماكن المفتوحة. في المناطق
+                        المبنية قد يصل الخطأ إلى ±50 متراً. الـ200 متر تعطي هامشاً كبيراً
+                        لهذه الحالات. نفس الشيء ينطبق على قاعدة 1.6 كم.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         PART 5 — SUMMARY + RULES
+    ═══════════════════════════════════════════════════════ -->
+
+    <h2 class="section-title" data-i18n="driverDeliver.part5.title">الجزء الخامس — ملخص وقواعد</h2>
+
+    <div class="step">
+        <div class="step-number">29</div>
+        <div class="step-body">
+            <div class="step-title" data-i18n="driverDeliver.step29.title">دورة حياة الطلب كاملة</div>
+            <div class="step-desc">
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="driverDeliver.step29.table.colStage">المرحلة</th>
+                            <th data-i18n="driverDeliver.step29.table.colWhat">ما يحدث</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-i18n="driverDeliver.step29.table.r1c1">1. تنبيه</td>
+                            <td data-i18n="driverDeliver.step29.table.r1c2">بطاقة تظهر + صوت + اهتزاز + عدّاد 60 ثانية.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverDeliver.step29.table.r2c1">2. قبول</td>
+                            <td data-i18n="driverDeliver.step29.table.r2c2">قبولك → انتقال فوري لشاشة التتبع المباشر.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverDeliver.step29.table.r3c1">3. القيادة</td>
+                            <td data-i18n="driverDeliver.step29.table.r3c2">الخريطة تحدّث موقعك كل 0.5 ثانية. العميل يرى تقدمك.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverDeliver.step29.table.r4c1">4. الوصول (200م)</td>
+                            <td data-i18n="driverDeliver.step29.table.r4c2">الاقتراب من 200م → زر «وصلت» يصبح مفتوحاً.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverDeliver.step29.table.r5c1">5. التحقق الآمن</td>
+                            <td data-i18n="driverDeliver.step29.table.r5c2">Bluetooth / NFC يتحقق من هوية العميل تلقائياً.</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="driverDeliver.step29.table.r6c1">6. التسليم</td>
+                            <td data-i18n="driverDeliver.step29.table.r6c2">تأكيد التسليم → تُضاف الأرباح → العودة للشاشة الرئيسية.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="callout callout-warn">
+        <div class="callout-icon">🔋</div>
+        <div class="callout-body" data-i18n-html="driverDeliver.rules.battery">
+            <strong>استهلاك البطارية:</strong>
+            أثناء التتبع المباشر، يستهلك التطبيق البطارية أكثر من المعتاد (GPS + Bluetooth
+            + WebSocket). ابدأ رحلتك بشحن كافٍ (50%+). يمكنك إيقاف الشاشة عن طريق قفل
+            الهاتف — التتبع يستمر في الخلفية.
+        </div>
+    </div>
+
+    <div class="callout callout-info">
+        <div class="callout-icon">🎯</div>
+        <div class="callout-body" data-i18n-html="driverDeliver.rules.summary">
+            <strong>ملخص النطاقات في سطر واحد:</strong>
+            <ul style="margin-top:6px; padding-right:20px;">
+                <li><strong>200 م:</strong> للوصول إلى العميل.</li>
+                <li><strong>1.6 كم:</strong> لاستقبال طلب إضافي أثناء توصيل نشط.</li>
+                <li><strong>5/10/15 كم:</strong> نطاق يحدده العميل — من يستلم الطلب.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="callout callout-success">
+        <div class="callout-icon">🚚</div>
+        <div class="callout-body" data-i18n-html="driverDeliver.rules.multiFlexibility">
+            <strong>عدة توصيلات = مرونة:</strong>
+            يمكنك تسليم العميل الثالث قبل الأول إذا كان أقرب. اضغط على قرصه، حدده،
+            سجّل وصولك، أكّد. لا يوجد إجبار على الترتيب — فقط احترم النطاقات.
+        </div>
+    </div>
+
+    <div class="callout callout-danger">
+        <div class="callout-icon">🚫</div>
+        <div class="callout-body" data-i18n-html="driverDeliver.rules.overreach">
+            <strong>تجاوز القواعد = عواقب:</strong>
+            محاولة تفعيل الوصول من بعيد عبر GPS وهمي، أو تكرار الإلغاء، أو التحقق
+            الكاذب مع عميل خاطئ — كلها مخالفات تؤدي إلى:
+            <ul style="margin-top:6px; padding-right:20px;">
+                <li>خصم من شارتك.</li>
+                <li>تعليق مؤقت للحساب.</li>
+                <li>أرشفة دائمة في الحالات القصوى.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ─── Next / prev ──────────────────────────────────── -->
+    <div class="next-prev">
+        <a class="nav-btn" href="driver-5-support.html" data-i18n="driverDeliver.nav.prev">→ السابق: التواصل مع الدعم</a>
+        <a class="nav-btn" href="driver-7-history.html" data-i18n="driverDeliver.nav.next">التالي: سجل التوصيلات والأداء ←</a>
+    </div>
+
+    <div class="footer">
+        <span data-i18n="driverDeliver.footer.copyright">© 2026 كوبا العيون – جميع الحقوق محفوظة</span><br>
+        <a href="https://legal.kouba.site/privacy-ar" data-i18n="driverDeliver.footer.privacy">سياسة الخصوصية</a>
+        &nbsp;•&nbsp;
+        <a href="https://legal.kouba.site/terms-ar" data-i18n="driverDeliver.footer.terms">شروط الخدمة</a>
+    </div>
+</div>
+
+<script>
+(function () {
+    try {
+        var lang = new URLSearchParams(location.search).get('lang');
+        if (!lang || lang === 'ar') return;
+        fetch('i18n/' + lang + '.json')
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (t) {
+                if (!t) return;
+                document.querySelectorAll('[data-i18n]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n')];
+                    if (v != null) el.textContent = v;
+                });
+                document.querySelectorAll('[data-i18n-html]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n-html')];
+                    if (v != null) el.innerHTML = v;
+                });
+                document.querySelectorAll('[data-i18n-alt]').forEach(function (el) {
+                    var v = t[el.getAttribute('data-i18n-alt')];
+                    if (v != null) el.alt = v;
+                });
+            })
+            .catch(function () {});
+    } catch (e) {}
+})();
+</script>
+</body>
+</html>
