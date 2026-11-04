@@ -125,7 +125,6 @@
         .choice-card.is-soon .arrow {
             color: #94a3b8;
         }
-        /* ::after replaced by real <span class="soon-tag"> for i18n */
         .choice-card .soon-tag {
             position: absolute;
             top: 12px;
@@ -174,6 +173,61 @@
             margin-bottom: 14px;
         }
 
+        /* ─── Download CTA ──────────────────────────────────── */
+        .download-section {
+            background: linear-gradient(135deg, #e8f0fe 0%, #f0f9ff 100%);
+            border: 2px solid #0077b6;
+            border-radius: 16px;
+            padding: 26px 28px;
+            margin: 30px 0 20px;
+            text-align: center;
+        }
+        .download-section .cta-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #0a2647;
+            margin-bottom: 8px;
+        }
+        .download-section .cta-desc {
+            font-size: 0.92rem;
+            color: #334155;
+            margin-bottom: 18px;
+            max-width: 620px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: #0077b6;
+            color: #ffffff !important;
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 14px 28px;
+            border-radius: 10px;
+            text-decoration: none !important;
+            box-shadow: 0 4px 14px rgba(0, 119, 182, 0.35);
+            transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+        }
+        .download-btn:hover {
+            background: #0a2647;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(10, 38, 71, 0.4);
+        }
+        .download-btn .btn-icon {
+            font-size: 1.2rem;
+        }
+        .download-section .test-note {
+            margin-top: 14px;
+            font-size: 0.78rem;
+            color: #64748b;
+            font-style: italic;
+        }
+        .download-section .test-note strong {
+            color: #92400e;
+        }
+
         /* ─── Screenshot placeholder ────────────────────────── */
         .screenshot-slot {
             background: #f1f5f9;
@@ -202,6 +256,7 @@
             h1 { font-size: 1.5rem; }
             h2 { font-size: 1.2rem; flex-wrap: wrap; }
             .choices { grid-template-columns: 1fr; }
+            .download-btn { width: 100%; justify-content: center; }
         }
     </style>
 </head>
@@ -287,6 +342,26 @@
             <div class="subtitle">Recibir solicitudes de entrega, llegar al cliente, entregar el agua y completar el pedido.</div>
             <div class="arrow">Abrir la guía del Conductor →</div>
         </a>
+    </div>
+
+    <!-- ─── Download the app (test phase) ──────────────────── -->
+    <div class="download-section">
+        <div class="cta-title" data-i18n="index.download.title">
+            📥 حمّل تطبيق كوبا الآن
+        </div>
+        <div class="cta-desc" data-i18n="index.download.desc">
+            النسخة التجريبية متاحة للتحميل المباشر. ننصح بتجربتها لمساعدتنا على تحسين التطبيق قبل الإطلاق الرسمي على متاجر التطبيقات.
+        </div>
+        <a class="download-btn"
+           href="https://github.com/lamjahdimm-LikesCats/kouba-releases/releases/download/v1.0.0-test1/app-release.apk"
+           download="kouba-app-v1.0.0-test1.apk"
+           rel="noopener">
+            <span class="btn-icon">⬇️</span>
+            <span data-i18n="index.download.button">تحميل تطبيق كوبا (نسخة تجريبية)</span>
+        </a>
+        <div class="test-note" data-i18n-html="index.download.note">
+            ⚠️ <strong>مرحلة اختبار:</strong> هذه النسخة تسبق النشر الرسمي على متاجر التطبيقات (App Store / Google Play). قد تتضمن أخطاء أو ميزات قيد التطوير.
+        </div>
     </div>
 
     <!-- ─── Placeholder for a future screenshot ─────────────── -->
