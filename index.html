@@ -59,7 +59,7 @@
             border: 2px solid #0077b6;
             border-radius: 16px;
             padding: 26px 28px;
-            margin: 0 0 28px 0;
+            margin: 0 0 20px 0;
             text-align: center;
         }
         .download-section .cta-title {
@@ -106,6 +106,52 @@
         }
         .download-section .test-note strong {
             color: #92400e;
+        }
+
+        /* ─── YouTube playlist CTA ──────────────────────────── */
+        .playlist-section {
+            background: linear-gradient(135deg, #fff1f2 0%, #fef2f2 100%);
+            border: 2px solid #dc2626;
+            border-radius: 16px;
+            padding: 22px 26px;
+            margin: 0 0 28px 0;
+            text-align: center;
+        }
+        .playlist-section .pl-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #7f1d1d;
+            margin-bottom: 8px;
+        }
+        .playlist-section .pl-desc {
+            font-size: 0.9rem;
+            color: #334155;
+            margin-bottom: 16px;
+            max-width: 620px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .playlist-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: #dc2626;
+            color: #ffffff !important;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 12px 26px;
+            border-radius: 10px;
+            text-decoration: none !important;
+            box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35);
+            transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+        }
+        .playlist-btn:hover {
+            background: #991b1b;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(153, 27, 27, 0.4);
+        }
+        .playlist-btn .btn-icon {
+            font-size: 1.15rem;
         }
 
         .intro-box {
@@ -282,6 +328,23 @@
         <div class="test-note" data-i18n-html="index.download.note">
             ⚠️ <strong>مرحلة اختبار:</strong> هذه النسخة تسبق النشر الرسمي على متاجر التطبيقات (App Store / Google Play). قد تتضمن أخطاء أو ميزات قيد التطوير.
         </div>
+    </div>
+
+    <!-- ─── YouTube playlist CTA (directly below download) ─── -->
+    <div class="playlist-section">
+        <div class="pl-title" data-i18n="index.playlist.title">
+            🎬 شاهد الدليل الكامل على يوتيوب
+        </div>
+        <div class="pl-desc" data-i18n="index.playlist.desc">
+            قائمة تشغيل تجمع كل فيديوهات شرح تطبيق كوبا: من التسجيل كعميل أو سائق، إلى طلب التوصيل، تتبّع السائق، إتمام التسليم، وتقييم الخدمة.
+        </div>
+        <a class="playlist-btn"
+           href="https://www.youtube.com/watch?v=k3EQIwvYcRE&list=PLIKp58WZGeM8"
+           target="_blank"
+           rel="noopener">
+            <span class="btn-icon">▶️</span>
+            <span data-i18n="index.playlist.button">فتح قائمة التشغيل على يوتيوب</span>
+        </a>
     </div>
 
     <div class="intro-box" dir="rtl" lang="ar" style="text-align: right;" data-i18n-html="index.intro">
